@@ -78,15 +78,15 @@
 
     <!-- Real Firebase Authentication -->
     <script>
-        // Firebase configuration - using project bermuda-01
-        // You need to get the real config from Firebase Console > Project Settings > Web App
+        // Firebase configuration - REAL config for bermuda-01
         const firebaseConfig = {
-            apiKey: "{{ config.get('FIREBASE_WEB_API_KEY', 'AIzaSy-REPLACE-WITH-REAL-WEB-API-KEY') }}",
+            apiKey: "{{ config.get('FIREBASE_WEB_API_KEY', 'AIzaSyAoWt0HAUvLzMD5OX43URZlbLFimA0wnmA') }}",
             authDomain: "bermuda-01.firebaseapp.com",
-            projectId: "bermuda-01", 
-            storageBucket: "bermuda-01.appspot.com",
-            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '123456789') }}",
-            appId: "{{ config.get('FIREBASE_WEB_APP_ID', '1:123456789:web:abcd1234') }}"
+            projectId: "bermuda-01",
+            storageBucket: "bermuda-01.firebasestorage.app", 
+            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '212698241186') }}",
+            appId: "{{ config.get('FIREBASE_WEB_APP_ID', '1:212698241186:web:dfe2ec1c46dd5a4e9c1ffb') }}",
+            measurementId: "G-ZQGF5RB992"
         };
 
         // Initialize Firebase
