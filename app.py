@@ -16,13 +16,32 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
-CORS(app)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-for-local-testing-very-long-and-secure-123456789')
+
+# Configure session
+app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for localhost
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+CORS(app, supports_credentials=True)
 
 # Make config available to templates
 @app.context_processor
 def inject_config():
     return dict(config=os.environ)
+
+# Make user session data available to templates
+@app.context_processor
+def inject_user():
+    if session.get('authenticated') and session.get('user_id'):
+        return dict(request={
+            'user': {
+                'uid': session.get('user_id'),
+                'email': session.get('email', ''),
+                'user_id': session.get('user_id')
+            }
+        })
+    return dict(request={'user': None})
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
@@ -370,7 +389,29 @@ def infer_form_from_text(input_text, max_retries=2):
 @app.route('/')
 def home():
     """Home page - redirect to dashboard if authenticated, otherwise show login"""
+    # Debug session state
+    logger.info(f"Home route - Session: {dict(session)}")
+    logger.info(f"Authenticated: {session.get('authenticated')}, User ID: {session.get('user_id')}")
+    
+    # Check if user is authenticated
+    if session.get('authenticated') and session.get('user_id'):
+        logger.info("User is authenticated, redirecting to dashboard")
+        return redirect(url_for('dashboard'))
+    
+    # For unauthenticated users, show the landing page
+    logger.info("User not authenticated, showing login page")
     return render_template('index.html')
+
+@app.route('/test-session')
+def test_session():
+    """Test route to debug session functionality"""
+    session['test'] = 'session_working'
+    return jsonify({
+        'session_test': session.get('test'),
+        'full_session': dict(session),
+        'authenticated': session.get('authenticated'),
+        'user_id': session.get('user_id')
+    })
 
 @app.route('/auth/google', methods=['POST'])
 def google_auth():
@@ -412,6 +453,10 @@ def google_auth():
         session['user_id'] = user_id
         session['email'] = email
         session['authenticated'] = True
+        
+        # Debug session after setting
+        logger.info(f"After setting session - Session: {dict(session)}")
+        logger.info(f"Session authenticated: {session.get('authenticated')}")
         
         return jsonify({
             'success': True,
