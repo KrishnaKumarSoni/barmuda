@@ -80,17 +80,36 @@
     <script>
         // Firebase configuration - Replace with your actual Firebase config
         const firebaseConfig = {
-            apiKey: "{{ config.FIREBASE_API_KEY or 'your-api-key' }}",
-            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN or 'bermuda-01.firebaseapp.com' }}",
-            projectId: "{{ config.FIREBASE_PROJECT_ID or 'bermuda-01' }}",
-            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET or 'bermuda-01.appspot.com' }}",
-            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID or 'your-sender-id' }}",
-            appId: "{{ config.FIREBASE_APP_ID or 'your-app-id' }}"
+            apiKey: "{{ config.get('FIREBASE_API_KEY', 'AIzaSyDummy-Key-Replace-With-Real') }}",
+            authDomain: "{{ config.get('FIREBASE_AUTH_DOMAIN', 'bermuda-01.firebaseapp.com') }}",
+            projectId: "{{ config.get('FIREBASE_PROJECT_ID', 'bermuda-01') }}",
+            storageBucket: "{{ config.get('FIREBASE_STORAGE_BUCKET', 'bermuda-01.appspot.com') }}",
+            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '123456789') }}",
+            appId: "{{ config.get('FIREBASE_APP_ID', '1:123456789:web:dummy-app-id') }}"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        // Initialize Firebase with error handling
+        let auth = null;
+        
+        try {
+            // Check if we have a valid API key
+            if (firebaseConfig.apiKey.includes('Dummy') || firebaseConfig.apiKey.includes('your-api')) {
+                console.warn('Firebase config not properly set. Authentication will not work.');
+                window.signInWithGoogle = function() {
+                    alert('Authentication is not configured. Please contact the administrator.');
+                };
+                return;
+            }
+            
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            window.signInWithGoogle = function() {
+                alert('Authentication system error. Please try again later.');
+            };
+            return;
+        }
 
         // Global authentication functions
         async function signInWithGoogle() {
