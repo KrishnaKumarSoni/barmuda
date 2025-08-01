@@ -1,0 +1,27 @@
+{
+  "rules": {
+    "chat_sessions": {
+      "$session_id": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['form_id', 'created_at'])",
+        "messages": {
+          "$message_id": {
+            ".read": true,
+            ".write": "!data.exists()",
+            ".validate": "newData.hasChildren(['content', 'sender', 'timestamp']) && newData.child('sender').val().matches(/^(user|bot)$/)"
+          }
+        },
+        "metadata": {
+          ".read": true,
+          ".write": true,
+          ".validate": "newData.hasChildren(['status', 'last_activity'])"
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

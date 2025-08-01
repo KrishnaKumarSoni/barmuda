@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refine Form - Bermuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fef5e0',
+                        'bermuda-light-cream': '#ffffff',
+                        'bermuda-border': '#fbe7bd',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#5e5d5d',
+                        'bermuda-light-gray': '#797878',
+                        'bermuda-disabled': '#acaaaa'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    },
+                    spacing: {
+                        '18': '4.5rem',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-bermuda-cream min-h-screen font-dm">
+    <!-- Navigation -->
+    <nav class="bg-white rounded-full mx-auto mt-8 max-w-fit border border-bermuda-nav-border">
+        <div class="flex items-center gap-18 px-6 py-3">
+            <!-- Logo Section -->
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-11 bg-center bg-cover bg-no-repeat"
+                     style="background-image: url('/static/fd8df05e393cbb3743a17079ba585dca07a12cd4.png');">
+                </div>
+                <div class="font-jakarta font-semibold text-2xl text-bermuda-orange tracking-tight">
+                    Bermuda forms
+                </div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-6 font-jakarta font-medium text-sm text-black tracking-tight ml-18">
+                <a href="/dashboard" class="hover:text-bermuda-orange transition-colors">dashboard</a>
+                <a href="/" class="hover:text-bermuda-orange transition-colors">home</a>
+            </div>
+            
+            <!-- Sign Out -->
+            <button onclick="signOut()" class="w-8 h-8 ml-auto">
+                <img src="/static/6c9de1342bc52c8dadcce7e1619288c4154b5c4d.svg" alt="Sign Out" class="w-full h-full">
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-8 py-12">
+        <!-- Go Back -->
+        <div class="flex items-center gap-2 mb-8">
+            <button onclick="goBack()" class="flex items-center gap-2 text-bermuda-light-gray hover:text-bermuda-orange transition-colors">
+                <img src="/static/1bbfb7e635384ea78a694417f46663c7e2781155.svg" alt="Back" class="w-5 h-5 rotate-90">
+                <span class="font-jakarta font-bold text-base tracking-tight">go back</span>
+            </button>
+        </div>
+        
+        <!-- Page Title -->
+        <h1 class="font-jakarta font-bold text-4xl text-bermuda-text tracking-tight mb-12">
+            refine your form
+        </h1>
+        
+        <!-- Form Title Section -->
+        <div class="mb-8">
+            <h2 class="font-jakarta font-bold text-3xl text-bermuda-orange tracking-tight mb-4">title</h2>
+            <div class="bg-white rounded-lg border border-bermuda-border p-4">
+                <input 
+                    type="text" 
+                    id="formTitle"
+                    class="w-full font-jakarta font-bold text-3xl text-bermuda-text bg-transparent outline-none resize-none tracking-tight"
+                    placeholder="Enter form title..."
+                >
+            </div>
+        </div>
+        
+        <!-- Questions Container -->
+        <div id="questionsContainer">
+            <!-- Questions will be dynamically inserted here -->
+        </div>
+        
+        <!-- Add Question Button -->
+        <div class="flex justify-center my-12">
+            <button 
+                onclick="addQuestion()"
+                class="flex items-center gap-3 px-6 py-3 border border-bermuda-orange rounded-full text-bermuda-red font-dm text-lg hover:bg-bermuda-orange hover:text-white transition-all"
+            >
+                Add question
+                <img src="/static/de0ecb426d241b7fe00aed48040a0fd5414132e1.svg" alt="Plus" class="w-6 h-6">
+            </button>
+        </div>
+        
+        <!-- Demographics Section -->
+        <div class="border-t border-gray-300 pt-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="font-jakarta font-bold text-3xl text-bermuda-orange tracking-tight">demographics</h2>
+                <button 
+                    id="demographicsToggle"
+                    onclick="toggleDemographics()"
+                    class="w-10 h-6"
+                >
+                    <img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">
+                </button>
+            </div>
+            
+            <!-- Demographics Grid -->
+            <div id="demographicsGrid" class="grid grid-cols-3 gap-4 hidden">
+                <!-- Demographics options will be populated here -->
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex justify-center gap-4 mt-16">
+            <button 
+                onclick="showPreview()"
+                class="border border-bermuda-orange text-bermuda-orange font-dm text-lg px-8 py-3 rounded-full hover:bg-bermuda-orange hover:text-white transition-all flex items-center gap-3"
+            >
+                Preview Form
+                <i class="ph ph-eye text-xl"></i>
+            </button>
+            <button 
+                onclick="saveForm()"
+                class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-lg px-8 py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
+            >
+                Save & Launch
+                <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+            </button>
+        </div>
+        
+        <!-- Loading/Success States -->
+        <div id="loadingState" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 text-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-bermuda-orange mx-auto mb-4"></div>
+                <p class="font-dm text-lg text-bermuda-text">Saving your form...</p>
+            </div>
+        </div>
+        
+        <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 text-center max-w-md">
+                <h3 class="font-jakarta font-bold text-2xl text-bermuda-text mb-4">Form Created Successfully!</h3>
+                <p class="font-dm text-bermuda-gray mb-6">Your form is ready to collect responses.</p>
+                <div class="flex gap-4">
+                    <button 
+                        onclick="copyShareLink()"
+                        class="flex-1 bg-bermuda-orange text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                        Copy Link
+                    </button>
+                    <button 
+                        onclick="goToDashboard()"
+                        class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all"
+                    >
+                        Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Modal -->
+        <div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-jakarta font-bold text-2xl text-bermuda-text">Form Preview</h3>
+                        <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
+                            <i class="ph ph-x text-2xl"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-bermuda-gray mt-2">This shows how respondents will experience your form as a conversation.</p>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Mock Chat Interface -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 bg-bermuda-orange rounded-full flex items-center justify-center">
+                                <i class="ph ph-chat-circle text-white"></i>
+                            </div>
+                            <div>
+                                <div class="font-dm font-semibold text-bermuda-text">Bermuda Assistant</div>
+                                <div class="text-xs text-bermuda-gray">AI Form Guide</div>
+                            </div>
+                        </div>
+                        
+                        <div id="previewChat" class="space-y-4 max-h-96 overflow-y-auto">
+                            <!-- Chat messages will be inserted here -->
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-white rounded-lg border border-gray-200">
+                            <div class="text-sm text-bermuda-gray">This is a preview. In the actual form, respondents can type naturally here.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button 
+                            onclick="startPreview()"
+                            class="bg-bermuda-orange text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            Start Preview
+                        </button>
+                        <button 
+                            onclick="closePreview()"
+                            class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration & Scripts -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "{{ config.FIREBASE_API_KEY or 'your-api-key' }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN or 'bermuda-01.firebaseapp.com' }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID or 'bermuda-01' }}",
+            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET or 'bermuda-01.appspot.com' }}",
+            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID or 'your-sender-id' }}",
+            appId: "{{ config.FIREBASE_APP_ID or 'your-app-id' }}"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Global variables
+        let formData = null;
+        let savedFormId = null;
+        
+        // Demographics options
+        const demographicsOptions = [
+            'Age', 'Education', 'Experience', 'Income', 'Occupation', 'Weight',
+            'Home city', 'Gender', 'Height'
+        ];
+
+        // Initialize form data from session storage or load existing form
+        function initializeForm() {
+            const storedForm = sessionStorage.getItem('generatedForm');
+            const editFormId = sessionStorage.getItem('editFormId');
+            
+            if (editFormId) {
+                // Load existing form for editing
+                loadExistingForm(editFormId);
+            } else if (storedForm) {
+                // Load newly generated form
+                formData = JSON.parse(storedForm);
+                populateForm();
+            } else {
+                // Redirect back if no form data
+                window.location.href = '/create-form';
+            }
+        }
+
+        // Load existing form from API
+        async function loadExistingForm(formId) {
+            try {
+                const response = await authenticatedFetch(`/api/form/${formId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    formData = data.form;
+                    savedFormId = formId; // Set saved form ID for updates
+                    populateForm();
+                    
+                    // Update save button text for existing forms
+                    const saveBtn = document.querySelector('button[onclick="saveForm()"]');
+                    if (saveBtn) {
+                        saveBtn.innerHTML = `
+                            Update Form
+                            <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+                        `;
+                    }
+                } else {
+                    alert('Failed to load form: ' + data.error);
+                    window.location.href = '/dashboard';
+                }
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Failed to load form. Please try again.');
+                window.location.href = '/dashboard';
+            }
+        }
+
+        // Populate form with data
+        function populateForm() {
+            if (!formData) return;
+            
+            // Set title
+            document.getElementById('formTitle').value = formData.title || '';
+            
+            // Render questions
+            renderQuestions();
+            
+            // Render demographics
+            renderDemographics();
+        }
+
+        // Render questions
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            if (!formData.questions) return;
+            
+            formData.questions.forEach((question, index) => {
+                const questionDiv = createQuestionElement(question, index);
+                container.appendChild(questionDiv);
+                
+                // Add separator line (except for last question)
+                if (index < formData.questions.length - 1) {
+                    const separator = document.createElement('div');
+                    separator.className = 'h-px bg-gray-300 my-8';
+                    separator.innerHTML = '<img src="/static/d4b2d18445421ae6aa2afe72fa588ce9063e31a3.svg" alt="Line" class="w-full h-px">';
+                    container.appendChild(separator);
+                }
+            });
+        }
+
+        // Create question element
+        function createQuestionElement(question, index) {
+            const div = document.createElement('div');
+            div.className = 'mb-8';
+            div.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-jakarta font-bold text-3xl tracking-tight ${question.enabled ? 'text-bermuda-orange' : 'text-bermuda-disabled'}">
+                        question ${index + 1}
+                    </h3>
+                    <button 
+                        onclick="toggleQuestion(${index})"
+                        class="w-10 h-6"
+                    >
+                        <img src="/static/${question.enabled ? 'd595dca8967d730147a1e3cdfbb85834e2cd745e.svg' : '77ab3bbe188a70a08cc0303b9233495ca14571bd.svg'}" 
+                             alt="Toggle" class="w-full h-full ${question.enabled ? '' : 'transform rotate-180'}">
+                    </button>
+                </div>
+                
+                <!-- Question Text -->
+                <div class="bg-white rounded-lg border border-bermuda-border p-4 mb-4">
+                    <input 
+                        type="text" 
+                        value="${question.text || ''}"
+                        onchange="updateQuestionText(${index}, this.value)"
+                        class="w-full font-dm text-base text-bermuda-text bg-transparent outline-none tracking-tight"
+                        placeholder="Enter question text..."
+                    >
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Question Type -->
+                    <div>
+                        <label class="font-jakarta font-bold text-lg text-bermuda-gray tracking-tight mb-2 block">question type</label>
+                        <div class="bg-white rounded-lg border border-bermuda-border p-4">
+                            <select 
+                                onchange="updateQuestionType(${index}, this.value)"
+                                class="w-full font-dm text-base text-bermuda-text bg-transparent outline-none appearance-none"
+                            >
+                                <option value="text" ${question.type === 'text' ? 'selected' : ''}>Text response</option>
+                                <option value="multiple_choice" ${question.type === 'multiple_choice' ? 'selected' : ''}>Multiple Choice Question</option>
+                                <option value="yes_no" ${question.type === 'yes_no' ? 'selected' : ''}>Yes / No</option>
+                                <option value="number" ${question.type === 'number' ? 'selected' : ''}>Number</option>
+                                <option value="rating" ${question.type === 'rating' ? 'selected' : ''}>Rating</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Answer Options -->
+                    <div>
+                        <label class="font-jakarta font-bold text-lg text-bermuda-gray tracking-tight mb-2 block">answer options</label>
+                        <div class="bg-white rounded-lg border border-bermuda-border p-4">
+                            ${getOptionsInput(question, index)}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Get options input based on question type
+        function getOptionsInput(question, index) {
+            if (question.type === 'multiple_choice' || question.type === 'rating') {
+                const options = question.options || [];
+                return `
+                    <div id="optionsContainer_${index}">
+                        ${options.map((option, optIndex) => `
+                            <div class="flex items-center gap-2 mb-2">
+                                <input 
+                                    type="text" 
+                                    value="${option}"
+                                    onchange="updateOption(${index}, ${optIndex}, this.value)"
+                                    class="flex-1 font-dm text-base text-bermuda-text bg-transparent outline-none border-b border-gray-200 pb-1"
+                                >
+                                <button 
+                                    onclick="removeOption(${index}, ${optIndex})"
+                                    class="text-red-500 hover:text-red-700 text-sm"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        `).join('')}
+                        <button 
+                            onclick="addOption(${index})"
+                            class="text-bermuda-orange hover:text-bermuda-red text-sm font-dm"
+                        >
+                            + Add option
+                        </button>
+                    </div>
+                `;
+            } else {
+                return '<span class="font-dm text-base text-bermuda-light-gray">none</span>';
+            }
+        }
+
+        // Render demographics
+        function renderDemographics() {
+            const grid = document.getElementById('demographicsGrid');
+            grid.innerHTML = '';
+            
+            demographicsOptions.forEach(option => {
+                const isEnabled = formData.demographics && formData.demographics[option.toLowerCase()] || false;
+                
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'bg-white rounded-lg border border-bermuda-border p-4 flex items-center justify-between';
+                optionDiv.innerHTML = `
+                    <span class="font-dm text-base text-bermuda-text tracking-tight">${option}</span>
+                    <button 
+                        onclick="toggleDemographic('${option.toLowerCase()}')"
+                        class="w-10 h-6"
+                    >
+                        <img src="/static/${isEnabled ? 'd595dca8967d730147a1e3cdfbb85834e2cd745e.svg' : '580dd424adfe44c75327028a910bf28d17eb6a01.svg'}" 
+                             alt="Toggle" class="w-full h-full ${isEnabled ? '' : 'transform rotate-180'}">
+                    </button>
+                `;
+                
+                grid.appendChild(optionDiv);
+            });
+        }
+
+        // Question manipulation functions
+        function toggleQuestion(index) {
+            if (formData.questions[index]) {
+                formData.questions[index].enabled = !formData.questions[index].enabled;
+                renderQuestions();
+            }
+        }
+
+        function updateQuestionText(index, text) {
+            if (formData.questions[index]) {
+                formData.questions[index].text = text;
+            }
+        }
+
+        function updateQuestionType(index, type) {
+            if (formData.questions[index]) {
+                formData.questions[index].type = type;
+                
+                // Reset options for new type
+                if (type === 'multiple_choice') {
+                    formData.questions[index].options = ['Option 1', 'Option 2'];
+                } else if (type === 'rating') {
+                    formData.questions[index].options = ['1', '2', '3', '4', '5'];
+                } else {
+                    formData.questions[index].options = null;
+                }
+                
+                renderQuestions();
+            }
+        }
+
+        function updateOption(questionIndex, optionIndex, value) {
+            if (formData.questions[questionIndex] && formData.questions[questionIndex].options) {
+                formData.questions[questionIndex].options[optionIndex] = value;
+            }
+        }
+
+        function addOption(questionIndex) {
+            if (formData.questions[questionIndex] && formData.questions[questionIndex].options) {
+                formData.questions[questionIndex].options.push('New option');
+                renderQuestions();
+            }
+        }
+
+        function removeOption(questionIndex, optionIndex) {
+            if (formData.questions[questionIndex] && formData.questions[questionIndex].options) {
+                formData.questions[questionIndex].options.splice(optionIndex, 1);
+                renderQuestions();
+            }
+        }
+
+        function addQuestion() {
+            const newQuestion = {
+                text: 'New question',
+                type: 'text',
+                options: null,
+                enabled: true
+            };
+            
+            formData.questions.push(newQuestion);
+            renderQuestions();
+        }
+
+        // Demographics functions
+        function toggleDemographics() {
+            const grid = document.getElementById('demographicsGrid');
+            const toggle = document.getElementById('demographicsToggle');
+            
+            if (grid.classList.contains('hidden')) {
+                grid.classList.remove('hidden');
+                toggle.innerHTML = '<img src="/static/d595dca8967d730147a1e3cdfbb85834e2cd745e.svg" alt="Toggle" class="w-full h-full">';
+            } else {
+                grid.classList.add('hidden');
+                toggle.innerHTML = '<img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">';
+            }
+        }
+
+        function toggleDemographic(option) {
+            if (!formData.demographics) {
+                formData.demographics = {};
+            }
+            
+            formData.demographics[option] = !formData.demographics[option];
+            renderDemographics();
+        }
+
+        // Form validation
+        function validateForm() {
+            // Check title
+            const title = document.getElementById('formTitle').value.trim();
+            if (!title) {
+                alert('Please enter a form title');
+                return false;
+            }
+            
+            // Check at least one enabled question
+            const enabledQuestions = formData.questions.filter(q => q.enabled);
+            if (enabledQuestions.length === 0) {
+                alert('Please enable at least one question');
+                return false;
+            }
+            
+            // Check question texts
+            for (let i = 0; i < formData.questions.length; i++) {
+                const question = formData.questions[i];
+                if (question.enabled && !question.text.trim()) {
+                    alert(`Please enter text for question ${i + 1}`);
+                    return false;
+                }
+                
+                // Check options for multiple choice and rating
+                if (question.enabled && (question.type === 'multiple_choice' || question.type === 'rating')) {
+                    if (!question.options || question.options.length < 2) {
+                        alert(`Please provide at least 2 options for question ${i + 1}`);
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
+        }
+
+        // Save form
+        async function saveForm() {
+            if (!validateForm()) return;
+            
+            // Update title
+            formData.title = document.getElementById('formTitle').value.trim();
+            
+            const loadingState = document.getElementById('loadingState');
+            loadingState.classList.remove('hidden');
+            
+            try {
+                let response;
+                
+                if (savedFormId) {
+                    // Update existing form
+                    response = await authenticatedFetch(`/api/update_form/${savedFormId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ form: formData })
+                    });
+                } else {
+                    // Create new form
+                    response = await authenticatedFetch('/api/save_form', {
+                        method: 'POST',
+                        body: JSON.stringify({ form: formData })
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    savedFormId = data.form_id;
+                    loadingState.classList.add('hidden');
+                    document.getElementById('successModal').classList.remove('hidden');
+                    
+                    // Clear session storage after successful save
+                    sessionStorage.removeItem('generatedForm');
+                    sessionStorage.removeItem('editFormId');
+                } else {
+                    alert('Failed to save form: ' + (data.error || 'Unknown error'));
+                }
+                
+            } catch (error) {
+                console.error('Save form error:', error);
+                alert('Network error. Please try again.');
+            } finally {
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        // Navigation functions
+        function goBack() {
+            window.location.href = '/create-form';
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        function copyShareLink() {
+            if (savedFormId) {
+                const link = `${window.location.origin}/form/${savedFormId}`;
+                navigator.clipboard.writeText(link).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    prompt('Copy this link:', link);
+                });
+            }
+        }
+
+        // Preview functionality
+        function showPreview() {
+            if (!validateForm()) return;
+            
+            // Update title
+            formData.title = document.getElementById('formTitle').value.trim();
+            
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        function startPreview() {
+            const chatContainer = document.getElementById('previewChat');
+            chatContainer.innerHTML = '';
+            
+            // Start the preview simulation
+            simulateConversation();
+        }
+
+        function simulateConversation() {
+            const chatContainer = document.getElementById('previewChat');
+            const enabledQuestions = formData.questions.filter(q => q.enabled);
+            
+            // Welcome message
+            addChatMessage('assistant', `Hi! I'm here to help you with "${formData.title}". Let's get started! This should only take a few minutes.`);
+            
+            let currentQuestionIndex = 0;
+            
+            function showNextQuestion() {
+                if (currentQuestionIndex >= enabledQuestions.length) {
+                    // Show demographics if enabled
+                    const enabledDemographics = Object.keys(formData.demographics || {}).filter(key => formData.demographics[key]);
+                    if (enabledDemographics.length > 0) {
+                        setTimeout(() => {
+                            addChatMessage('assistant', `Great! Just a few quick demographic questions to wrap up: ${enabledDemographics.join(', ')}.`);
+                            setTimeout(() => {
+                                addChatMessage('user', '[User answers demographic questions...]', true);
+                                setTimeout(() => {
+                                    addChatMessage('assistant', 'Perfect! Thank you for completing the form. Your responses have been recorded.');
+                                }, 1500);
+                            }, 1000);
+                        }, 1000);
+                    } else {
+                        setTimeout(() => {
+                            addChatMessage('assistant', 'Perfect! Thank you for completing the form. Your responses have been recorded.');
+                        }, 1000);
+                    }
+                    return;
+                }
+                
+                const question = enabledQuestions[currentQuestionIndex];
+                
+                setTimeout(() => {
+                    addChatMessage('assistant', question.text);
+                    
+                    // Show sample user response based on question type
+                    setTimeout(() => {
+                        let sampleResponse = getSampleResponse(question);
+                        addChatMessage('user', sampleResponse, true);
+                        
+                        currentQuestionIndex++;
+                        showNextQuestion();
+                    }, 1500);
+                }, 1000);
+            }
+            
+            // Start showing questions
+            setTimeout(showNextQuestion, 1000);
+        }
+
+        function getSampleResponse(question) {
+            switch (question.type) {
+                case 'multiple_choice':
+                    return question.options && question.options.length > 0 ? question.options[0] : 'Option 1';
+                case 'yes_no':
+                    return 'Yes';
+                case 'rating':
+                    return '4';
+                case 'number':
+                    return '25';
+                case 'text':
+                default:
+                    return 'This is a sample text response that shows how users might naturally answer this question.';
+            }
+        }
+
+        function addChatMessage(sender, message, isUser = false) {
+            const chatContainer = document.getElementById('previewChat');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isUser ? 'bg-bermuda-orange text-white' : 'bg-white border border-gray-200'}">
+                    <p class="text-sm ${isUser ? 'text-white' : 'text-bermuda-text'}">${message}</p>
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Authentication functions
+        async function signOut() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('idToken');
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign out error:', error);
+                alert('Failed to sign out');
+            }
+        }
+
+        // Helper function for authenticated requests
+        async function authenticatedFetch(url, options = {}) {
+            const idToken = localStorage.getItem('idToken');
+            if (!idToken) {
+                throw new Error('No authentication token');
+            }
+
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+
+        // Check authentication and initialize
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '/';
+                return;
+            }
+            
+            const idToken = await user.getIdToken();
+            localStorage.setItem('idToken', idToken);
+            
+            // Initialize form after auth
+            initializeForm();
+        });
+    </script>
+</body>
+</html>

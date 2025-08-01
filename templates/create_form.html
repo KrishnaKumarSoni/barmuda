@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Form - Bermuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fff5e0',
+                        'bermuda-light-cream': '#fffcf4',
+                        'bermuda-border': '#fb9a9a',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#c3c3c3'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-bermuda-cream relative min-h-screen font-dm">
+    <!-- Background Image -->
+    <div class="absolute inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-45 pointer-events-none"
+         style="background-image: url('/static/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png');">
+    </div>
+
+    <!-- Navigation -->
+    <nav class="relative z-10 bg-white rounded-full mx-auto mt-8 max-w-fit border border-bermuda-nav-border">
+        <div class="flex items-center gap-18 px-6 py-3">
+            <!-- Logo Section -->
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-11 bg-center bg-cover bg-no-repeat"
+                     style="background-image: url('/static/fd8df05e393cbb3743a17079ba585dca07a12cd4.png');">
+                </div>
+                <div class="font-jakarta font-semibold text-2xl text-bermuda-orange tracking-tight">
+                    Bermuda forms
+                </div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-6 font-jakarta font-medium text-sm text-black tracking-tight ml-18">
+                <a href="/dashboard" class="hover:text-bermuda-orange transition-colors">dashboard</a>
+                <a href="/" class="hover:text-bermuda-orange transition-colors">home</a>
+            </div>
+            
+            <!-- Sign Out -->
+            <button onclick="signOut()" class="w-8 h-8 ml-auto">
+                <img src="/static/6c9de1342bc52c8dadcce7e1619288c4154b5c4d.svg" alt="Sign Out" class="w-full h-full">
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="relative z-10 flex flex-col items-center">
+        <!-- Main Heading -->
+        <h1 class="font-jakarta font-semibold text-6xl text-bermuda-text text-center mt-48 mb-8 max-w-2xl leading-tight tracking-tight">
+            what do you want to learn today?
+        </h1>
+        
+        <!-- Subheading -->
+        <p class="font-dm text-xl text-bermuda-text text-center mb-12 tracking-tight">
+            make forms using ai and let people respond by chatting naturally
+        </p>
+        
+        <!-- Form Input Card -->
+        <div class="relative w-full max-w-3xl">
+            <div class="bg-bermuda-light-cream rounded-xl border border-bermuda-border p-6">
+                <textarea 
+                    id="formDump"
+                    placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
+                    class="w-full h-32 bg-transparent resize-none outline-none font-dm text-lg text-bermuda-gray placeholder-bermuda-gray leading-relaxed"
+                ></textarea>
+                
+                <!-- Generate Button -->
+                <div class="flex justify-end mt-4">
+                    <button 
+                        id="generateBtn"
+                        onclick="generateForm()"
+                        class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-lg px-8 py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
+                    >
+                        generate form
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden mt-8 text-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-bermuda-orange mx-auto mb-4"></div>
+            <p class="font-dm text-lg text-bermuda-text">Generating your form...</p>
+        </div>
+        
+        <!-- Error State -->
+        <div id="errorState" class="hidden mt-8 max-w-2xl">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-800 font-dm">
+                    <span class="font-semibold">Error:</span>
+                    <span id="errorMessage"></span>
+                </p>
+                <button onclick="document.getElementById('errorState').classList.add('hidden')" 
+                        class="mt-2 text-red-600 hover:text-red-800 font-dm text-sm">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+        
+        <!-- Bottom Description -->
+        <div class="mt-24 text-center max-w-4xl">
+            <p class="font-dm text-xl text-black leading-relaxed">
+                Transform boring surveys into engaging conversations that people actually want to complete. 
+                Get 3x higher response rates and uncover insights that checkboxes miss.
+            </p>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "{{ config.FIREBASE_API_KEY or 'your-api-key' }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN or 'bermuda-01.firebaseapp.com' }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID or 'bermuda-01' }}",
+            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET or 'bermuda-01.appspot.com' }}",
+            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID or 'your-sender-id' }}",
+            appId: "{{ config.FIREBASE_APP_ID or 'your-app-id' }}"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Authentication functions
+        async function signOut() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('idToken');
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign out error:', error);
+                alert('Failed to sign out');
+            }
+        }
+
+        // Helper function for authenticated requests
+        async function authenticatedFetch(url, options = {}) {
+            const idToken = localStorage.getItem('idToken');
+            if (!idToken) {
+                throw new Error('No authentication token');
+            }
+
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+
+        // Generate form function
+        async function generateForm() {
+            const dumpInput = document.getElementById('formDump');
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            
+            const dump = dumpInput.value.trim();
+            
+            if (!dump) {
+                showError('Please describe the form you want to create');
+                return;
+            }
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            loadingState.classList.remove('hidden');
+            errorState.classList.add('hidden');
+            
+            try {
+                const response = await authenticatedFetch('/api/infer', {
+                    method: 'POST',
+                    body: JSON.stringify({ dump })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store the form data in sessionStorage
+                    sessionStorage.setItem('generatedForm', JSON.stringify(data.form));
+                    
+                    // Redirect to edit form page
+                    window.location.href = '/edit-form';
+                } else {
+                    showError(data.error || 'Failed to generate form');
+                }
+                
+            } catch (error) {
+                console.error('Generate form error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                // Reset UI state
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'generate form';
+                loadingState.classList.add('hidden');
+            }
+        }
+        
+        // Show error function
+        function showError(message) {
+            const errorState = document.getElementById('errorState');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = message;
+            errorState.classList.remove('hidden');
+        }
+        
+        // Check authentication state
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                // Redirect to home if not authenticated
+                window.location.href = '/';
+                return;
+            }
+            
+            const idToken = await user.getIdToken();
+            localStorage.setItem('idToken', idToken);
+        });
+        
+        // Allow Enter key to trigger form generation
+        document.getElementById('formDump').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                generateForm();
+            }
+        });
+    </script>
+</body>
+</html>

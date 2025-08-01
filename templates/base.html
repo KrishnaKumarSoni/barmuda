@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bermuda - Conversational Forms{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        /* Custom Tailwind components */
+        .btn-primary {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+        }
+        .card {
+            @apply bg-white rounded-lg shadow-md border border-gray-100 p-6;
+        }
+        .input-field {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="ph ph-chat-circle text-blue-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">Bermuda</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    {% if request.user %}
+                    <span class="text-sm text-gray-600">{{ request.user.email }}</span>
+                    <button onclick="signOut()" class="btn-secondary">
+                        <i class="ph ph-sign-out mr-2"></i>
+                        Sign Out
+                    </button>
+                    {% else %}
+                    <button onclick="signInWithGoogle()" class="btn-primary">
+                        <i class="ph ph-google-logo mr-2"></i>
+                        Sign In
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-sm text-gray-500">
+                © 2025 Bermuda. Conversational forms made simple.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration - Replace with your actual Firebase config
+        const firebaseConfig = {
+            apiKey: "{{ config.FIREBASE_API_KEY or 'your-api-key' }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN or 'bermuda-01.firebaseapp.com' }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID or 'bermuda-01' }}",
+            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET or 'bermuda-01.appspot.com' }}",
+            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID or 'your-sender-id' }}",
+            appId: "{{ config.FIREBASE_APP_ID or 'your-app-id' }}"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Global authentication functions
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ idToken })
+                });
+                
+                if (response.ok) {
+                    // Store token in localStorage for future requests
+                    localStorage.setItem('idToken', idToken);
+                    window.location.href = '/dashboard';
+                } else {
+                    const error = await response.json();
+                    alert('Authentication failed: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+            }
+        }
+
+        async function signOut() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('idToken');
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        // Check authentication state on page load
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const idToken = await user.getIdToken();
+                localStorage.setItem('idToken', idToken);
+            } else {
+                localStorage.removeItem('idToken');
+            }
+        });
+
+        // Helper function to make authenticated requests
+        async function authenticatedFetch(url, options = {}) {
+            const idToken = localStorage.getItem('idToken');
+            if (!idToken) {
+                throw new Error('No authentication token');
+            }
+
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form_title }} - Bermuda Forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-height: 400px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        .message-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        .message-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 300ms, transform 300ms;
+        }
+        
+        .typing-indicator {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-[#fef5e0] min-h-screen">
+    <!-- Header -->
+    <div class="bg-white rounded-full mx-auto mt-8 w-[660px] shadow-sm border border-[#fff0cf]">
+        <div class="flex items-center justify-between px-6 py-3">
+            <div class="flex items-center gap-3">
+                <div class="w-[30px] h-11 bg-cover bg-center bg-no-repeat shrink-0" 
+                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <div class="font-['Plus_Jakarta_Sans'] font-semibold text-[#cc5500] text-[24px] tracking-[-0.24px]">
+                    Bermuda forms
+                </div>
+            </div>
+            <a href="/dashboard" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-4 py-2.5 rounded-full flex items-center gap-2.5 border border-[#cc5500]">
+                <span class="font-['DM_Sans'] text-[18px]">generate new form</span>
+                <img src="/static/assets/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="" class="w-6 h-6">
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Title -->
+    <div class="text-center mt-12 mb-6">
+        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[36px] tracking-[-0.36px]">
+            {{ form_title }}
+        </h1>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mx-auto w-[696px] mb-4">
+        <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
+            <div id="progress-bar" class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] transition-all duration-500" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="mx-auto w-[696px] bg-white rounded-t-[28px] rounded-b-[28px] border border-[#fce9c1] min-h-[503px] mb-4">
+        <!-- Chat Header -->
+        <div class="bg-white h-24 rounded-t-[28px] border-b border-[#fce9c1] flex items-center px-6">
+            <div class="font-['DM_Sans'] font-medium text-black text-[16px] tracking-[-0.16px]">
+                AI Assistant
+            </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="chat-container px-4 py-4 space-y-4">
+            <!-- Messages will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="mx-auto w-[696px] bg-white rounded-full shadow-[0px_4px_16px_1px_rgba(0,0,0,0.05)] border border-[#fdedcc] mb-8">
+        <div class="flex items-center justify-between px-2 py-1">
+            <div class="flex-1 px-4 py-3">
+                <input 
+                    type="text" 
+                    id="message-input" 
+                    placeholder="Type your message..."
+                    class="w-full font-['DM_Sans'] text-[16px] text-[#1e1e1e] tracking-[-0.16px] bg-transparent border-none outline-none"
+                    disabled
+                >
+            </div>
+            <button 
+                id="send-button" 
+                class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] w-10 h-10 rounded-full flex items-center justify-center border border-[#cc5500] disabled:opacity-50"
+                disabled
+            >
+                <img src="/static/assets/7733a653400497d1823d04a9beec3d26199561e9.svg" alt="Send" class="w-[18px] h-[18px]">
+            </button>
+        </div>
+    </div>
+
+    <!-- Typing Indicator (Hidden by default) -->
+    <div id="typing-indicator" class="mx-auto w-[696px] px-4 hidden">
+        <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
+            <div class="typing-indicator font-['DM_Sans'] text-[#959494] text-[14px]">
+                AI is typing...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sessionId = null;
+        let deviceId = null;
+        let formId = '{{ form_id }}';
+        let messageCount = 0;
+        let isEnded = false;
+
+        // Initialize FingerprintJS and start session
+        async function initializeChat() {
+            try {
+                // Get device fingerprint
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
+                deviceId = result.visitorId;
+
+                // Get location (optional)
+                let location = {};
+                if (navigator.geolocation) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                timeout: 5000,
+                                enableHighAccuracy: false
+                            });
+                        });
+                        location = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                    } catch (e) {
+                        console.log('Location not available:', e);
+                    }
+                }
+
+                // Start chat session
+                const response = await fetch('/api/chat/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        form_id: formId,
+                        device_id: deviceId,
+                        location: location
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    sessionId = data.session_id;
+                    
+                    // Add initial greeting
+                    addMessage('assistant', data.greeting);
+                    
+                    // Enable input
+                    document.getElementById('message-input').disabled = false;
+                    document.getElementById('send-button').disabled = false;
+                    document.getElementById('message-input').focus();
+                } else {
+                    throw new Error(data.error || 'Failed to start chat');
+                }
+
+            } catch (error) {
+                console.error('Error initializing chat:', error);
+                addMessage('system', 'Sorry, there was an error starting the chat. Please refresh the page and try again.');
+            }
+        }
+
+        // Add message to chat
+        function addMessage(sender, message, timestamp = null) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-enter';
+            
+            const now = timestamp || new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-end mb-2">
+                        <div class="font-['DM_Sans'] font-medium text-black text-[16px] text-right">You</div>
+                    </div>
+                    <div class="flex justify-end">
+                        <div class="bg-[#ffddc5] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[24px] rounded-tr-[2px] border border-[#cc5500]">
+                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] mb-4">
+                                ${message}
+                            </div>
+                            <div class="font-['DM_Sans'] text-[#959494] text-[12px] tracking-[-0.12px]">
+                                ${timeStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (sender === 'assistant') {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-start mb-2">
+                        <div class="font-['DM_Sans'] font-medium text-black text-[16px]">AI Assistant</div>
+                    </div>
+                    <div class="flex justify-start">
+                        <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
+                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] mb-4">
+                                ${message}
+                            </div>
+                            <div class="font-['DM_Sans'] text-[#959494] text-[12px] tracking-[-0.12px]">
+                                ${timeStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // System message
+                messageDiv.innerHTML = `
+                    <div class="flex justify-center">
+                        <div class="bg-[#fee] text-[#c33] px-4 py-2 rounded-lg text-sm">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Trigger animation
+            setTimeout(() => {
+                messageDiv.classList.remove('message-enter');
+                messageDiv.classList.add('message-enter-active');
+            }, 10);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Send message
+        async function sendMessage() {
+            if (isEnded) return;
+            
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message || !sessionId) return;
+            
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Disable input temporarily
+            input.disabled = true;
+            document.getElementById('send-button').disabled = true;
+            
+            try {
+                const response = await fetch('/api/chat/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    // Add assistant response
+                    addMessage('assistant', data.response);
+                    
+                    // Update progress
+                    updateProgress();
+                    
+                    // Check if conversation ended
+                    if (data.ended) {
+                        isEnded = true;
+                        input.disabled = true;
+                        document.getElementById('send-button').disabled = true;
+                        
+                        // Show completion message
+                        setTimeout(() => {
+                            addMessage('system', 'Chat completed! Thank you for your responses. 🎉');
+                        }, 1000);
+                    } else {
+                        // Re-enable input
+                        input.disabled = false;
+                        document.getElementById('send-button').disabled = false;
+                        input.focus();
+                    }
+                } else {
+                    addMessage('system', data.response || 'Sorry, there was an error processing your message.');
+                    // Re-enable input
+                    input.disabled = false;
+                    document.getElementById('send-button').disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                hideTypingIndicator();
+                addMessage('system', 'Network error. Please check your connection and try again.');
+                // Re-enable input
+                input.disabled = false;
+                document.getElementById('send-button').disabled = false;
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            document.getElementById('typing-indicator').classList.remove('hidden');
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            document.getElementById('typing-indicator').classList.add('hidden');
+        }
+
+        // Update progress bar
+        async function updateProgress() {
+            if (!sessionId) return;
+            
+            try {
+                const response = await fetch(`/api/chat/status/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.progress) {
+                    const progressBar = document.getElementById('progress-bar');
+                    progressBar.style.width = `${data.progress.percentage}%`;
+                }
+            } catch (error) {
+                console.error('Error updating progress:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize chat on page load
+        document.addEventListener('DOMContentLoaded', initializeChat);
+
+        // Handle page unload (save partial responses)
+        window.addEventListener('beforeunload', function() {
+            if (sessionId && !isEnded) {
+                // Send beacon to save partial response
+                navigator.sendBeacon('/api/chat/message', JSON.stringify({
+                    session_id: sessionId,
+                    message: '[ABANDONED]'
+                }));
+            }
+        });
+    </script>
+</body>
+</html>

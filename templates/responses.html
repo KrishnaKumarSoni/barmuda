@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form_title }} - Responses | Bermuda Forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#fef5e0] min-h-screen">
+    <!-- Header -->
+    <div class="bg-white rounded-full mx-auto mt-8 max-w-6xl shadow-sm border border-[#fff0cf]">
+        <div class="flex items-center justify-between px-6 py-3">
+            <div class="flex items-center gap-3">
+                <div class="w-[30px] h-11 bg-cover bg-center bg-no-repeat shrink-0" 
+                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <div class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-[36px] tracking-[-0.36px]">
+                    Bermuda Forms
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="/dashboard" class="font-['Plus_Jakarta_Sans'] font-medium text-black text-[14px] tracking-[-0.14px]">dashboard</a>
+                <a href="/" class="font-['Plus_Jakarta_Sans'] font-medium text-black text-[14px] tracking-[-0.14px]">home</a>
+                <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-4 py-2.5 rounded-full flex items-center gap-2.5 border border-[#cc5500]">
+                    <span class="font-['DM_Sans'] text-[18px]">generate new form</span>
+                    <img src="/static/assets/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="" class="w-6 h-6">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Go Back -->
+    <div class="max-w-6xl mx-auto mt-8 flex items-center">
+        <div class="flex items-center text-[#797878] cursor-pointer" onclick="window.history.back()">
+            <div class="rotate-90 mr-2">
+                <img src="/static/assets/1bbfb7e635384ea78a694417f46663c7e2781155.svg" alt="" class="w-[9px] h-5">
+            </div>
+            <span class="font-['Plus_Jakarta_Sans'] font-bold text-[16px] tracking-[-0.16px]">go back</span>
+        </div>
+    </div>
+
+    <!-- Page Title -->
+    <div class="max-w-6xl mx-auto mt-8">
+        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-[40px] tracking-[-0.4px]">
+            collected responses
+        </h1>
+    </div>
+
+    <!-- Form Title Card -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="bg-white rounded-[10px] border border-[#fbe7bd] p-[18px]">
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-[32px] tracking-[-0.32px]">
+                {{ form_title }}
+            </h2>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="max-w-6xl mx-auto mt-6 grid grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
+            <div id="total-responses" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0</div>
+            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">responses</div>
+        </div>
+        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
+            <div id="completion-rate" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0%</div>
+            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">completion rate</div>
+        </div>
+        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
+            <div id="total-messages" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0</div>
+            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">messages received</div>
+        </div>
+        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
+            <div id="avg-time" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0m 0s</div>
+            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">average chat time</div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="bg-[#fef5e0] border border-[#fbe7bd] rounded-lg p-[5px] flex">
+            <button id="summary-tab" class="flex-1 bg-[#e17d36] text-white rounded px-4 py-3 flex items-center justify-center gap-1.5">
+                <img src="/static/assets/c5ed93ceef8b85a0255caecfd16c67238a885ec3.svg" alt="" class="w-6 h-6">
+                <span class="font-['DM_Sans'] font-medium text-[14px] tracking-[-0.14px]">Summary</span>
+            </button>
+            <button id="individual-tab" class="flex-1 bg-[#fce9c1] text-[#e17d36] rounded px-4 py-3 flex items-center justify-center gap-1.5">
+                <img src="/static/assets/e65ff87e294c601214fd4b832c6c043d0528d445.svg" alt="" class="w-6 h-6">
+                <span class="font-['DM_Sans'] font-medium text-[14px] tracking-[-0.14px]">Individual</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="max-w-6xl mx-auto mt-6 flex gap-4">
+        <button onclick="exportData('json')" class="bg-[#cc5500] text-white px-6 py-2 rounded-lg font-['DM_Sans'] text-[14px] hover:bg-[#b34900] transition-colors">
+            Export JSON
+        </button>
+        <button onclick="exportData('csv')" class="bg-[#cc5500] text-white px-6 py-2 rounded-lg font-['DM_Sans'] text-[14px] hover:bg-[#b34900] transition-colors">
+            Export CSV
+        </button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="max-w-6xl mx-auto mt-6 mb-8">
+        <!-- Summary View -->
+        <div id="summary-content" class="space-y-6">
+            <div id="questions-summary">
+                <!-- Questions will be populated here -->
+            </div>
+        </div>
+
+        <!-- Individual Responses View -->
+        <div id="individual-content" class="hidden">
+            <div class="bg-white rounded-lg border border-[#fce9c1] p-6">
+                <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-[24px] tracking-[-0.24px] mb-4">
+                    Individual Responses
+                </h3>
+                <div id="individual-responses" class="space-y-4">
+                    <!-- Individual responses will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#cc5500] mx-auto"></div>
+            <p class="mt-2 text-center text-gray-600">Loading responses...</p>
+        </div>
+    </div>
+
+    <script>
+        const formId = '{{ form_id }}';
+        let allResponses = [];
+
+        // Load responses on page load
+        document.addEventListener('DOMContentLoaded', loadResponses);
+
+        async function loadResponses() {
+            try {
+                const response = await fetch(`/api/responses/${formId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    allResponses = data.responses;
+                    updateStats(data);
+                    renderSummary(data);
+                    renderIndividual(data);
+                } else {
+                    throw new Error(data.error || 'Failed to load responses');
+                }
+            } catch (error) {
+                console.error('Error loading responses:', error);
+                alert('Failed to load responses. Please try again.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        function updateStats(data) {
+            const totalResponses = data.total_responses;
+            const completeResponses = data.responses.filter(r => !r.partial).length;
+            const completionRate = totalResponses > 0 ? Math.round((completeResponses / totalResponses) * 100) : 0;
+            
+            // Calculate total messages and average time
+            let totalMessages = 0;
+            let totalTime = 0;
+            let validTimes = 0;
+
+            data.responses.forEach(response => {
+                totalMessages += response.metadata.chat_length || 0;
+                
+                const startTime = response.metadata.start_time;
+                const endTime = response.metadata.end_time;
+                if (startTime && endTime) {
+                    const duration = new Date(endTime) - new Date(startTime);
+                    totalTime += duration;
+                    validTimes++;
+                }
+            });
+
+            const avgTimeMs = validTimes > 0 ? totalTime / validTimes : 0;
+            const avgTimeMinutes = Math.floor(avgTimeMs / 60000);
+            const avgTimeSeconds = Math.floor((avgTimeMs % 60000) / 1000);
+
+            document.getElementById('total-responses').textContent = totalResponses;
+            document.getElementById('completion-rate').textContent = `${completionRate}%`;
+            document.getElementById('total-messages').textContent = totalMessages;
+            document.getElementById('avg-time').textContent = `${avgTimeMinutes}m ${avgTimeSeconds}s`;
+        }
+
+        function renderSummary(data) {
+            const container = document.getElementById('questions-summary');
+            const questions = {{ questions | tojsonfilter }};
+            
+            questions.forEach((question, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'bg-white rounded-lg border border-[#fce9c1] p-6';
+                
+                const responses = data.responses.map(r => r.responses[index.toString()]).filter(Boolean);
+                const responseCount = responses.length;
+                
+                let summaryHtml = `
+                    <div class="mb-4">
+                        <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-[28px] tracking-[-0.28px]">question ${index + 1}</span>
+                        <div class="mt-2">
+                            <span class="bg-[#fce9c1] border border-[#ffb889] rounded-full px-3 py-2 font-['DM_Sans'] text-[14px] text-[#1e1e1e] tracking-[-0.14px]">
+                                ${question.type.replace('_', ' ')} question
+                            </span>
+                        </div>
+                    </div>
+                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-[20px] tracking-[-0.2px] mb-2">${question.text}</h3>
+                    <p class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px] mb-4">${responseCount} Responses</p>
+                `;
+
+                if (question.type === 'multiple_choice' || question.type === 'yes_no') {
+                    const stats = calculateChoiceStats(responses, question.type === 'yes_no' ? ['yes', 'no'] : question.options);
+                    summaryHtml += renderChoiceChart(stats);
+                } else if (question.type === 'rating') {
+                    const stats = calculateRatingStats(responses);
+                    summaryHtml += renderRatingChart(stats);
+                } else {
+                    summaryHtml += renderTextResponses(responses);
+                }
+
+                questionCard.innerHTML = summaryHtml;
+                container.appendChild(questionCard);
+            });
+        }
+
+        function calculateChoiceStats(responses, options) {
+            const stats = {};
+            const total = responses.length;
+            
+            options.forEach(option => {
+                stats[option] = { count: 0, percentage: 0 };
+            });
+            stats['other'] = { count: 0, percentage: 0 };
+            stats['[SKIP]'] = { count: 0, percentage: 0 };
+
+            responses.forEach(response => {
+                const value = response.value;
+                if (stats[value]) {
+                    stats[value].count++;
+                } else if (value === '[SKIP]') {
+                    stats['[SKIP]'].count++;
+                } else {
+                    stats['other'].count++;
+                }
+            });
+
+            Object.keys(stats).forEach(key => {
+                stats[key].percentage = total > 0 ? Math.round((stats[key].count / total) * 100) : 0;
+            });
+
+            return stats;
+        }
+
+        function calculateRatingStats(responses) {
+            const stats = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '[SKIP]': 0 };
+            const total = responses.length;
+
+            responses.forEach(response => {
+                const value = response.value;
+                if (stats[value] !== undefined) {
+                    stats[value]++;
+                }
+            });
+
+            const result = {};
+            Object.keys(stats).forEach(key => {
+                result[key] = {
+                    count: stats[key],
+                    percentage: total > 0 ? Math.round((stats[key] / total) * 100) : 0
+                };
+            });
+
+            return result;
+        }
+
+        function renderChoiceChart(stats) {
+            let html = '<div class="flex items-center gap-6"><div class="flex-1"><div class="space-y-3">';
+            
+            Object.entries(stats).forEach(([option, data]) => {
+                if (data.count > 0) {
+                    const colors = ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'];
+                    const colorIndex = Object.keys(stats).indexOf(option) % colors.length;
+                    
+                    html += `
+                        <div class="flex items-center gap-3">
+                            <div class="w-4 h-4 rounded" style="background-color: ${colors[colorIndex]}"></div>
+                            <span class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px]">${option}</span>
+                            <span class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px] ml-auto">${data.percentage}%</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += '</div></div></div>';
+            return html;
+        }
+
+        function renderRatingChart(stats) {
+            return renderChoiceChart(stats);
+        }
+
+        function renderTextResponses(responses) {
+            let html = '<div class="space-y-2">';
+            responses.slice(0, 5).forEach((response, index) => {
+                html += `
+                    <div class="bg-[#f9f9f9] rounded p-3">
+                        <p class="font-['DM_Sans'] text-[#1e1e1e] text-[14px]">"${response.value}"</p>
+                    </div>
+                `;
+            });
+            
+            if (responses.length > 5) {
+                html += `<p class="text-[#797878] text-[12px]">... and ${responses.length - 5} more responses</p>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function renderIndividual(data) {
+            const container = document.getElementById('individual-responses');
+            const questions = {{ questions | tojsonfilter }};
+            
+            data.responses.forEach((response, index) => {
+                const responseCard = document.createElement('div');
+                responseCard.className = 'border border-[#fce9c1] rounded-lg p-4 mb-4';
+                
+                let html = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-[16px]">Response #${index + 1}</h4>
+                        <div class="flex gap-2">
+                            ${response.partial ? '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Partial</span>' : ''}
+                            <span class="text-[#797878] text-[12px]">${response.created_at ? new Date(response.created_at).toLocaleDateString() : 'Unknown date'}</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                `;
+
+                questions.forEach((question, qIndex) => {
+                    const answer = response.responses[qIndex.toString()];
+                    const value = answer ? answer.value : 'No response';
+                    
+                    html += `
+                        <div class="flex flex-col">
+                            <span class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-[14px] mb-1">Q${qIndex + 1}: ${question.text}</span>
+                            <span class="font-['DM_Sans'] text-[#797878] text-[14px] pl-4">${value}</span>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                responseCard.innerHTML = html;
+                container.appendChild(responseCard);
+            });
+        }
+
+        // Tab switching
+        document.getElementById('summary-tab').addEventListener('click', () => {
+            document.getElementById('summary-tab').className = 'flex-1 bg-[#e17d36] text-white rounded px-4 py-3 flex items-center justify-center gap-1.5';
+            document.getElementById('individual-tab').className = 'flex-1 bg-[#fce9c1] text-[#e17d36] rounded px-4 py-3 flex items-center justify-center gap-1.5';
+            document.getElementById('summary-content').classList.remove('hidden');
+            document.getElementById('individual-content').classList.add('hidden');
+        });
+
+        document.getElementById('individual-tab').addEventListener('click', () => {
+            document.getElementById('individual-tab').className = 'flex-1 bg-[#e17d36] text-white rounded px-4 py-3 flex items-center justify-center gap-1.5';
+            document.getElementById('summary-tab').className = 'flex-1 bg-[#fce9c1] text-[#e17d36] rounded px-4 py-3 flex items-center justify-center gap-1.5';
+            document.getElementById('individual-content').classList.remove('hidden');
+            document.getElementById('summary-content').classList.add('hidden');
+        });
+
+        // Export functions
+        async function exportData(format) {
+            try {
+                const response = await fetch(`/api/export/${formId}/${format}`);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `responses_${formId}.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    throw new Error('Export failed');
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Failed to export data. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

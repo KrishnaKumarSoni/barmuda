@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the resource owner
+    function isOwner(resource) {
+      return isAuthenticated() && request.auth.uid == resource.data.creator_id;
+    }
+    
+    // Helper function to check if user is accessing their own user document
+    function isUserSelf(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection - users can only read/write their own profile
+    match /users/{userId} {
+      allow read, write: if isUserSelf(userId);
+    }
+
+    // Forms collection - creators can CRUD their own forms, anyone can read published forms
+    match /forms/{formId} {
+      allow create: if isAuthenticated() && 
+                    request.auth.uid == resource.data.creator_id &&
+                    request.resource.data.keys().hasAll(['creator_id', 'title', 'questions', 'created_at']);
+      
+      allow read: if true; // Anyone can read forms (for public sharing)
+      
+      allow update, delete: if isOwner(resource);
+    }
+
+    // Responses collection - anyone can create responses, only form creators can read them
+    match /responses/{responseId} {
+      allow create: if request.resource.data.keys().hasAll(['form_id', 'session_id', 'created_at']) &&
+                    exists(/databases/$(database)/documents/forms/$(request.resource.data.form_id));
+      
+      allow read: if isAuthenticated() && 
+                  exists(/databases/$(database)/documents/forms/$(resource.data.form_id)) &&
+                  get(/databases/$(database)/documents/forms/$(resource.data.form_id)).data.creator_id == request.auth.uid;
+      
+      // Responses are immutable once created (no updates or deletes)
+      allow update, delete: if false;
+    }
+
+    // Chat sessions collection - for real-time chat sync
+    match /chat_sessions/{sessionId} {
+      allow create, read, update: if true; // Public access for chat functionality
+      allow delete: if false; // Chat sessions should not be deleted
+      
+      // Messages subcollection within chat sessions
+      match /messages/{messageId} {
+        allow create, read: if true; // Public access for chat messages
+        allow update, delete: if false; // Messages are immutable
+      }
+    }
+
+    // Analytics collection - only form creators can read their analytics
+    match /analytics/{analyticsId} {
+      allow read: if isAuthenticated() && 
+                  resource.data.creator_id == request.auth.uid;
+      
+      // Analytics are system-generated, no direct writes allowed
+      allow write: if false;
+    }
+
+    // System collections (for admin/system use only)
+    match /system/{document=**} {
+      allow read, write: if false; // No public access to system collections
+    }
+  }
+}

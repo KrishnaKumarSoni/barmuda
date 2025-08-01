@@ -1,0 +1,1225 @@
+import os
+import json
+import re
+from datetime import datetime
+from functools import wraps
+from flask import Flask, request, jsonify, session, render_template, redirect, url_for
+from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
+from dotenv import load_dotenv
+from openai import OpenAI
+import logging
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+CORS(app)
+
+# Make config available to templates
+@app.context_processor
+def inject_config():
+    return dict(config=os.environ)
+
+# Initialize Firebase Admin SDK
+if not firebase_admin._apps:
+    # Use service account key file
+    cred = credentials.Certificate('bermuda-01-firebase-adminsdk-fbsvc-660474f630.json')
+    firebase_admin.initialize_app(cred)
+
+# Initialize Firestore
+db = firestore.client()
+
+# Initialize OpenAI client
+openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Authentication decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check for Authorization header with Bearer token
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Missing or invalid authorization header'}), 401
+        
+        try:
+            # Extract token from header
+            id_token = auth_header.split(' ')[1]
+            
+            # Verify the token
+            decoded_token = auth.verify_id_token(id_token)
+            
+            # Add user info to request context
+            request.user = decoded_token
+            
+            return f(*args, **kwargs)
+        except Exception as e:
+            return jsonify({'error': 'Invalid token', 'details': str(e)}), 403
+    
+    return decorated_function
+
+# Form Inference Logic
+def create_inference_prompt(input_text):
+    """Create the form inference prompt with Chain-of-Thought and few-shot examples"""
+    
+    return f"""You are an expert form designer. Given an unstructured text dump describing a form or survey, you need to infer a structured form with appropriate questions and answer types.
+
+TASK: Analyze the input text and create a JSON form structure following the exact format below.
+
+REASONING PROCESS (Chain-of-Thought):
+1. First, summarize the main intent/purpose of the form from the input
+2. Identify 5-10 key questions that would capture the needed information
+3. For each question, determine the most appropriate input type
+4. Generate logical answer options for multiple choice questions
+5. Self-critique: Are the questions comprehensive? Are types appropriate?
+
+OUTPUT FORMAT (JSON only, no additional text):
+{{
+  "title": "Form Title (concise, descriptive)", 
+  "questions": [
+    {{
+      "text": "Question text",
+      "type": "text|multiple_choice|yes_no|number|rating",
+      "options": ["option1", "option2", "..."] or null,
+      "enabled": true
+    }}
+  ]
+}}
+
+QUESTION TYPES:
+- text: Open-ended text responses
+- multiple_choice: Select one from predefined options (include "Other" and "Prefer not to say" when appropriate)
+- yes_no: Simple yes/no questions  
+- number: Numeric input (age, quantity, etc.)
+- rating: 1-5 or 1-10 scale ratings
+
+DEMOGRAPHICS TEMPLATE (add relevant ones based on context):
+Always consider including these standard demographic questions when appropriate:
+- Age (multiple_choice: "18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say")
+- Gender (multiple_choice: "Male", "Female", "Non-binary", "Other", "Prefer not to say")
+- Location (text or multiple_choice based on scope)
+- Education Level (multiple_choice: "High School", "Bachelor's", "Master's", "PhD", "Other", "Prefer not to say")
+- Employment Status (multiple_choice: "Employed", "Student", "Unemployed", "Retired", "Other", "Prefer not to say")
+
+FEW-SHOT EXAMPLES:
+
+INPUT: "I want to survey coffee preferences, favorite drinks, and satisfaction ratings"
+OUTPUT:
+{{
+  "title": "Coffee Preferences Survey",
+  "questions": [
+    {{
+      "text": "How often do you drink coffee?",
+      "type": "multiple_choice",
+      "options": ["Daily", "Several times a week", "Weekly", "Rarely", "Never"],
+      "enabled": true
+    }},
+    {{
+      "text": "What is your favorite type of coffee drink?",
+      "type": "multiple_choice", 
+      "options": ["Espresso", "Americano", "Latte", "Cappuccino", "Cold Brew", "Frappuccino", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "Rate your overall satisfaction with your usual coffee shop",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "What factors are most important when choosing coffee?",
+      "type": "multiple_choice",
+      "options": ["Taste", "Price", "Convenience", "Brand", "Health benefits", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "Any additional comments about your coffee preferences?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What is your age range?",
+      "type": "multiple_choice",
+      "options": ["18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say"],
+      "enabled": true
+    }}
+  ]
+}}
+
+INPUT: "Event feedback form - venue, speakers, networking, overall rating"
+OUTPUT:
+{{
+  "title": "Event Feedback Survey",
+  "questions": [
+    {{
+      "text": "How would you rate the event venue?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "How would you rate the quality of speakers?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "Which speaker did you find most valuable?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "How was the networking experience?",
+      "type": "multiple_choice",
+      "options": ["Excellent", "Good", "Average", "Poor", "Did not participate"],
+      "enabled": true
+    }},
+    {{
+      "text": "What was your overall rating of the event?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "Would you attend this event again?",
+      "type": "yes_no",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What could be improved for next time?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "How did you hear about this event?",
+      "type": "multiple_choice",
+      "options": ["Social media", "Email", "Website", "Friend/colleague", "Advertisement", "Other"],
+      "enabled": true
+    }}
+  ]
+}}
+
+INPUT: "Job application: background, experience, skills, availability"
+OUTPUT:
+{{
+  "title": "Job Application Form",
+  "questions": [
+    {{
+      "text": "What is your educational background?",
+      "type": "multiple_choice",
+      "options": ["High School", "Associate Degree", "Bachelor's Degree", "Master's Degree", "PhD", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "How many years of relevant work experience do you have?",
+      "type": "multiple_choice",
+      "options": ["Less than 1 year", "1-2 years", "3-5 years", "5-10 years", "10+ years"],
+      "enabled": true
+    }},
+    {{
+      "text": "Please describe your most relevant work experience",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What key skills do you bring to this role?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "Are you available to start immediately?",
+      "type": "yes_no",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What is your preferred work arrangement?",
+      "type": "multiple_choice",
+      "options": ["Full-time in office", "Full-time remote", "Hybrid", "Part-time", "Contract", "Flexible"],
+      "enabled": true
+    }},
+    {{
+      "text": "Expected salary range",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "Why are you interested in this position?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }}
+  ]
+}}
+
+Now analyze this input and create a structured form:
+
+INPUT: {input_text}
+OUTPUT:"""
+
+def validate_and_fix_json(json_string):
+    """Validate JSON structure and fix common issues"""
+    try:
+        # Clean up the response - remove any extra text before/after JSON
+        json_string = json_string.strip()
+        
+        # Find JSON boundaries
+        start_idx = json_string.find('{')
+        end_idx = json_string.rfind('}')
+        
+        if start_idx == -1 or end_idx == -1:
+            raise ValueError("No valid JSON structure found")
+            
+        json_string = json_string[start_idx:end_idx+1]
+        
+        # Parse JSON
+        parsed = json.loads(json_string)
+        
+        # Validate required fields
+        if 'title' not in parsed:
+            raise ValueError("Missing 'title' field")
+        if 'questions' not in parsed or not isinstance(parsed['questions'], list):
+            raise ValueError("Missing or invalid 'questions' field")
+        
+        # Validate each question
+        valid_types = ['text', 'multiple_choice', 'yes_no', 'number', 'rating']
+        for i, question in enumerate(parsed['questions']):
+            if 'text' not in question:
+                raise ValueError(f"Question {i+1} missing 'text' field")
+            if 'type' not in question or question['type'] not in valid_types:
+                raise ValueError(f"Question {i+1} has invalid or missing 'type' field")
+            if 'enabled' not in question:
+                question['enabled'] = True
+            
+            # Validate options for multiple_choice and rating
+            if question['type'] in ['multiple_choice', 'rating']:
+                if 'options' not in question or not isinstance(question['options'], list):
+                    raise ValueError(f"Question {i+1} of type '{question['type']}' requires 'options' list")
+                if len(question['options']) < 2:
+                    raise ValueError(f"Question {i+1} needs at least 2 options")
+            elif question['type'] in ['text', 'yes_no', 'number']:
+                question['options'] = None
+        
+        return parsed, None
+        
+    except json.JSONDecodeError as e:
+        return None, f"Invalid JSON format: {str(e)}"
+    except ValueError as e:
+        return None, str(e)
+    except Exception as e:
+        return None, f"Validation error: {str(e)}"
+
+def infer_form_from_text(input_text, max_retries=2):
+    """Use OpenAI GPT-4o-mini to infer form structure from unstructured text"""
+    
+    for attempt in range(max_retries + 1):
+        try:
+            logger.info(f"Form inference attempt {attempt + 1} for input: {input_text[:100]}...")
+            
+            # Generate response using OpenAI client
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert form designer. Create structured JSON forms from unstructured text descriptions."
+                    },
+                    {
+                        "role": "user", 
+                        "content": create_inference_prompt(input_text)
+                    }
+                ],
+                temperature=0.1,
+                max_tokens=2000
+            )
+            
+            response_text = response.choices[0].message.content
+            logger.info(f"LLM response (attempt {attempt + 1}): {response_text[:200]}...")
+            
+            # Validate and parse JSON
+            parsed_form, error = validate_and_fix_json(response_text)
+            
+            if parsed_form:
+                logger.info(f"Successfully inferred form with {len(parsed_form['questions'])} questions")
+                return parsed_form, None
+            else:
+                logger.warning(f"Attempt {attempt + 1} failed validation: {error}")
+                if attempt == max_retries:
+                    return None, f"Failed to generate valid form after {max_retries + 1} attempts. Last error: {error}"
+                    
+        except Exception as e:
+            logger.error(f"Attempt {attempt + 1} failed with exception: {str(e)}")
+            if attempt == max_retries:
+                return None, f"Form inference failed after {max_retries + 1} attempts: {str(e)}"
+    
+    return None, "Unexpected error in form inference"
+
+# Routes
+
+@app.route('/')
+def home():
+    """Home page - redirect to dashboard if authenticated, otherwise show login"""
+    return render_template('index.html')
+
+@app.route('/auth/google', methods=['POST'])
+def google_auth():
+    """Handle Google SSO authentication"""
+    try:
+        # Get the ID token from the request
+        data = request.get_json()
+        if not data or 'idToken' not in data:
+            return jsonify({'error': 'ID token is required'}), 400
+        
+        id_token = data['idToken']
+        
+        # Verify the ID token
+        decoded_token = auth.verify_id_token(id_token)
+        
+        # Extract user information
+        user_id = decoded_token['uid']
+        email = decoded_token.get('email', '')
+        name = decoded_token.get('name', '')
+        
+        # Check if user exists in Firestore
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            # Create new user profile
+            user_data = {
+                'user_id': user_id,
+                'email': email,
+                'name': name,
+                'created_at': datetime.utcnow().isoformat()
+            }
+            user_ref.set(user_data)
+        else:
+            # Update last login time
+            user_ref.update({
+                'last_login': datetime.utcnow().isoformat()
+            })
+        
+        # Return success response with user data
+        return jsonify({
+            'success': True,
+            'user': {
+                'user_id': user_id,
+                'email': email,
+                'name': name
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': 'Authentication failed', 'details': str(e)}), 401
+
+@app.route('/auth/verify', methods=['POST'])
+def verify_token():
+    """Verify if a token is valid"""
+    try:
+        data = request.get_json()
+        if not data or 'idToken' not in data:
+            return jsonify({'error': 'ID token is required'}), 400
+        
+        id_token = data['idToken']
+        decoded_token = auth.verify_id_token(id_token)
+        
+        return jsonify({
+            'valid': True,
+            'user': {
+                'user_id': decoded_token['uid'],
+                'email': decoded_token.get('email', ''),
+                'name': decoded_token.get('name', '')
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'valid': False, 'error': str(e)}), 401
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Protected dashboard route"""
+    try:
+        user_id = request.user['uid']
+        
+        # Get user's forms
+        forms_ref = db.collection('forms').where('creator_id', '==', user_id)
+        forms = []
+        for doc in forms_ref.stream():
+            form_data = doc.to_dict()
+            form_data['form_id'] = doc.id
+            forms.append(form_data)
+        
+        return render_template('dashboard.html', forms=forms, user=request.user)
+        
+    except Exception as e:
+        return jsonify({'error': 'Failed to load dashboard', 'details': str(e)}), 500
+
+@app.route('/api/user/profile')
+@login_required
+def get_user_profile():
+    """Get current user's profile"""
+    try:
+        user_id = request.user['uid']
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        
+        if user_doc.exists:
+            return jsonify({'success': True, 'profile': user_doc.to_dict()}), 200
+        else:
+            return jsonify({'error': 'User profile not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': 'Failed to get profile', 'details': str(e)}), 500
+
+@app.route('/api/infer', methods=['POST'])
+@login_required
+def infer_form():
+    """
+    Infer form structure from unstructured text dump
+    
+    Expected JSON payload:
+    {
+        "dump": "text describing the form/survey"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "form": {
+            "title": "Form Title",
+            "questions": [...]
+        }
+    }
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data or 'dump' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Text dump is required in request body'
+            }), 400
+        
+        input_text = data['dump'].strip()
+        if not input_text:
+            return jsonify({
+                'success': False,
+                'error': 'Text dump cannot be empty'
+            }), 400
+        
+        if len(input_text) > 5000:  # Reasonable limit
+            return jsonify({
+                'success': False,
+                'error': 'Text dump too long (max 5000 characters)'
+            }), 400
+        
+        logger.info(f"Form inference requested by user {request.user['uid']} for: {input_text[:100]}...")
+        
+        # Infer form structure using LLM
+        inferred_form, error = infer_form_from_text(input_text)
+        
+        if inferred_form:
+            logger.info(f"Successfully inferred form: {inferred_form['title']}")
+            return jsonify({
+                'success': True,
+                'form': inferred_form,
+                'metadata': {
+                    'input_length': len(input_text),
+                    'questions_count': len(inferred_form['questions']),
+                    'created_at': datetime.utcnow().isoformat()
+                }
+            }), 200
+        else:
+            logger.error(f"Form inference failed: {error}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to infer form structure: {error}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Unexpected error in /api/infer: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error during form inference'
+        }), 500
+
+@app.route('/create-form')
+@login_required  
+def create_form():
+    """Form creation page"""
+    return render_template('create_form.html', user=request.user)
+
+@app.route('/edit-form')
+@login_required
+def edit_form():
+    """Form editing page"""
+    return render_template('edit_form.html', user=request.user)
+
+@app.route('/api/save_form', methods=['POST'])
+@login_required
+def save_form():
+    """
+    Save form to Firestore and generate form_id
+    
+    Expected JSON payload:
+    {
+        "form": {
+            "title": "Form Title",
+            "questions": [...],
+            "demographics": {...}
+        }
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "form_id": "generated_form_id",
+        "share_url": "bermuda.app/form/{form_id}"
+    }
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data or 'form' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Form data is required'
+            }), 400
+        
+        form_data = data['form']
+        user_id = request.user['uid']
+        
+        # Validate form data
+        if not form_data.get('title'):
+            return jsonify({
+                'success': False,
+                'error': 'Form title is required'
+            }), 400
+        
+        if not form_data.get('questions') or not isinstance(form_data['questions'], list):
+            return jsonify({
+                'success': False,
+                'error': 'Form must have at least one question'
+            }), 400
+        
+        # Check for at least one enabled question
+        enabled_questions = [q for q in form_data['questions'] if q.get('enabled', True)]
+        if not enabled_questions:
+            return jsonify({
+                'success': False,
+                'error': 'Form must have at least one enabled question'
+            }), 400
+        
+        # Validate each question
+        for i, question in enumerate(form_data['questions']):
+            if not question.get('text'):
+                return jsonify({
+                    'success': False,
+                    'error': f'Question {i+1} must have text'
+                }), 400
+            
+            if question.get('type') not in ['text', 'multiple_choice', 'yes_no', 'number', 'rating']:
+                return jsonify({
+                    'success': False,
+                    'error': f'Question {i+1} has invalid type'
+                }), 400
+            
+            # Validate options for multiple choice and rating questions
+            if question.get('type') in ['multiple_choice', 'rating']:
+                if not question.get('options') or len(question['options']) < 2:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Question {i+1} must have at least 2 options'
+                    }), 400
+        
+        # Prepare form document
+        form_document = {
+            'title': form_data['title'],
+            'questions': form_data['questions'],
+            'demographics': form_data.get('demographics', {}),
+            'creator_id': user_id,
+            'created_at': datetime.utcnow().isoformat(),
+            'updated_at': datetime.utcnow().isoformat(),
+            'status': 'active',
+            'response_count': 0
+        }
+        
+        logger.info(f"Saving form '{form_data['title']}' for user {user_id}")
+        
+        # Save to Firestore
+        form_ref = db.collection('forms').document()
+        form_ref.set(form_document)
+        form_id = form_ref.id
+        
+        logger.info(f"Form saved successfully with ID: {form_id}")
+        
+        # Generate share URL
+        share_url = f"bermuda.vercel.app/form/{form_id}"
+        
+        return jsonify({
+            'success': True,
+            'form_id': form_id,
+            'share_url': share_url,
+            'metadata': {
+                'questions_count': len(form_data['questions']),
+                'enabled_questions': len(enabled_questions),
+                'demographics_enabled': len([k for k, v in form_data.get('demographics', {}).items() if v]),
+                'created_at': form_document['created_at']
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error saving form: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error while saving form'
+        }), 500
+
+@app.route('/api/update_form/<form_id>', methods=['PUT'])
+@login_required
+def update_form(form_id):
+    """
+    Update existing form in Firestore
+    
+    Expected JSON payload:
+    {
+        "form": {
+            "title": "Form Title",
+            "questions": [...],
+            "demographics": {...}
+        }
+    }
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data or 'form' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Form data is required'
+            }), 400
+        
+        form_data = data['form']
+        user_id = request.user['uid']
+        
+        # Get existing form to verify ownership
+        form_ref = db.collection('forms').document(form_id)
+        form_doc = form_ref.get()
+        
+        if not form_doc.exists:
+            return jsonify({
+                'success': False,
+                'error': 'Form not found'
+            }), 404
+        
+        existing_form = form_doc.to_dict()
+        
+        # Check if user owns this form
+        if existing_form.get('creator_id') != user_id:
+            return jsonify({
+                'success': False,
+                'error': 'Access denied'
+            }), 403
+        
+        # Validate form data (same validation as save_form)
+        if not form_data.get('title'):
+            return jsonify({
+                'success': False,
+                'error': 'Form title is required'
+            }), 400
+        
+        if not form_data.get('questions') or not isinstance(form_data['questions'], list):
+            return jsonify({
+                'success': False,
+                'error': 'Form must have at least one question'
+            }), 400
+        
+        # Check for at least one enabled question
+        enabled_questions = [q for q in form_data['questions'] if q.get('enabled', True)]
+        if not enabled_questions:
+            return jsonify({
+                'success': False,
+                'error': 'Form must have at least one enabled question'
+            }), 400
+        
+        # Prepare update document
+        update_document = {
+            'title': form_data['title'],
+            'questions': form_data['questions'],
+            'demographics': form_data.get('demographics', {}),
+            'updated_at': datetime.utcnow().isoformat()
+        }
+        
+        logger.info(f"Updating form '{form_data['title']}' (ID: {form_id}) for user {user_id}")
+        
+        # Update in Firestore
+        form_ref.update(update_document)
+        
+        logger.info(f"Form updated successfully: {form_id}")
+        
+        # Generate share URL
+        share_url = f"bermuda.vercel.app/form/{form_id}"
+        
+        return jsonify({
+            'success': True,
+            'form_id': form_id,
+            'share_url': share_url,
+            'metadata': {
+                'questions_count': len(form_data['questions']),
+                'enabled_questions': len(enabled_questions),
+                'demographics_enabled': len([k for k, v in form_data.get('demographics', {}).items() if v]),
+                'updated_at': update_document['updated_at']
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error updating form {form_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error while updating form'
+        }), 500
+
+@app.route('/form/<form_id>')
+def form_response(form_id):
+    """Public form response page (for respondents)"""
+    try:
+        # Get form from Firestore
+        form_ref = db.collection('forms').document(form_id)
+        form_doc = form_ref.get()
+        
+        if not form_doc.exists:
+            return render_template('error.html', 
+                                 error="Form not found", 
+                                 message="The form you're looking for doesn't exist or has been removed."), 404
+        
+        form_data = form_doc.to_dict()
+        
+        if form_data.get('status') != 'active':
+            return render_template('error.html',
+                                 error="Form not available",
+                                 message="This form is currently not accepting responses."), 403
+        
+        # TODO: This will be implemented in Module 4 (Respondent Chat Interface)
+        # For now, return a placeholder
+        return render_template('form_placeholder.html', form=form_data, form_id=form_id)
+        
+    except Exception as e:
+        logger.error(f"Error loading form {form_id}: {str(e)}")
+        return render_template('error.html',
+                             error="Error loading form",
+                             message="There was an error loading this form. Please try again later."), 500
+
+@app.route('/api/form/<form_id>')
+@login_required
+def get_form(form_id):
+    """Get form data for editing"""
+    try:
+        user_id = request.user['uid']
+        
+        # Get form from Firestore
+        form_ref = db.collection('forms').document(form_id)
+        form_doc = form_ref.get()
+        
+        if not form_doc.exists:
+            return jsonify({
+                'success': False,
+                'error': 'Form not found'
+            }), 404
+        
+        form_data = form_doc.to_dict()
+        
+        # Check if user owns this form
+        if form_data.get('creator_id') != user_id:
+            return jsonify({
+                'success': False,
+                'error': 'Access denied'
+            }), 403
+        
+        return jsonify({
+            'success': True,
+            'form': {
+                'title': form_data.get('title'),
+                'questions': form_data.get('questions', []),
+                'demographics': form_data.get('demographics', {})
+            },
+            'metadata': {
+                'form_id': form_id,
+                'created_at': form_data.get('created_at'),
+                'updated_at': form_data.get('updated_at'),
+                'status': form_data.get('status'),
+                'response_count': form_data.get('response_count', 0)
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error loading form {form_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'firebase': True,
+        'openai': bool(os.environ.get('OPENAI_API_KEY')),
+        'timestamp': datetime.utcnow().isoformat()
+    }), 200
+
+# Error handlers
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({'error': 'Unauthorized access'}), 401
+
+@app.errorhandler(403)
+def forbidden(error):
+    return jsonify({'error': 'Forbidden access'}), 403
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Internal server error'}), 500
+
+# ================================
+# MODULE 4: CHAT INTERFACE ROUTES
+# ================================
+
+from chat_agent_v2 import get_chat_agent
+import hashlib
+import time
+
+@app.route('/form/<form_id>')
+def form_response_page(form_id):
+    """Public form response page for respondents"""
+    try:
+        # Verify form exists
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return render_template('error.html', 
+                                 error_title="Form Not Found",
+                                 error_message="This form doesn't exist or has been removed."), 404
+        
+        form_data = form_doc.to_dict()
+        return render_template('chat.html', 
+                             form_id=form_id,
+                             form_title=form_data.get('title', 'Survey'),
+                             form_description=form_data.get('description', ''))
+    
+    except Exception as e:
+        print(f"Error loading form page: {str(e)}")
+        return render_template('error.html',
+                             error_title="Error Loading Form",
+                             error_message="There was an error loading this form. Please try again later."), 500
+
+@app.route('/api/chat/start', methods=['POST'])
+def start_chat_session():
+    """Start a new chat session"""
+    try:
+        data = request.get_json()
+        form_id = data.get('form_id')
+        device_id = data.get('device_id')  # From FingerprintJS
+        location = data.get('location', {})  # Geolocation data
+        
+        if not form_id:
+            return jsonify({'error': 'form_id is required'}), 400
+        
+        # Create session using chat agent
+        agent = get_chat_agent()
+        session_id = agent.create_session(form_id, device_id, location)
+        
+        # Get initial greeting
+        try:
+            greeting_result = agent.process_message(session_id, "Hello, I'm ready to start!")
+            greeting_message = greeting_result.get('response', 'Hello! Ready to get started? 😊')
+        except Exception as e:
+            print(f"Error getting initial greeting: {e}")
+            greeting_message = "Hello! Welcome to the survey. Let's get started! 😊"
+        
+        return jsonify({
+            'session_id': session_id,
+            'greeting': greeting_message,
+            'success': True
+        })
+        
+    except Exception as e:
+        print(f"Error starting chat session: {str(e)}")
+        return jsonify({'error': 'Failed to start chat session'}), 500
+
+@app.route('/api/chat/message', methods=['POST'])
+def process_chat_message():
+    """Process a chat message"""
+    try:
+        data = request.get_json()
+        session_id = data.get('session_id')
+        message = data.get('message', '').strip()
+        
+        if not session_id or not message:
+            return jsonify({'error': 'session_id and message are required'}), 400
+        
+        # Rate limiting check
+        if not check_rate_limit(session_id, request.remote_addr):
+            return jsonify({'error': 'Rate limit exceeded. Please slow down.'}), 429
+        
+        # Process message with agent
+        agent = get_chat_agent()
+        result = agent.process_message(session_id, message)
+        
+        if not result.get('success'):
+            return jsonify({
+                'response': result.get('response', 'Sorry, I had trouble processing that. Could you try again? 😅'),
+                'error': result.get('error'),
+                'success': False
+            }), 200
+        
+        # Check if conversation ended
+        conversation_ended = result.get('metadata', {}).get('ended', False)
+        
+        response_data = {
+            'response': result['response'],
+            'success': True,
+            'session_updated': result.get('session_updated', False),
+            'ended': conversation_ended
+        }
+        
+        # If ended, trigger data extraction
+        if conversation_ended:
+            try:
+                extraction_result = extract_chat_responses(session_id)
+                response_data['extraction_triggered'] = True
+                response_data['extraction_success'] = extraction_result.get('success', False)
+            except Exception as e:
+                print(f"Extraction error: {str(e)}")
+                response_data['extraction_triggered'] = False
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"Error processing chat message: {str(e)}")
+        return jsonify({
+            'response': 'I apologize, but I encountered an error. Could you try sending your message again? 🤔',
+            'success': False,
+            'error': 'Internal processing error'
+        }), 500
+
+@app.route('/api/chat/status/<session_id>')
+def get_chat_status(session_id):
+    """Get chat session status"""
+    try:
+        agent = get_chat_agent()
+        session = agent._load_session(session_id)
+        
+        total_questions = len([q for q in session.form_data.get('questions', []) if q.get('enabled', True)])
+        answered_questions = len([r for r in session.responses.values() if r.get('value') != '[SKIP]'])
+        
+        return jsonify({
+            'session_id': session_id,
+            'progress': {
+                'current_question': session.current_question_index,
+                'total_questions': total_questions,
+                'answered_questions': answered_questions,
+                'percentage': int((answered_questions / max(total_questions, 1)) * 100)
+            },
+            'metadata': session.metadata,
+            'ended': session.metadata.get('ended', False)
+        })
+        
+    except Exception as e:
+        print(f"Error getting chat status: {str(e)}")
+        return jsonify({'error': 'Session not found'}), 404
+
+# Rate limiting helper
+chat_rate_limits = {}
+
+def check_rate_limit(session_id, ip_address):
+    """Check if request is within rate limits"""
+    current_time = time.time()
+    key = f"{session_id}_{ip_address}"
+    
+    if key not in chat_rate_limits:
+        chat_rate_limits[key] = []
+    
+    # Clean old entries (older than 1 hour)
+    chat_rate_limits[key] = [t for t in chat_rate_limits[key] if current_time - t < 3600]
+    
+    # Check if under limit (50 messages per hour)
+    if len(chat_rate_limits[key]) >= 50:
+        return False
+    
+    # Add current request
+    chat_rate_limits[key].append(current_time)
+    return True
+
+# Import the data extraction function
+from data_extraction import extract_chat_responses
+
+# ================================
+# MODULE 6: RESPONSE VIEWING ROUTES
+# ================================
+
+@app.route('/api/responses/<form_id>')
+@login_required
+def get_form_responses(form_id):
+    """Get all responses for a form"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({'error': 'Form not found'}), 404
+        
+        form_data = form_doc.to_dict()
+        if form_data.get('creator_id') != session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Get responses
+        responses_query = db.collection('responses').where('form_id', '==', form_id).stream()
+        responses = []
+        
+        for response_doc in responses_query:
+            response_data = response_doc.to_dict()
+            responses.append({
+                'id': response_doc.id,
+                'responses': response_data.get('responses', {}),
+                'metadata': response_data.get('metadata', {}),
+                'created_at': response_data.get('created_at').isoformat() if response_data.get('created_at') else None,
+                'partial': response_data.get('partial', False)
+            })
+        
+        return jsonify({
+            'form_title': form_data.get('title', 'Untitled Form'),
+            'responses': responses,
+            'total_responses': len(responses)
+        })
+        
+    except Exception as e:
+        print(f"Error getting responses: {str(e)}")
+        return jsonify({'error': 'Failed to fetch responses'}), 500
+
+@app.route('/responses/<form_id>')
+@login_required
+def view_form_responses(form_id):
+    """View responses for a form"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return render_template('error.html', 
+                                 error_title="Form Not Found",
+                                 error_message="This form doesn't exist or has been removed."), 404
+        
+        form_data = form_doc.to_dict()
+        if form_data.get('creator_id') != session.get('user_id'):
+            return render_template('error.html',
+                                 error_title="Access Denied", 
+                                 error_message="You don't have permission to view this form's responses."), 403
+        
+        return render_template('responses.html', 
+                             form_id=form_id,
+                             form_title=form_data.get('title', 'Untitled Form'),
+                             questions=form_data.get('questions', []))
+    
+    except Exception as e:
+        print(f"Error loading responses page: {str(e)}")
+        return render_template('error.html',
+                             error_title="Error Loading Responses",
+                             error_message="There was an error loading the responses. Please try again later."), 500
+
+@app.route('/api/export/<form_id>/<format>')
+@login_required
+def export_responses(form_id, format):
+    """Export responses in JSON or CSV format"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({'error': 'Form not found'}), 404
+        
+        form_data = form_doc.to_dict()
+        if form_data.get('creator_id') != session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Get responses
+        responses_query = db.collection('responses').where('form_id', '==', form_id).stream()
+        responses = []
+        
+        for response_doc in responses_query:
+            response_data = response_doc.to_dict()
+            responses.append(response_data)
+        
+        if format.lower() == 'json':
+            from flask import Response
+            return Response(
+                json.dumps(responses, indent=2, default=str),
+                mimetype='application/json',
+                headers={'Content-Disposition': f'attachment; filename=responses_{form_id}.json'}
+            )
+        
+        elif format.lower() == 'csv':
+            import csv
+            from io import StringIO
+            
+            output = StringIO()
+            if responses:
+                # Get all possible field names
+                fieldnames = set()
+                for response in responses:
+                    if 'responses' in response:
+                        for key, value in response['responses'].items():
+                            fieldnames.add(f"Q{int(key)+1}: {value.get('question_text', f'Question {key}')}")
+                    fieldnames.update(['Response ID', 'Created At', 'Partial', 'Device ID'])
+                
+                fieldnames = sorted(list(fieldnames))
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                for response in responses:
+                    row = {
+                        'Response ID': response.get('session_id', ''),
+                        'Created At': str(response.get('created_at', '')),
+                        'Partial': response.get('partial', False),
+                        'Device ID': response.get('metadata', {}).get('device_id', '')
+                    }
+                    
+                    # Add question responses
+                    if 'responses' in response:
+                        for key, value in response['responses'].items():
+                            field_name = f"Q{int(key)+1}: {value.get('question_text', f'Question {key}')}"
+                            row[field_name] = value.get('value', '')
+                    
+                    writer.writerow(row)
+            
+            from flask import Response
+            return Response(
+                output.getvalue(),
+                mimetype='text/csv',
+                headers={'Content-Disposition': f'attachment; filename=responses_{form_id}.csv'}
+            )
+        
+        else:
+            return jsonify({'error': 'Invalid format. Use json or csv'}), 400
+            
+    except Exception as e:
+        print(f"Error exporting responses: {str(e)}")
+        return jsonify({'error': 'Failed to export responses'}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
