@@ -11,7 +11,9 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- No Firebase SDK needed - backend handles auth -->
+    <!-- Firebase SDK for real Google authentication -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
     
     <!-- Custom CSS -->
     <style>
@@ -74,13 +76,49 @@
         </div>
     </footer>
 
-    <!-- Simple Backend Authentication -->
+    <!-- Real Firebase Authentication -->
     <script>
-        // Simple Google OAuth flow - backend handles everything
+        // Firebase configuration - using project bermuda-01
+        // You need to get the real config from Firebase Console > Project Settings > Web App
+        const firebaseConfig = {
+            apiKey: "{{ config.get('FIREBASE_WEB_API_KEY', 'AIzaSy-REPLACE-WITH-REAL-WEB-API-KEY') }}",
+            authDomain: "bermuda-01.firebaseapp.com",
+            projectId: "bermuda-01", 
+            storageBucket: "bermuda-01.appspot.com",
+            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '123456789') }}",
+            appId: "{{ config.get('FIREBASE_WEB_APP_ID', '1:123456789:web:abcd1234') }}"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Real Google Sign In
         async function signInWithGoogle() {
             try {
-                // Redirect to backend Google OAuth endpoint
-                window.location.href = '/auth/google';
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ idToken })
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    const error = await response.json();
+                    alert('Authentication failed: ' + error.error);
+                }
             } catch (error) {
                 console.error('Sign in error:', error);
                 alert('Sign in failed: ' + error.message);
@@ -89,26 +127,22 @@
 
         async function signOut() {
             try {
+                await auth.signOut();
                 const response = await fetch('/auth/logout', {
                     method: 'POST',
                     credentials: 'include'
                 });
-                
-                if (response.ok) {
-                    window.location.href = '/';
-                } else {
-                    console.error('Sign out failed');
-                }
+                window.location.href = '/';
             } catch (error) {
                 console.error('Sign out error:', error);
             }
         }
 
-        // Helper function to make authenticated requests
+        // Helper function for authenticated requests  
         async function authenticatedFetch(url, options = {}) {
             return fetch(url, {
                 ...options,
-                credentials: 'include', // Include session cookies
+                credentials: 'include',
                 headers: {
                     ...options.headers,
                     'Content-Type': 'application/json',

@@ -372,46 +372,59 @@ def home():
     """Home page - redirect to dashboard if authenticated, otherwise show login"""
     return render_template('index.html')
 
-@app.route('/auth/google', methods=['GET'])
+@app.route('/auth/google', methods=['POST'])
 def google_auth():
-    """Handle Google OAuth redirect - simplified demo authentication"""
+    """Handle real Google Firebase authentication"""
     try:
-        # For now, create a demo user session for testing
-        # In production, integrate with proper Google OAuth flow
-        demo_user = {
-            'user_id': 'demo-user-123',
-            'email': 'demo@bermuda.com', 
-            'name': 'Demo User'
-        }
+        # Get the ID token from the request
+        data = request.get_json()
+        if not data or 'idToken' not in data:
+            return jsonify({'error': 'ID token is required'}), 400
+        
+        id_token = data['idToken']
+        
+        # Verify the ID token with Firebase
+        decoded_token = auth.verify_id_token(id_token)
+        
+        # Extract user information
+        user_id = decoded_token['uid']
+        email = decoded_token.get('email', '')
+        name = decoded_token.get('name', '')
         
         # Check if user exists in Firestore
-        user_ref = db.collection('users').document(demo_user['user_id'])
+        user_ref = db.collection('users').document(user_id)
         user_doc = user_ref.get()
         
         if not user_doc.exists:
             # Create new user profile
             user_data = {
-                'user_id': demo_user['user_id'],
-                'email': demo_user['email'],
-                'name': demo_user['name'],
+                'user_id': user_id,
+                'email': email,
+                'name': name,
                 'created_at': datetime.now().isoformat()
             }
             user_ref.set(user_data)
-            logger.info(f"Created new demo user: {demo_user['email']}")
+            logger.info(f"Created new user: {email}")
         else:
-            logger.info(f"Demo user login: {demo_user['email']}")
+            logger.info(f"User login: {email}")
         
         # Store user session
-        session['user_id'] = demo_user['user_id']
-        session['email'] = demo_user['email']
+        session['user_id'] = user_id
+        session['email'] = email
         session['authenticated'] = True
         
-        # Redirect to dashboard
-        return redirect('/dashboard')
+        return jsonify({
+            'success': True,
+            'user': {
+                'user_id': user_id,
+                'email': email,
+                'name': name
+            }
+        })
         
     except Exception as e:
         logger.error(f"Authentication error: {str(e)}")
-        return f"Authentication failed: {str(e)}", 401
+        return jsonify({'error': 'Authentication failed', 'details': str(e)}), 401
 
 @app.route('/auth/logout', methods=['POST'])  
 def logout():
