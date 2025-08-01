@@ -239,17 +239,8 @@
             errorState.classList.remove('hidden');
         }
         
-        // Check authentication state
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                // Redirect to home if not authenticated
-                window.location.href = '/';
-                return;
-            }
-            
-            const idToken = await user.getIdToken();
-            localStorage.setItem('idToken', idToken);
-        });
+        // No authentication check needed - Flask handles this at route level
+        console.log('Create form page loaded successfully');
         
         // Allow Enter key to trigger form generation
         document.getElementById('formDump').addEventListener('keydown', function(e) {

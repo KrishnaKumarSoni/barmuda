@@ -1,13 +1,50 @@
-{% extends "base.html" %}
-
-{% block title %}Bermuda - Conversational Forms{% endblock %}
-
-{% block content %}
-<!-- Anonymous Landing Page - Figma Design 1:2 -->
-<div class="bg-[#fff5e0] relative min-h-screen">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bermuda - Conversational Forms</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen">
     <!-- Background Image -->
     <div class="absolute bg-center bg-cover bg-no-repeat h-[760px] left-1/2 mix-blend-darken opacity-[0.45] top-0 translate-x-[-50%] w-[1440px]" 
          style="background-image: url('/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
+    
+    <!-- Navigation Bar -->
+    <div class="absolute bg-white rounded-[100px] border border-[#fff0cf] top-8 left-1/2 translate-x-[-50%] px-6 py-3 z-10">
+        <div class="flex items-center justify-between w-[660px]">
+            <!-- Logo Section -->
+            <div class="flex items-center gap-3">
+                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
+                     style="background-image: url('/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                    Bermuda forms
+                </h1>
+            </div>
+            
+            <!-- Sign In Button -->
+            <button onclick="signInWithGoogle()" 
+                    class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5">
+                <span class="font-['DM_Sans'] text-[18px] text-white">Sign in</span>
+                <i class="ph ph-sign-in text-white text-xl"></i>
+            </button>
+        </div>
+    </div>
     
     <!-- Tags -->
     <div class="absolute flex gap-2 left-1/2 top-[323px] translate-x-[-50%]">
@@ -54,5 +91,56 @@
             Get 3x higher response rates and uncover insights that checkboxes miss.
         </p>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Firebase Authentication -->
+    <script>
+        // Firebase configuration - REAL config for bermuda-01
+        const firebaseConfig = {
+            apiKey: "{{ config.get('FIREBASE_WEB_API_KEY', 'AIzaSyAoWt0HAUvLzMD5OX43URZlbLFimA0wnmA') }}",
+            authDomain: "bermuda-01.firebaseapp.com",
+            projectId: "bermuda-01",
+            storageBucket: "bermuda-01.firebasestorage.app", 
+            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '212698241186') }}",
+            appId: "{{ config.get('FIREBASE_WEB_APP_ID', '1:212698241186:web:dfe2ec1c46dd5a4e9c1ffb') }}",
+            measurementId: "G-ZQGF5RB992"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Real Google Sign In
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ idToken })
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/create-form';
+                } else {
+                    const error = await response.json();
+                    alert('Authentication failed: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
