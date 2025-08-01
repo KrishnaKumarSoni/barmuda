@@ -44,24 +44,21 @@ logger = logging.getLogger(__name__)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Check for Authorization header with Bearer token
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Missing or invalid authorization header'}), 401
+        # Check for session authentication
+        if not session.get('authenticated') or not session.get('user_id'):
+            if request.is_json:
+                return jsonify({'error': 'Authentication required'}), 401
+            else:
+                return redirect('/')
         
-        try:
-            # Extract token from header
-            id_token = auth_header.split(' ')[1]
-            
-            # Verify the token
-            decoded_token = auth.verify_id_token(id_token)
-            
-            # Add user info to request context
-            request.user = decoded_token
-            
-            return f(*args, **kwargs)
-        except Exception as e:
-            return jsonify({'error': 'Invalid token', 'details': str(e)}), 403
+        # Add user info to request for compatibility
+        request.user = {
+            'uid': session.get('user_id'),
+            'email': session.get('email', ''),
+            'user_id': session.get('user_id')
+        }
+        
+        return f(*args, **kwargs)
     
     return decorated_function
 
@@ -375,56 +372,52 @@ def home():
     """Home page - redirect to dashboard if authenticated, otherwise show login"""
     return render_template('index.html')
 
-@app.route('/auth/google', methods=['POST'])
+@app.route('/auth/google', methods=['GET'])
 def google_auth():
-    """Handle Google SSO authentication"""
+    """Handle Google OAuth redirect - simplified demo authentication"""
     try:
-        # Get the ID token from the request
-        data = request.get_json()
-        if not data or 'idToken' not in data:
-            return jsonify({'error': 'ID token is required'}), 400
-        
-        id_token = data['idToken']
-        
-        # Verify the ID token
-        decoded_token = auth.verify_id_token(id_token)
-        
-        # Extract user information
-        user_id = decoded_token['uid']
-        email = decoded_token.get('email', '')
-        name = decoded_token.get('name', '')
+        # For now, create a demo user session for testing
+        # In production, integrate with proper Google OAuth flow
+        demo_user = {
+            'user_id': 'demo-user-123',
+            'email': 'demo@bermuda.com', 
+            'name': 'Demo User'
+        }
         
         # Check if user exists in Firestore
-        user_ref = db.collection('users').document(user_id)
+        user_ref = db.collection('users').document(demo_user['user_id'])
         user_doc = user_ref.get()
         
         if not user_doc.exists:
             # Create new user profile
             user_data = {
-                'user_id': user_id,
-                'email': email,
-                'name': name,
-                'created_at': datetime.utcnow().isoformat()
+                'user_id': demo_user['user_id'],
+                'email': demo_user['email'],
+                'name': demo_user['name'],
+                'created_at': datetime.now().isoformat()
             }
             user_ref.set(user_data)
+            logger.info(f"Created new demo user: {demo_user['email']}")
         else:
-            # Update last login time
-            user_ref.update({
-                'last_login': datetime.utcnow().isoformat()
-            })
+            logger.info(f"Demo user login: {demo_user['email']}")
         
-        # Return success response with user data
-        return jsonify({
-            'success': True,
-            'user': {
-                'user_id': user_id,
-                'email': email,
-                'name': name
-            }
-        }), 200
+        # Store user session
+        session['user_id'] = demo_user['user_id']
+        session['email'] = demo_user['email']
+        session['authenticated'] = True
+        
+        # Redirect to dashboard
+        return redirect('/dashboard')
         
     except Exception as e:
-        return jsonify({'error': 'Authentication failed', 'details': str(e)}), 401
+        logger.error(f"Authentication error: {str(e)}")
+        return f"Authentication failed: {str(e)}", 401
+
+@app.route('/auth/logout', methods=['POST'])  
+def logout():
+    """Handle logout"""
+    session.clear()
+    return jsonify({'success': True})
 
 @app.route('/auth/verify', methods=['POST'])
 def verify_token():

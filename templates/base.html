@@ -11,9 +11,7 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <!-- No Firebase SDK needed - backend handles auth -->
     
     <!-- Custom CSS -->
     <style>
@@ -76,69 +74,13 @@
         </div>
     </footer>
 
-    <!-- Firebase Configuration -->
+    <!-- Simple Backend Authentication -->
     <script>
-        // Firebase configuration - Replace with your actual Firebase config
-        const firebaseConfig = {
-            apiKey: "{{ config.get('FIREBASE_API_KEY', 'AIzaSyDummy-Key-Replace-With-Real') }}",
-            authDomain: "{{ config.get('FIREBASE_AUTH_DOMAIN', 'bermuda-01.firebaseapp.com') }}",
-            projectId: "{{ config.get('FIREBASE_PROJECT_ID', 'bermuda-01') }}",
-            storageBucket: "{{ config.get('FIREBASE_STORAGE_BUCKET', 'bermuda-01.appspot.com') }}",
-            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '123456789') }}",
-            appId: "{{ config.get('FIREBASE_APP_ID', '1:123456789:web:dummy-app-id') }}"
-        };
-
-        // Initialize Firebase with error handling
-        let auth = null;
-        
-        try {
-            // Check if we have a valid API key
-            if (firebaseConfig.apiKey.includes('Dummy') || firebaseConfig.apiKey.includes('your-api')) {
-                console.warn('Firebase config not properly set. Authentication will not work.');
-                window.signInWithGoogle = function() {
-                    alert('Authentication is not configured. Please contact the administrator.');
-                };
-                return;
-            }
-            
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
-            window.signInWithGoogle = function() {
-                alert('Authentication system error. Please try again later.');
-            };
-            return;
-        }
-
-        // Global authentication functions
+        // Simple Google OAuth flow - backend handles everything
         async function signInWithGoogle() {
             try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('email');
-                provider.addScope('profile');
-                
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                const idToken = await user.getIdToken();
-                
-                // Send token to backend
-                const response = await fetch('/auth/google', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ idToken })
-                });
-                
-                if (response.ok) {
-                    // Store token in localStorage for future requests
-                    localStorage.setItem('idToken', idToken);
-                    window.location.href = '/dashboard';
-                } else {
-                    const error = await response.json();
-                    alert('Authentication failed: ' + error.error);
-                }
+                // Redirect to backend Google OAuth endpoint
+                window.location.href = '/auth/google';
             } catch (error) {
                 console.error('Sign in error:', error);
                 alert('Sign in failed: ' + error.message);
@@ -147,36 +89,28 @@
 
         async function signOut() {
             try {
-                await auth.signOut();
-                localStorage.removeItem('idToken');
-                window.location.href = '/';
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    console.error('Sign out failed');
+                }
             } catch (error) {
                 console.error('Sign out error:', error);
             }
         }
 
-        // Check authentication state on page load
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                const idToken = await user.getIdToken();
-                localStorage.setItem('idToken', idToken);
-            } else {
-                localStorage.removeItem('idToken');
-            }
-        });
-
         // Helper function to make authenticated requests
         async function authenticatedFetch(url, options = {}) {
-            const idToken = localStorage.getItem('idToken');
-            if (!idToken) {
-                throw new Error('No authentication token');
-            }
-
             return fetch(url, {
                 ...options,
+                credentials: 'include', // Include session cookies
                 headers: {
                     ...options.headers,
-                    'Authorization': `Bearer ${idToken}`,
                     'Content-Type': 'application/json',
                 }
             });

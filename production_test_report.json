@@ -1,0 +1,135 @@
+{
+  "timestamp": "2025-08-01T21:40:42.953933",
+  "total_tests": 21,
+  "passed": 12,
+  "failed": 9,
+  "success_rate": 57.14285714285714,
+  "results": [
+    {
+      "test": "Homepage Load",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-01T21:40:36.801600"
+    },
+    {
+      "test": "Mock Form Creation",
+      "success": true,
+      "details": "Created test form: test-form-123",
+      "timestamp": "2025-08-01T21:40:36.801676"
+    },
+    {
+      "test": "Form Inference API",
+      "success": false,
+      "details": "Authentication required (expected)",
+      "timestamp": "2025-08-01T21:40:37.062437"
+    },
+    {
+      "test": "Chat Session Start",
+      "success": false,
+      "details": "Status: 500, Session: None",
+      "timestamp": "2025-08-01T21:40:37.516786"
+    },
+    {
+      "test": "Edge Case: Off-Topic Response",
+      "success": false,
+      "details": "Status: 200 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:37.848594"
+    },
+    {
+      "test": "Edge Case: Skip Request",
+      "success": false,
+      "details": "Status: 200 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:38.287954"
+    },
+    {
+      "test": "Edge Case: Multi-Answer",
+      "success": false,
+      "details": "Status: 200 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:38.642904"
+    },
+    {
+      "test": "Edge Case: Vague Response",
+      "success": false,
+      "details": "Status: 200 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:39.000998"
+    },
+    {
+      "test": "Edge Case: Invalid Type Response",
+      "success": false,
+      "details": "Status: 200 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:39.413378"
+    },
+    {
+      "test": "Edge Case: Premature End",
+      "success": false,
+      "details": "Status: 200 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:39.764796"
+    },
+    {
+      "test": "Response Endpoint: /api/responses/test-form-123",
+      "success": true,
+      "details": "Status: 401 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:40.034691"
+    },
+    {
+      "test": "Response Endpoint: /responses/test-form-123",
+      "success": true,
+      "details": "Status: 401 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:40.297516"
+    },
+    {
+      "test": "Response Endpoint: /api/export/test-form-123/json",
+      "success": true,
+      "details": "Status: 401 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:40.564732"
+    },
+    {
+      "test": "Response Endpoint: /api/export/test-form-123/csv",
+      "success": true,
+      "details": "Status: 401 (endpoint exists)",
+      "timestamp": "2025-08-01T21:40:40.841413"
+    },
+    {
+      "test": "API Endpoint: POST /api/infer",
+      "success": true,
+      "details": "Status: 401",
+      "timestamp": "2025-08-01T21:40:41.154816"
+    },
+    {
+      "test": "API Endpoint: POST /api/save_form",
+      "success": true,
+      "details": "Status: 401",
+      "timestamp": "2025-08-01T21:40:41.418083"
+    },
+    {
+      "test": "API Endpoint: POST /api/chat/start",
+      "success": true,
+      "details": "Status: 400",
+      "timestamp": "2025-08-01T21:40:41.694477"
+    },
+    {
+      "test": "API Endpoint: POST /api/chat/message",
+      "success": true,
+      "details": "Status: 400",
+      "timestamp": "2025-08-01T21:40:42.074661"
+    },
+    {
+      "test": "API Endpoint: GET /form/test",
+      "success": false,
+      "details": "Status: 404",
+      "timestamp": "2025-08-01T21:40:42.437040"
+    },
+    {
+      "test": "API Endpoint: GET /dashboard",
+      "success": true,
+      "details": "Status: 401",
+      "timestamp": "2025-08-01T21:40:42.704480"
+    },
+    {
+      "test": "API Endpoint: GET /create-form",
+      "success": true,
+      "details": "Status: 401",
+      "timestamp": "2025-08-01T21:40:42.953857"
+    }
+  ]
+}
