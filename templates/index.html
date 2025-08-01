@@ -3,122 +3,56 @@
 {% block title %}Bermuda - Conversational Forms{% endblock %}
 
 {% block content %}
-<div class="px-4 py-16 sm:px-6 lg:px-8">
-    <!-- Hero Section -->
-    <div class="text-center">
-        <div class="flex justify-center mb-8">
-            <div class="flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full">
-                <i class="ph ph-chat-circle-text text-blue-600 text-4xl"></i>
-            </div>
+<!-- Anonymous Landing Page - Figma Design 1:2 -->
+<div class="bg-[#fff5e0] relative min-h-screen">
+    <!-- Background Image -->
+    <div class="absolute bg-center bg-cover bg-no-repeat h-[760px] left-1/2 mix-blend-darken opacity-[0.45] top-0 translate-x-[-50%] w-[1440px]" 
+         style="background-image: url('/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
+    
+    <!-- Tags -->
+    <div class="absolute flex gap-2 left-1/2 top-[323px] translate-x-[-50%]">
+        <div class="border border-[#e3d1c3] rounded-[100px] px-[25px] py-2.5">
+            <p class="font-['DM_Sans'] text-[15px] text-[#1e1e1e] text-center">text to form</p>
         </div>
-        
-        <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-            Forms That <span class="text-blue-600">Converse</span>
+        <div class="border border-[#e3d1c3] rounded-[100px] px-[29px] py-2.5">
+            <p class="font-['DM_Sans'] text-[15px] text-[#1e1e1e] text-center">chat to respond</p>
+        </div>
+    </div>
+    
+    <!-- Main Heading -->
+    <div class="absolute left-1/2 top-[236px] translate-x-[-50%] translate-y-[-50%] text-center">
+        <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[56px] text-[#1e1e1e] tracking-[-0.56px] leading-none">
+            stop quizzing.<br>start learning.
         </h1>
-        
-        <p class="mt-6 max-w-2xl mx-auto text-xl text-gray-600">
-            Create conversational forms using AI. Your respondents chat naturally while you collect structured data.
+    </div>
+    
+    <!-- Subtitle -->
+    <div class="absolute left-1/2 top-[392px] translate-x-[-50%] translate-y-[-50%] text-center">
+        <p class="font-['DM_Sans'] text-[20px] text-[#1e1e1e] tracking-[-0.2px]">
+            make forms using ai and let people respond by chatting naturally
         </p>
-        
-        <div class="mt-10">
-            <button onclick="signInWithGoogle()" class="btn-primary text-lg px-8 py-3">
-                <i class="ph ph-google-logo mr-3"></i>
-                Get Started with Google
-            </button>
-        </div>
     </div>
-
-    <!-- Features Section -->
-    <div class="mt-24">
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <!-- Feature 1 -->
-            <div class="card text-center">
-                <div class="flex justify-center mb-4">
-                    <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg">
-                        <i class="ph ph-magic-wand text-green-600 text-2xl"></i>
-                    </div>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">AI-Powered Creation</h3>
-                <p class="text-gray-600">Paste your requirements and let AI generate intelligent form questions automatically.</p>
-            </div>
-
-            <!-- Feature 2 -->
-            <div class="card text-center">
-                <div class="flex justify-center mb-4">
-                    <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
-                        <i class="ph ph-chat-dots text-blue-600 text-2xl"></i>
-                    </div>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Natural Conversations</h3>
-                <p class="text-gray-600">Respondents chat naturally with an empathetic AI that feels human.</p>
-            </div>
-
-            <!-- Feature 3 -->
-            <div class="card text-center">
-                <div class="flex justify-center mb-4">
-                    <div class="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg">
-                        <i class="ph ph-chart-bar text-purple-600 text-2xl"></i>
-                    </div>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Structured Data</h3>
-                <p class="text-gray-600">Get clean, structured responses automatically extracted from conversations.</p>
-            </div>
+    
+    <!-- Form Input Area -->
+    <div class="absolute left-1/2 top-[437px] translate-x-[-50%]">
+        <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-xl w-[762px] h-[216px] relative">
+            <textarea 
+                class="w-full h-full p-4 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-[18px] text-[#1e1e1e] placeholder-[#c3c3c3]"
+                placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
+                id="formDescription"></textarea>
         </div>
+        <button onclick="signInWithGoogle()" 
+                class="absolute right-0 top-[156px] bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-6 py-3 text-white font-['DM_Sans'] text-[18px]">
+            generate form
+        </button>
     </div>
-
-    <!-- How It Works Section -->
-    <div class="mt-24">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900">How It Works</h2>
-            <p class="mt-4 text-lg text-gray-600">Create conversational forms in three simple steps</p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <!-- Step 1 -->
-            <div class="text-center">
-                <div class="flex justify-center mb-6">
-                    <div class="flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold">
-                        1
-                    </div>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-4">Paste & Generate</h3>
-                <p class="text-gray-600">Describe what you want to collect. Our AI creates intelligent questions for you.</p>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="text-center">
-                <div class="flex justify-center mb-6">
-                    <div class="flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold">
-                        2
-                    </div>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-4">Edit & Share</h3>
-                <p class="text-gray-600">Customize your form and share the link. No accounts needed for respondents.</p>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="text-center">
-                <div class="flex justify-center mb-6">
-                    <div class="flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold">
-                        3
-                    </div>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-4">Collect & Analyze</h3>
-                <p class="text-gray-600">Responses flow in as natural conversations become structured data.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- CTA Section -->
-    <div class="mt-24 text-center">
-        <div class="bg-blue-50 rounded-2xl p-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
-            <p class="text-lg text-gray-600 mb-8">Join creators who are already building better forms with AI.</p>
-            <button onclick="signInWithGoogle()" class="btn-primary text-lg px-8 py-3">
-                <i class="ph ph-google-logo mr-3"></i>
-                Create Your First Form
-            </button>
-        </div>
+    
+    <!-- Bottom Text -->
+    <div class="absolute left-1/2 top-[730px] translate-x-[-50%] translate-y-[-50%] text-center max-w-[806px]">
+        <p class="font-['DM_Sans'] text-[20px] text-[#000000]">
+            Transform boring surveys into engaging conversations that people actually want to complete. 
+            Get 3x higher response rates and uncover insights that checkboxes miss.
+        </p>
     </div>
 </div>
 {% endblock %}

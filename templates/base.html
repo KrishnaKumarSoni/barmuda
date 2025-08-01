@@ -33,34 +33,42 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="/" class="flex items-center space-x-2">
-                        <i class="ph ph-chat-circle text-blue-600 text-2xl"></i>
-                        <span class="text-xl font-bold text-gray-900">Bermuda</span>
-                    </a>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    {% if request.user %}
-                    <span class="text-sm text-gray-600">{{ request.user.email }}</span>
-                    <button onclick="signOut()" class="btn-secondary">
-                        <i class="ph ph-sign-out mr-2"></i>
-                        Sign Out
-                    </button>
-                    {% else %}
-                    <button onclick="signInWithGoogle()" class="btn-primary">
-                        <i class="ph ph-google-logo mr-2"></i>
-                        Sign In
-                    </button>
-                    {% endif %}
-                </div>
+    <!-- Navigation - Figma Design -->
+    <div class="absolute bg-white rounded-[100px] border border-[#fff0cf] top-8 left-1/2 translate-x-[-50%] px-6 py-3 z-10">
+        <div class="flex items-center gap-[72px]">
+            <!-- Logo Section -->
+            <div class="flex items-center gap-3">
+                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
+                     style="background-image: url('/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                    Bermuda forms
+                </h1>
+            </div>
+            
+            <!-- Navigation Links (only show when authenticated) -->
+            {% if request.user %}
+            <div class="flex items-center gap-6 font-['Plus_Jakarta_Sans'] font-medium text-[14px] text-black tracking-[-0.14px]">
+                <a href="/dashboard" class="hover:text-[#cc5500]">dashboard</a>
+                <a href="/" class="hover:text-[#cc5500]">home</a>
+            </div>
+            {% endif %}
+            
+            <!-- Auth Section -->
+            <div class="flex items-center">
+                {% if request.user %}
+                <button onclick="signOut()" class="w-8 h-8">
+                    <img src="/assets/6c9de1342bc52c8dadcce7e1619288c4154b5c4d.svg" alt="Sign Out" class="w-full h-full">
+                </button>
+                {% else %}
+                <button onclick="signInWithGoogle()" 
+                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5">
+                    <span class="font-['DM_Sans'] text-[18px] text-white">Sign in</span>
+                    <img src="/assets/09c65ee5264a81a2ec63b4846c1f53f0c06314f6.svg" alt="Sign In" class="w-8 h-8">
+                </button>
+                {% endif %}
             </div>
         </div>
-    </nav>
+    </div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

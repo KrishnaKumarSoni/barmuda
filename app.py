@@ -388,18 +388,18 @@ def infer_form_from_text(input_text, max_retries=2):
 
 @app.route('/')
 def home():
-    """Home page - redirect to dashboard if authenticated, otherwise show login"""
+    """Home page - redirect authenticated users to create-form, show anonymous landing otherwise"""
     # Debug session state
     logger.info(f"Home route - Session: {dict(session)}")
     logger.info(f"Authenticated: {session.get('authenticated')}, User ID: {session.get('user_id')}")
     
     # Check if user is authenticated
     if session.get('authenticated') and session.get('user_id'):
-        logger.info("User is authenticated, redirecting to dashboard")
-        return redirect(url_for('dashboard'))
+        logger.info("User is authenticated, redirecting to create-form")
+        return redirect(url_for('create_form'))
     
-    # For unauthenticated users, show the landing page
-    logger.info("User not authenticated, showing login page")
+    # For unauthenticated users, show the anonymous landing page
+    logger.info("User not authenticated, showing anonymous landing page")
     return render_template('index.html')
 
 @app.route('/test-session')
