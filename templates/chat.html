@@ -38,22 +38,27 @@
     </style>
 </head>
 <body class="bg-[#fef5e0] min-h-screen">
-    <!-- Header -->
-    <div class="bg-white rounded-full mx-auto mt-8 w-[660px] shadow-sm border border-[#fff0cf]">
-        <div class="flex items-center justify-between px-6 py-3">
+    <!-- Navigation - Standardized Design -->
+    <nav class="bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-8 max-w-fit px-6 py-3 shadow-sm">
+        <div class="flex items-center gap-[72px]">
+            <!-- Logo Section -->
             <div class="flex items-center gap-3">
-                <div class="w-[30px] h-11 bg-cover bg-center bg-no-repeat shrink-0" 
+                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
                      style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <div class="font-['Plus_Jakarta_Sans'] font-semibold text-[#cc5500] text-[24px] tracking-[-0.24px]">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
                     Bermuda forms
-                </div>
+                </h1>
             </div>
-            <a href="/dashboard" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-4 py-2.5 rounded-full flex items-center gap-2.5 border border-[#cc5500]">
-                <span class="font-['DM_Sans'] text-[18px]">generate new form</span>
-                <img src="/static/assets/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="" class="w-6 h-6">
-            </a>
+            
+            <!-- Action Button -->
+            <div class="flex items-center">
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                    <span class="font-['DM_Sans'] text-[18px] text-white">generate new form</span>
+                    <i class="ph ph-plus text-white text-xl"></i>
+                </a>
+            </div>
         </div>
-    </div>
+    </nav>
 
     <!-- Form Title -->
     <div class="text-center mt-12 mb-6">

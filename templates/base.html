@@ -33,13 +33,13 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation - Figma Design -->
-    <div class="absolute bg-white rounded-[100px] border border-[#fff0cf] top-8 left-1/2 translate-x-[-50%] px-6 py-3 z-10">
+    <!-- Navigation - Standardized Design -->
+    <nav class="absolute bg-white rounded-[100px] border border-[#fff0cf] top-8 left-1/2 translate-x-[-50%] px-6 py-3 z-10">
         <div class="flex items-center gap-[72px]">
             <!-- Logo Section -->
             <div class="flex items-center gap-3">
                 <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
-                     style="background-image: url('/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
                 <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
                     Bermuda forms
                 </h1>
@@ -48,27 +48,27 @@
             <!-- Navigation Links (only show when authenticated) -->
             {% if request.user %}
             <div class="flex items-center gap-6 font-['Plus_Jakarta_Sans'] font-medium text-[14px] text-black tracking-[-0.14px]">
-                <a href="/dashboard" class="hover:text-[#cc5500]">dashboard</a>
-                <a href="/" class="hover:text-[#cc5500]">home</a>
+                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
+                <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
             </div>
             {% endif %}
             
             <!-- Auth Section -->
             <div class="flex items-center">
                 {% if request.user %}
-                <button onclick="signOut()" class="w-8 h-8 text-[#666] hover:text-[#cc5500]">
+                <button onclick="signOut()" class="w-8 h-8 text-[#666] hover:text-[#cc5500] transition-colors">
                     <i class="ph ph-sign-out text-2xl"></i>
                 </button>
                 {% else %}
                 <button onclick="signInWithGoogle()" 
-                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5">
+                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
                     <span class="font-['DM_Sans'] text-[18px] text-white">Sign in</span>
                     <i class="ph ph-sign-in text-white text-xl"></i>
                 </button>
                 {% endif %}
             </div>
         </div>
-    </div>
+    </nav>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

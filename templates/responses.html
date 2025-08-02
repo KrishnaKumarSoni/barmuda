@@ -18,26 +18,33 @@
     <script src="/static/js/wordcloud-config.js"></script>
 </head>
 <body class="bg-[#fef5e0] min-h-screen">
-    <!-- Header -->
-    <div class="bg-white rounded-full mx-auto mt-8 max-w-6xl shadow-sm border border-[#fff0cf]">
-        <div class="flex items-center justify-between px-6 py-3">
+    <!-- Navigation - Standardized Design -->
+    <nav class="bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-8 max-w-fit px-6 py-3 shadow-sm">
+        <div class="flex items-center gap-[72px]">
+            <!-- Logo Section -->
             <div class="flex items-center gap-3">
-                <div class="w-[30px] h-11 bg-cover bg-center bg-no-repeat shrink-0" 
+                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
                      style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <div class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-[36px] tracking-[-0.36px]">
-                    Bermuda Forms
-                </div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                    Bermuda forms
+                </h1>
             </div>
-            <div class="flex items-center space-x-6">
-                <a href="/dashboard" class="font-['Plus_Jakarta_Sans'] font-medium text-black text-[14px] tracking-[-0.14px]">dashboard</a>
-                <a href="/" class="font-['Plus_Jakarta_Sans'] font-medium text-black text-[14px] tracking-[-0.14px]">home</a>
-                <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-4 py-2.5 rounded-full flex items-center gap-2.5 border border-[#cc5500]">
-                    <span class="font-['DM_Sans'] text-[18px]">generate new form</span>
-                    <img src="/static/assets/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="" class="w-6 h-6">
+            
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-6 font-['Plus_Jakarta_Sans'] font-medium text-[14px] text-black tracking-[-0.14px]">
+                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
+                <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
+            </div>
+            
+            <!-- Action Button -->
+            <div class="flex items-center">
+                <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                    <span class="font-['DM_Sans'] text-[18px] text-white">generate new form</span>
+                    <i class="ph ph-plus text-white text-xl"></i>
                 </a>
             </div>
         </div>
-    </div>
+    </nav>
 
     <!-- Go Back -->
     <div class="max-w-6xl mx-auto mt-8 flex items-center">

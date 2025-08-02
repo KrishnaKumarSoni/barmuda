@@ -50,29 +50,30 @@
          style="background-image: url('/static/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png');">
     </div>
 
-    <!-- Navigation -->
-    <nav class="relative z-10 bg-white rounded-full mx-auto mt-8 max-w-fit border border-bermuda-nav-border">
-        <div class="flex items-center gap-18 px-6 py-3">
+    <!-- Navigation - Standardized Design -->
+    <nav class="relative z-10 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-8 max-w-fit px-6 py-3">
+        <div class="flex items-center gap-[72px]">
             <!-- Logo Section -->
             <div class="flex items-center gap-3">
-                <div class="w-8 h-11 bg-center bg-cover bg-no-repeat"
-                     style="background-image: url('/static/fd8df05e393cbb3743a17079ba585dca07a12cd4.png');">
-                </div>
-                <div class="font-jakarta font-semibold text-2xl text-bermuda-orange tracking-tight">
+                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
+                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
                     Bermuda forms
-                </div>
+                </h1>
             </div>
             
             <!-- Navigation Links -->
-            <div class="flex items-center gap-6 font-jakarta font-medium text-sm text-black tracking-tight ml-18">
-                <a href="/dashboard" class="hover:text-bermuda-orange transition-colors">dashboard</a>
-                <a href="/" class="hover:text-bermuda-orange transition-colors">home</a>
+            <div class="flex items-center gap-6 font-['Plus_Jakarta_Sans'] font-medium text-[14px] text-black tracking-[-0.14px]">
+                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
+                <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
             </div>
             
             <!-- Sign Out -->
-            <button onclick="signOut()" class="w-8 h-8 ml-auto text-[#666] hover:text-[#cc5500]">
-                <i class="ph ph-sign-out text-2xl"></i>
-            </button>
+            <div class="flex items-center">
+                <button onclick="signOut()" class="w-8 h-8 text-[#666] hover:text-[#cc5500] transition-colors">
+                    <i class="ph ph-sign-out text-2xl"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
