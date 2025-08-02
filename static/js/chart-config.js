@@ -187,6 +187,89 @@ function createCustomLegend(containerId, labels, data, colors) {
 }
 
 /**
+ * Calculate statistics for choice-based questions (multiple choice, yes/no)
+ */
+function calculateChoiceStats(responses, options) {
+    const stats = {};
+    const total = responses.length;
+    
+    options.forEach(option => {
+        stats[option] = { count: 0, percentage: 0 };
+    });
+    stats['other'] = { count: 0, percentage: 0 };
+    stats['[SKIP]'] = { count: 0, percentage: 0 };
+
+    responses.forEach(response => {
+        const value = response.value;
+        if (stats[value]) {
+            stats[value].count++;
+        } else if (value === '[SKIP]') {
+            stats['[SKIP]'].count++;
+        } else {
+            stats['other'].count++;
+        }
+    });
+
+    Object.keys(stats).forEach(key => {
+        stats[key].percentage = total > 0 ? Math.round((stats[key].count / total) * 100) : 0;
+    });
+
+    return stats;
+}
+
+/**
+ * Calculate statistics for rating questions
+ */
+function calculateRatingStats(responses) {
+    const stats = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '[SKIP]': 0 };
+    const total = responses.length;
+
+    responses.forEach(response => {
+        const value = response.value;
+        if (stats[value] !== undefined) {
+            stats[value]++;
+        }
+    });
+
+    const result = {};
+    Object.keys(stats).forEach(key => {
+        result[key] = {
+            count: stats[key],
+            percentage: total > 0 ? Math.round((stats[key] / total) * 100) : 0
+        };
+    });
+
+    return result;
+}
+
+/**
+ * Calculate statistics for number questions
+ */
+function calculateNumberStats(responses) {
+    const stats = {};
+    const total = responses.length;
+
+    responses.forEach(response => {
+        const value = response.value;
+        if (value === '[SKIP]') {
+            stats['[SKIP]'] = (stats['[SKIP]'] || 0) + 1;
+        } else {
+            stats[value] = (stats[value] || 0) + 1;
+        }
+    });
+
+    const result = {};
+    Object.keys(stats).forEach(key => {
+        result[key] = {
+            count: stats[key],
+            percentage: total > 0 ? Math.round((stats[key] / total) * 100) : 0
+        };
+    });
+
+    return result;
+}
+
+/**
  * Initialize chart for a question based on its type
  */
 function initializeQuestionChart(questionIndex, questionType, questionData, responses) {
@@ -276,31 +359,6 @@ function initializeQuestionChart(questionIndex, questionType, questionData, resp
     return chart;
 }
 
-// Helper function to calculate number statistics
-function calculateNumberStats(responses) {
-    const stats = {};
-    
-    responses.forEach(response => {
-        const value = response.value;
-        if (value !== '[SKIP]') {
-            const numValue = parseInt(value) || value;
-            const key = numValue.toString();
-            
-            if (!stats[key]) {
-                stats[key] = { count: 0, percentage: 0 };
-            }
-            stats[key].count++;
-        }
-    });
-    
-    // Calculate percentages
-    const total = Object.values(stats).reduce((sum, stat) => sum + stat.count, 0);
-    Object.keys(stats).forEach(key => {
-        stats[key].percentage = total > 0 ? Math.round((stats[key].count / total) * 100) : 0;
-    });
-    
-    return stats;
-}
 
 // Export for use in responses.html
 window.ChartConfig = {
@@ -310,5 +368,8 @@ window.ChartConfig = {
     createYesNoChart,
     createRatingChart,
     createCustomLegend,
-    initializeQuestionChart
+    initializeQuestionChart,
+    calculateChoiceStats,
+    calculateRatingStats,
+    calculateNumberStats
 };

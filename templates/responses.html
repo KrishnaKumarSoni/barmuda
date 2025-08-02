@@ -207,7 +207,7 @@
                 const questionCard = document.createElement('div');
                 questionCard.className = 'bg-white rounded-lg border border-[#fce9c1] p-6';
                 
-                const responses = data.responses.map(r => r.responses[index.toString()]).filter(Boolean);
+                const responses = data.responses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
                 const responseCount = responses.length;
                 
                 let summaryHtml = `
@@ -258,55 +258,6 @@
             });
         }
 
-        function calculateChoiceStats(responses, options) {
-            const stats = {};
-            const total = responses.length;
-            
-            options.forEach(option => {
-                stats[option] = { count: 0, percentage: 0 };
-            });
-            stats['other'] = { count: 0, percentage: 0 };
-            stats['[SKIP]'] = { count: 0, percentage: 0 };
-
-            responses.forEach(response => {
-                const value = response.value;
-                if (stats[value]) {
-                    stats[value].count++;
-                } else if (value === '[SKIP]') {
-                    stats['[SKIP]'].count++;
-                } else {
-                    stats['other'].count++;
-                }
-            });
-
-            Object.keys(stats).forEach(key => {
-                stats[key].percentage = total > 0 ? Math.round((stats[key].count / total) * 100) : 0;
-            });
-
-            return stats;
-        }
-
-        function calculateRatingStats(responses) {
-            const stats = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '[SKIP]': 0 };
-            const total = responses.length;
-
-            responses.forEach(response => {
-                const value = response.value;
-                if (stats[value] !== undefined) {
-                    stats[value]++;
-                }
-            });
-
-            const result = {};
-            Object.keys(stats).forEach(key => {
-                result[key] = {
-                    count: stats[key],
-                    percentage: total > 0 ? Math.round((stats[key] / total) * 100) : 0
-                };
-            });
-
-            return result;
-        }
 
         // Chart rendering is now handled by chart-config.js and wordcloud-config.js
 
