@@ -8,6 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js and WordCloud Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.js"></script>
+    
+    <!-- Custom Chart Configurations -->
+    <script src="/static/js/chart-config.js"></script>
+    <script src="/static/js/wordcloud-config.js"></script>
 </head>
 <body class="bg-[#fef5e0] min-h-screen">
     <!-- Header -->
@@ -215,18 +223,38 @@
                     <p class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px] mb-4">${responseCount} Responses</p>
                 `;
 
-                if (question.type === 'multiple_choice' || question.type === 'yes_no') {
-                    const stats = calculateChoiceStats(responses, question.type === 'yes_no' ? ['yes', 'no'] : question.options);
-                    summaryHtml += renderChoiceChart(stats);
-                } else if (question.type === 'rating') {
-                    const stats = calculateRatingStats(responses);
-                    summaryHtml += renderRatingChart(stats);
+                // Create visualization container based on question type
+                if (question.type === 'text') {
+                    summaryHtml += `
+                        <div class="flex items-center justify-center">
+                            <div id="wordcloud-${index}" class="w-[290px] h-[164px]"></div>
+                        </div>
+                    `;
                 } else {
-                    summaryHtml += renderTextResponses(responses);
+                    // Chart + Legend layout for choice/rating questions
+                    summaryHtml += `
+                        <div class="flex items-center gap-6">
+                            <div class="w-[132px] h-[132px] flex-shrink-0">
+                                <canvas id="chart-${index}" width="132" height="132"></canvas>
+                            </div>
+                            <div class="flex-1">
+                                <div id="legend-${index}" class="space-y-3"></div>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 questionCard.innerHTML = summaryHtml;
                 container.appendChild(questionCard);
+                
+                // Initialize visualization after DOM is updated
+                setTimeout(() => {
+                    if (question.type === 'text') {
+                        window.WordCloudConfig.initializeTextVisualization(index, responses);
+                    } else {
+                        window.ChartConfig.initializeQuestionChart(index, question.type, question, responses);
+                    }
+                }, 100);
             });
         }
 
@@ -280,49 +308,7 @@
             return result;
         }
 
-        function renderChoiceChart(stats) {
-            let html = '<div class="flex items-center gap-6"><div class="flex-1"><div class="space-y-3">';
-            
-            Object.entries(stats).forEach(([option, data]) => {
-                if (data.count > 0) {
-                    const colors = ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'];
-                    const colorIndex = Object.keys(stats).indexOf(option) % colors.length;
-                    
-                    html += `
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded" style="background-color: ${colors[colorIndex]}"></div>
-                            <span class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px]">${option}</span>
-                            <span class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px] ml-auto">${data.percentage}%</span>
-                        </div>
-                    `;
-                }
-            });
-            
-            html += '</div></div></div>';
-            return html;
-        }
-
-        function renderRatingChart(stats) {
-            return renderChoiceChart(stats);
-        }
-
-        function renderTextResponses(responses) {
-            let html = '<div class="space-y-2">';
-            responses.slice(0, 5).forEach((response, index) => {
-                html += `
-                    <div class="bg-[#f9f9f9] rounded p-3">
-                        <p class="font-['DM_Sans'] text-[#1e1e1e] text-[14px]">"${response.value}"</p>
-                    </div>
-                `;
-            });
-            
-            if (responses.length > 5) {
-                html += `<p class="text-[#797878] text-[12px]">... and ${responses.length - 5} more responses</p>`;
-            }
-            
-            html += '</div>';
-            return html;
-        }
+        // Chart rendering is now handled by chart-config.js and wordcloud-config.js
 
         function renderIndividual(data) {
             const container = document.getElementById('individual-responses');
