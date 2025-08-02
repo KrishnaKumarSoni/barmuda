@@ -423,6 +423,43 @@ def test_session():
         'user_id': session.get('user_id')
     })
 
+@app.route('/test-openai')
+@login_required
+def test_openai():
+    """Test route to debug OpenAI API connectivity in production"""
+    try:
+        # Check environment variables
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            return jsonify({
+                'error': 'OPENAI_API_KEY not found in environment',
+                'env_vars': list(os.environ.keys())
+            }), 500
+        
+        # Test simple OpenAI call
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": "Say 'test successful' in JSON format"}
+            ],
+            max_tokens=50
+        )
+        
+        return jsonify({
+            'success': True,
+            'response': response.choices[0].message.content,
+            'api_key_present': bool(api_key),
+            'api_key_prefix': api_key[:8] + '...' if api_key else None
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'api_key_present': bool(os.environ.get('OPENAI_API_KEY'))
+        }), 500
+
 @app.route('/auth/google', methods=['POST'])
 def google_auth():
     """Handle real Google Firebase authentication"""
