@@ -47,7 +47,8 @@ def inject_user():
 @app.template_filter('tojsonfilter')
 def to_json_filter(obj):
     import json
-    return json.dumps(obj)
+    from markupsafe import Markup
+    return Markup(json.dumps(obj))
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
