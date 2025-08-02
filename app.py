@@ -1183,11 +1183,18 @@ def get_form_responses(form_id):
         
         for response_doc in responses_query:
             response_data = response_doc.to_dict()
+            # Handle created_at field - might be datetime object or string
+            created_at = response_data.get('created_at')
+            if created_at:
+                if hasattr(created_at, 'isoformat'):
+                    created_at = created_at.isoformat()
+                # If it's already a string, keep it as is
+            
             responses.append({
                 'id': response_doc.id,
                 'responses': response_data.get('responses', {}),
                 'metadata': response_data.get('metadata', {}),
-                'created_at': response_data.get('created_at').isoformat() if response_data.get('created_at') else None,
+                'created_at': created_at,
                 'partial': response_data.get('partial', False)
             })
         
