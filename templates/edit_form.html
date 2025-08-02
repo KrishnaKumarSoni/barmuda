@@ -769,7 +769,10 @@
         async function signOut() {
             try {
                 await auth.signOut();
-                localStorage.removeItem('idToken');
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
                 window.location.href = '/';
             } catch (error) {
                 console.error('Sign out error:', error);
@@ -777,34 +780,20 @@
             }
         }
 
-        // Helper function for authenticated requests
+        // Helper function for authenticated requests (session-based)
         async function authenticatedFetch(url, options = {}) {
-            const idToken = localStorage.getItem('idToken');
-            if (!idToken) {
-                throw new Error('No authentication token');
-            }
-
             return fetch(url, {
                 ...options,
+                credentials: 'include',
                 headers: {
                     ...options.headers,
-                    'Authorization': `Bearer ${idToken}`,
                     'Content-Type': 'application/json',
                 }
             });
         }
 
-        // Check authentication and initialize
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = '/';
-                return;
-            }
-            
-            const idToken = await user.getIdToken();
-            localStorage.setItem('idToken', idToken);
-            
-            // Initialize form after auth
+        // Initialize form on page load (Flask handles auth at route level)
+        document.addEventListener('DOMContentLoaded', function() {
             initializeForm();
         });
     </script>
