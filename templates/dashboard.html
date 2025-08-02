@@ -1,203 +1,283 @@
-{% extends "base.html" %}
-
-{% block title %}Dashboard - Bermuda{% endblock %}
-
-{% block content %}
-<!-- Dashboard - Figma Design 3:45 -->
-<div class="bg-[#fff5e0] relative min-h-screen">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bermuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen">
     <!-- Background Image -->
-    <div class="absolute bg-center bg-cover bg-no-repeat h-[760px] left-1/2 mix-blend-darken opacity-[0.45] top-0 translate-x-[-50%] w-[1440px]" 
-         style="background-image: url('/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
+    <div class="absolute inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45]" 
+         style="background-image: url('/static/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
     
-    <!-- Header -->
-    <div class="absolute left-48 top-[194px] translate-x-[-50%] translate-y-[-50%]">
-        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[40px] text-black tracking-[-0.4px]">Forms</h1>
-    </div>
-    
-    <!-- Generate New Form Button -->
-    <button onclick="createNewForm()" 
-            class="absolute top-[172px] right-[120px] bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5">
-        <span class="font-['DM_Sans'] text-[18px] text-white">Generate new form</span>
-        <i class="ph ph-plus text-white text-xl"></i>
-    </button>
-
-    <!-- Forms Grid - Figma Layout -->
-    <div class="grid grid-cols-3 gap-6 absolute top-[255px] left-[132px] max-w-[1192px]">
-        {% for form in forms %}
-        <!-- Form Card -->
-        <div class="bg-white border border-[#fff0cf] rounded-lg w-[360px] h-[228px] relative">
-            <!-- Form Title -->
-            <div class="absolute left-[19px] top-[51px] max-w-[320px]">
-                <h3 class="font-['DM_Sans'] font-semibold text-[24px] text-black tracking-[-0.24px] leading-tight">
-                    {{ form.title }}
-                </h3>
-            </div>
-            
-            <!-- Questions Count -->
-            <div class="absolute left-[19px] bottom-[45px]">
-                <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
-                    {{ form.questions|length }} q
-                </span>
-            </div>
-            
-            <!-- Status Toggle -->
-            <div class="absolute right-[15px] bottom-[59px] bg-[#fff5e0] border border-[#e4b65b] rounded-[100px] px-[7px] py-1 flex items-center gap-2.5 cursor-pointer" onclick="toggleFormStatus('{{ form.form_id }}', {{ 'true' if form.status == 'active' else 'false' }})">
-                <span id="status-text-{{ form.form_id }}" class="font-['DM_Sans'] font-medium text-[16px] text-[#e4b65b] tracking-[-0.16px]">{{ form.status or 'active' }}</span>
-                <div class="w-5 h-5">
-                    <i id="status-icon-{{ form.form_id }}" class="ph {{ 'ph-toggle-right' if form.status == 'active' else 'ph-toggle-left' }} text-[#e4b65b]"></i>
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Navigation - Standardized Design -->
+        <nav class="flex justify-center pt-4 md:pt-8">
+            <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-3">
+                <div class="flex items-center gap-8 md:gap-[72px]">
+                    <!-- Logo Section -->
+                    <div class="flex items-center gap-3">
+                        <div class="bg-center bg-cover bg-no-repeat h-8 md:h-11 w-[24px] md:w-[30px]"
+                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                        <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg md:text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                            Bermuda forms
+                        </h1>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="flex items-center gap-4 md:gap-6 font-['Plus_Jakarta_Sans'] font-medium text-sm md:text-[14px] text-black tracking-[-0.14px]">
+                        <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
+                        <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
+                    </div>
+                    
+                    <!-- Sign Out -->
+                    <div class="flex items-center">
+                        <button onclick="signOut()" class="w-6 md:w-8 h-6 md:h-8 text-[#666] hover:text-[#cc5500] transition-colors">
+                            <i class="ph ph-sign-out text-xl md:text-2xl"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Responses Count (Clickable) -->
-            <div class="absolute right-[19px] bottom-[45px] text-right cursor-pointer hover:text-[#d12b2e]" onclick="viewResponses('{{ form.form_id }}')">
-                <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
-                    {{ form.response_count or 0 }} response{{ 's' if (form.response_count or 0) != 1 else '' }}
-                </span>
-            </div>
-            
-            <!-- Action Icons -->
-            <div class="absolute bottom-[16px] left-[19px] flex gap-3">
-                <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit form">
-                    <i class="ph ph-pencil-line text-xl"></i>
-                </button>
-                <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete form">
-                    <i class="ph ph-trash text-xl"></i>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-[40px] text-black tracking-[-0.4px]">Forms</h1>
+                <button onclick="createNewForm()" 
+                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                    <span class="font-['DM_Sans'] text-[18px] text-white">Generate new form</span>
+                    <i class="ph ph-plus text-white text-xl"></i>
                 </button>
             </div>
-            
-            <div class="absolute bottom-[16px] right-[19px] flex gap-3">
-                <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test form">
-                    <i class="ph ph-play text-xl"></i>
-                </button>
-                <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
-                    <i class="ph ph-share text-xl"></i>
-                </button>
-                <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
-                    <i class="ph ph-chart-bar text-xl"></i>
-                </button>
+
+            <!-- Forms Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for form in forms %}
+                <!-- Form Card -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[228px] relative hover:shadow-lg transition-shadow">
+                    <!-- Form Title -->
+                    <div class="mb-4">
+                        <h3 class="font-['DM_Sans'] font-semibold text-[20px] md:text-[24px] text-black tracking-[-0.24px] leading-tight line-clamp-2">
+                            {{ form.title }}
+                        </h3>
+                    </div>
+                    
+                    <!-- Bottom Section -->
+                    <div class="absolute bottom-6 left-6 right-6">
+                        <!-- Questions Count and Responses -->
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
+                                {{ form.questions|length }} q
+                            </span>
+                            <div class="text-right cursor-pointer hover:text-[#d12b2e]" onclick="viewResponses('{{ form.form_id }}')">
+                                <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
+                                    {{ form.response_count or 0 }} response{{ 's' if (form.response_count or 0) != 1 else '' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Toggle -->
+                        <div class="flex justify-between items-center">
+                            <!-- Action Icons -->
+                            <div class="flex gap-3">
+                                <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit form">
+                                    <i class="ph ph-pencil-line text-xl"></i>
+                                </button>
+                                <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete form">
+                                    <i class="ph ph-trash text-xl"></i>
+                                </button>
+                                <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test form">
+                                    <i class="ph ph-play text-xl"></i>
+                                </button>
+                                <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
+                                    <i class="ph ph-share text-xl"></i>
+                                </button>
+                                <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
+                                    <i class="ph ph-chart-bar text-xl"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Status Toggle -->
+                            <div class="bg-[#fff5e0] border border-[#e4b65b] rounded-[100px] px-3 py-1 flex items-center gap-2 cursor-pointer" onclick="toggleFormStatus('{{ form.form_id }}', {{ 'true' if form.status == 'active' else 'false' }})">
+                                <span id="status-text-{{ form.form_id }}" class="font-['DM_Sans'] font-medium text-[14px] text-[#e4b65b] tracking-[-0.14px]">{{ form.status or 'active' }}</span>
+                                <div class="w-4 h-4">
+                                    <i id="status-icon-{{ form.form_id }}" class="ph {{ 'ph-toggle-right' if form.status == 'active' else 'ph-toggle-left' }} text-[#e4b65b] text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if forms|length == 0 %}
+                <!-- Empty State -->
+                <div class="col-span-full text-center py-16">
+                    <p class="font-['DM_Sans'] text-[20px] text-[#666666]">
+                        No forms created yet. Click "Generate new form" to get started!
+                    </p>
+                </div>
+                {% endif %}
             </div>
         </div>
-        {% endfor %}
-        
-        {% if forms|length == 0 %}
-        <!-- Empty State -->
-        <div class="col-span-3 text-center py-16">
-            <p class="font-['DM_Sans'] text-[20px] text-[#666666]">
-                No forms created yet. Click "Generate new form" to get started!
-            </p>
-        </div>
-        {% endif %}
     </div>
-</div>
 
-<script>
-function createNewForm() {
-    window.location.href = '/create-form';
-}
+    <!-- Firebase Authentication -->
+    <script>
+        // Firebase configuration - REAL config for bermuda-01
+        const firebaseConfig = {
+            apiKey: "{{ config.get('FIREBASE_WEB_API_KEY', 'AIzaSyAoWt0HAUvLzMD5OX43URZlbLFimA0wnmA') }}",
+            authDomain: "bermuda-01.firebaseapp.com",
+            projectId: "bermuda-01",
+            storageBucket: "bermuda-01.firebasestorage.app", 
+            messagingSenderId: "{{ config.get('FIREBASE_MESSAGING_SENDER_ID', '212698241186') }}",
+            appId: "{{ config.get('FIREBASE_WEB_APP_ID', '1:212698241186:web:dfe2ec1c46dd5a4e9c1ffb') }}",
+            measurementId: "G-ZQGF5RB992"
+        };
 
-function editForm(formId) {
-    sessionStorage.setItem('editFormId', formId);
-    window.location.href = '/edit-form';
-}
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-function testForm(formId) {
-    // Open form in new tab for testing
-    window.open(`/form/${formId}`, '_blank');
-}
-
-function shareForm(formId) {
-    // Copy form link to clipboard
-    const formUrl = `${window.location.origin}/form/${formId}`;
-    navigator.clipboard.writeText(formUrl).then(() => {
-        // Show success message
-        showNotification('Form link copied to clipboard!', 'success');
-    }).catch(() => {
-        // Fallback for older browsers
-        prompt('Copy this link:', formUrl);
-    });
-}
-
-function viewResponses(formId) {
-    window.location.href = `/responses/${formId}`;
-}
-
-async function toggleFormStatus(formId, currentStatus) {
-    try {
-        const newStatus = currentStatus ? 'inactive' : 'active';
-        
-        const response = await fetch(`/api/forms/${formId}/status`, {
-            method: 'PUT',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
-
-        if (response.ok) {
-            // Update UI
-            const statusText = document.getElementById(`status-text-${formId}`);
-            const statusIcon = document.getElementById(`status-icon-${formId}`);
-            
-            statusText.textContent = newStatus;
-            statusIcon.className = `ph ${newStatus === 'active' ? 'ph-toggle-right' : 'ph-toggle-left'} text-[#e4b65b]`;
-            
-            showNotification(`Form ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, 'success');
-        } else {
-            throw new Error('Failed to update form status');
-        }
-    } catch (error) {
-        console.error('Error toggling form status:', error);
-        showNotification('Failed to update form status. Please try again.', 'error');
-    }
-}
-
-async function deleteForm(formId) {
-    if (confirm('Are you sure you want to delete this form? This action cannot be undone.')) {
-        try {
-            const response = await fetch(`/api/forms/${formId}`, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (response.ok) {
-                // Remove form card from UI
-                location.reload(); // Simple refresh for now
-                showNotification('Form deleted successfully!', 'success');
-            } else {
-                throw new Error('Failed to delete form');
+        // Real Google Sign Out
+        async function signOut() {
+            try {
+                await auth.signOut();
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign out error:', error);
             }
-        } catch (error) {
-            console.error('Error deleting form:', error);
-            showNotification('Failed to delete form. Please try again.', 'error');
         }
-    }
-}
 
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
-        type === 'success' ? 'bg-green-500 text-white' : 
-        type === 'error' ? 'bg-red-500 text-white' : 
-        'bg-blue-500 text-white'
-    }`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
+        function createNewForm() {
+            window.location.href = '/create-form';
+        }
 
-// Simple page load - no authentication checks needed
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard loaded successfully');
-});
-</script>
-{% endblock %}
+        function editForm(formId) {
+            sessionStorage.setItem('editFormId', formId);
+            window.location.href = '/edit-form';
+        }
+
+        function testForm(formId) {
+            // Open form in new tab for testing
+            window.open(`/form/${formId}`, '_blank');
+        }
+
+        function shareForm(formId) {
+            // Copy form link to clipboard
+            const formUrl = `${window.location.origin}/form/${formId}`;
+            navigator.clipboard.writeText(formUrl).then(() => {
+                // Show success message
+                showNotification('Form link copied to clipboard!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                prompt('Copy this link:', formUrl);
+            });
+        }
+
+        function viewResponses(formId) {
+            window.location.href = `/responses/${formId}`;
+        }
+
+        async function toggleFormStatus(formId, currentStatus) {
+            try {
+                const newStatus = currentStatus ? 'inactive' : 'active';
+                
+                const response = await fetch(`/api/forms/${formId}/status`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (response.ok) {
+                    // Update UI
+                    const statusText = document.getElementById(`status-text-${formId}`);
+                    const statusIcon = document.getElementById(`status-icon-${formId}`);
+                    
+                    statusText.textContent = newStatus;
+                    statusIcon.className = `ph ${newStatus === 'active' ? 'ph-toggle-right' : 'ph-toggle-left'} text-[#e4b65b] text-sm`;
+                    
+                    showNotification(`Form ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, 'success');
+                } else {
+                    throw new Error('Failed to update form status');
+                }
+            } catch (error) {
+                console.error('Error toggling form status:', error);
+                showNotification('Failed to update form status. Please try again.', 'error');
+            }
+        }
+
+        async function deleteForm(formId) {
+            if (confirm('Are you sure you want to delete this form? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/api/forms/${formId}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (response.ok) {
+                        // Remove form card from UI
+                        location.reload(); // Simple refresh for now
+                        showNotification('Form deleted successfully!', 'success');
+                    } else {
+                        throw new Error('Failed to delete form');
+                    }
+                } catch (error) {
+                    console.error('Error deleting form:', error);
+                    showNotification('Failed to delete form. Please try again.', 'error');
+                }
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Simple page load - no authentication checks needed
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loaded successfully');
+        });
+    </script>
+</body>
+</html>
