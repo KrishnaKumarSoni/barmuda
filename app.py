@@ -342,6 +342,14 @@ def validate_and_fix_json(json_string):
 def infer_form_from_text(input_text, max_retries=2):
     """Use OpenAI GPT-4o-mini to infer form structure from unstructured text"""
     
+    # Debug API key availability
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        logger.error("OPENAI_API_KEY environment variable not found!")
+        return None, "OpenAI API key not configured"
+    
+    logger.info(f"Using OpenAI API key: {api_key[:8]}...{api_key[-8:] if len(api_key) > 16 else ''}")
+    
     for attempt in range(max_retries + 1):
         try:
             logger.info(f"Form inference attempt {attempt + 1} for input: {input_text[:100]}...")
@@ -378,7 +386,9 @@ def infer_form_from_text(input_text, max_retries=2):
                     return None, f"Failed to generate valid form after {max_retries + 1} attempts. Last error: {error}"
                     
         except Exception as e:
+            import traceback
             logger.error(f"Attempt {attempt + 1} failed with exception: {str(e)}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             if attempt == max_retries:
                 return None, f"Form inference failed after {max_retries + 1} attempts: {str(e)}"
     

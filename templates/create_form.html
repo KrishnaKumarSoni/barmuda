@@ -8,6 +8,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <!-- Custom Tailwind Config -->
     <script>
         tailwind.config = {
@@ -67,8 +70,8 @@
             </div>
             
             <!-- Sign Out -->
-            <button onclick="signOut()" class="w-8 h-8 ml-auto">
-                <img src="/static/6c9de1342bc52c8dadcce7e1619288c4154b5c4d.svg" alt="Sign Out" class="w-full h-full">
+            <button onclick="signOut()" class="w-8 h-8 ml-auto text-[#666] hover:text-[#cc5500]">
+                <i class="ph ph-sign-out text-2xl"></i>
             </button>
         </div>
     </nav>
