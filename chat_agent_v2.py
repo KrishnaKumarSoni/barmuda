@@ -255,8 +255,9 @@ class FormChatAgent:
     """Main chat agent class using OpenAI Agents SDK with standalone function tools"""
     
     def __init__(self, openai_api_key: str):
-        self.openai_api_key = openai_api_key
-        openai.api_key = openai_api_key
+        # Strip whitespace from API key to prevent header errors
+        self.openai_api_key = openai_api_key.strip() if openai_api_key else openai_api_key
+        openai.api_key = self.openai_api_key
         
         # Ensure event loop exists for async operations
         import asyncio
@@ -423,11 +424,12 @@ def get_chat_agent():
     """Get or create the global chat agent instance"""
     global chat_agent
     if chat_agent is None:
-        openai_api_key = os.getenv('OPENAI_API_KEY')
+        openai_api_key = os.getenv('OPENAI_API_KEY', '').strip()
         print(f"DEBUG: API key available: {bool(openai_api_key)}")
         print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}")
         if openai_api_key:
             print(f"DEBUG: API key prefix: {openai_api_key[:10]}...")
+            print(f"DEBUG: API key ends with newline: {repr(openai_api_key[-2:])}")
         
         if not openai_api_key:
             print("ERROR: OPENAI_API_KEY environment variable not set")
