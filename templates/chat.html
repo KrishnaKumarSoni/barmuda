@@ -66,8 +66,9 @@
     </style>
 </head>
 <body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col">
-    <!-- Navigation - Responsive Design -->
-    <nav class="flex-shrink-0 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-3 md:mt-4 max-w-fit px-4 md:px-6 py-2.5 md:py-3 shadow-sm">
+    <!-- Navigation - Fixed Design -->
+    <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 md:pt-4 bg-[#fef5e0]/90 backdrop-blur-sm">
+        <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-2.5 md:py-3 shadow-sm">
         <div class="flex items-center gap-6 md:gap-12 lg:gap-16">
             <!-- Logo Section -->
             <div class="flex items-center gap-2 md:gap-3">
@@ -86,10 +87,11 @@
                 </a>
             </div>
         </div>
+        </div>
     </nav>
 
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col px-3 md:px-4 py-3 md:py-4 space-y-2 md:space-y-3 min-h-0">
+    <div class="flex-1 flex flex-col px-3 md:px-4 pt-16 md:pt-20 pb-3 md:pb-4 space-y-2 md:space-y-3 min-h-0">
         <!-- Form Title -->
         <div class="text-center flex-shrink-0">
             <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg md:text-xl lg:text-2xl tracking-[-0.24px]">

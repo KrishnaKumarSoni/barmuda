@@ -20,15 +20,18 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
-<body class="bg-[#fff5e0] relative h-screen overflow-hidden">
-    <!-- Background Image -->
-    <div class="absolute inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45]" 
+<body class="bg-[#fff5e0] relative min-h-screen">
+    <!-- Fixed Background Image for entire page -->
+    <div class="fixed inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45] z-30 pointer-events-none" 
          style="background-image: url('/static/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
-    
-    <!-- Main Container -->
-    <div class="relative z-10 h-full flex flex-col">
-        <!-- Navigation - Standardized Design -->
-        <nav class="flex-shrink-0 flex justify-center pt-4 md:pt-8">
+         
+    <!-- Hero Section -->
+    <div class="relative min-h-screen flex flex-col z-10">
+        
+        <!-- Hero Content -->
+        <div class="relative z-10 min-h-screen flex flex-col">
+        <!-- Navigation - Fixed Design -->
+        <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 md:pt-8 bg-[#fff5e0]/90 backdrop-blur-sm">
             <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-3">
                 <div class="flex items-center gap-8 md:gap-[72px]">
                     <!-- Logo Section -->
@@ -53,7 +56,7 @@
         </nav>
         
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-4 md:space-y-6">
+        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-4 md:space-y-6 pt-28 md:pt-36">
             <!-- Main Heading -->
             <div class="text-center">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-3xl md:text-4xl lg:text-5xl xl:text-[56px] text-[#1e1e1e] tracking-[-0.56px] leading-none">
@@ -99,18 +102,496 @@
                     </button>
                 </div>
             </div>
-        </div>
-        
-        <!-- Bottom Text -->
-        <div class="flex-shrink-0 text-center px-4 md:px-8 pb-4 md:pb-8">
-            <div class="max-w-4xl mx-auto">
-                <p class="font-['DM_Sans'] text-sm md:text-base lg:text-lg xl:text-[20px] text-[#000000] leading-relaxed">
-                    Transform boring surveys into engaging conversations that people actually want to complete. 
-                    Get 3x higher response rates and uncover insights that checkboxes miss.
-                </p>
+            
+            <!-- Form Templates -->
+            <div class="w-full max-w-4xl mt-12 mb-12">
+                <div class="flex flex-wrap gap-2 md:gap-3 justify-center">
+                    <!-- Customer Feedback Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('customer-feedback')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chat-circle-dots text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Customer Feedback
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Employee Survey Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('employee-survey')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-users text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Employee Survey
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Market Research Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('market-research')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chart-line text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Market Research
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Feedback Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('event-feedback')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-check text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Event Feedback
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- User Experience Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('user-experience')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-devices text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                User Experience
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Course Evaluation Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('course-evaluation')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-graduation-cap text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Course Evaluation
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Launch Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('product-launch')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-rocket-launch text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Product Launch
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Support Satisfaction Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('support-satisfaction')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-headset text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Support Satisfaction
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Brand Awareness Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('brand-awareness')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-megaphone text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Brand Awareness
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Exit Interview Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('exit-interview')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-door-open text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Exit Interview
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Website Feedback Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('website-feedback')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-globe text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Website Feedback
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Training Evaluation Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-[#8B4513] transition-all cursor-pointer group" onclick="useTemplate('training-evaluation')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chalkboard-teacher text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Training Evaluation
+                            </h3>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    </div>
+
+
+    <!-- Problem/Solution Section -->
+    <section class="relative bg-[#fff5e0] py-16 md:py-24 z-10">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
+                    Traditional forms are broken
+                </h2>
+                <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto">
+                    Most surveys get abandoned. Respondents rush through checkboxes. You get biased, incomplete data.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <!-- Problem -->
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mt-1">
+                            <i class="ph ph-x text-red-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Low completion rates</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Average form completion rate is only 20%. People abandon surveys after seeing long lists of questions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mt-1">
+                            <i class="ph ph-x text-red-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Biased responses</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Multiple choice options influence answers. People pick the first option or what seems "right" instead of being honest.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mt-1">
+                            <i class="ph ph-x text-red-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Shallow insights</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Checkbox data doesn't reveal the "why" behind responses. You miss the context and nuance.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Solution -->
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                            <i class="ph ph-check text-green-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">3x higher completion</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Natural conversation feels personal and engaging. People want to finish the chat.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                            <i class="ph ph-check text-green-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Unbiased answers</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">No visible options means authentic responses. AI extracts structured data from natural language.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                            <i class="ph ph-check text-green-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Rich insights</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Conversational data reveals emotions, motivations, and context that forms miss.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="relative bg-[#fef9f3] py-16 md:py-24 z-10">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
+                    How it works
+                </h2>
+                <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto">
+                    Create better forms in minutes, not hours. Get better data from happier respondents.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+                <!-- Step 1 -->
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-[#cc5500] rounded-2xl mb-6">
+                        <i class="ph ph-magic-wand text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">1. Describe your form</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] mb-4">
+                        Just write what data you need to collect. Our AI instantly creates the perfect survey structure.
+                    </p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-[#cc5500] rounded-2xl mb-6">
+                        <i class="ph ph-chat-circle text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">2. Share the link</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] mb-4">
+                        Respondents chat naturally with our AI bot. No forms to fill out, just a friendly conversation.
+                    </p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-[#cc5500] rounded-2xl mb-6">
+                        <i class="ph ph-chart-bar text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">3. Get rich insights</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] mb-4">
+                        AI extracts structured data from conversations. View responses, export data, discover insights.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Demo Preview -->
+            <div class="mt-12 md:mt-16 bg-white rounded-2xl border border-[#e5e7eb] p-6 md:p-8 max-w-2xl mx-auto">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <div class="flex-1 bg-gray-100 rounded px-3 py-1">
+                        <span class="font-['DM_Sans'] text-xs text-gray-500">bermuda.vercel.app/form/demo</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-start">
+                        <div class="bg-gray-100 rounded-2xl rounded-tl-md px-4 py-2 max-w-xs">
+                            <p class="font-['DM_Sans'] text-sm text-gray-800">Hey! 👋 What's your favorite type of coffee?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <div class="bg-[#cc5500] rounded-2xl rounded-tr-md px-4 py-2 max-w-xs">
+                            <p class="font-['DM_Sans'] text-sm text-white">I love cold brew, especially in summer</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-start">
+                        <div class="bg-gray-100 rounded-2xl rounded-tl-md px-4 py-2 max-w-xs">
+                            <p class="font-['DM_Sans'] text-sm text-gray-800">Cold brew is awesome! How often do you visit coffee shops?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="relative bg-[#fff5e0] py-16 md:py-24 z-10">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
+                    Built for better data
+                </h2>
+                <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto">
+                    Every feature is designed to help you collect higher quality responses with less effort.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-[#fff5e0] rounded-xl mb-4">
+                        <i class="ph ph-robot text-[#cc5500] text-xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">AI-powered conversations</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Smart chatbot handles edge cases, keeps conversations on track, and extracts structured data automatically.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-[#fff5e0] rounded-xl mb-4">
+                        <i class="ph ph-eye-slash text-[#cc5500] text-xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Anti-bias design</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">No visible multiple choice options means respondents give authentic answers instead of picking what looks right.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-[#fff5e0] rounded-xl mb-4">
+                        <i class="ph ph-device-mobile text-[#cc5500] text-xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Mobile-first</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Chat interface works perfectly on any device. Respondents can answer while commuting, in line, anywhere.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-[#fff5e0] rounded-xl mb-4">
+                        <i class="ph ph-shield-check text-[#cc5500] text-xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Privacy-first</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Anonymous by design. No personal data collection, just the insights you need for your research.</p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-[#fff5e0] rounded-xl mb-4">
+                        <i class="ph ph-export text-[#cc5500] text-xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Easy export</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Download your data as CSV or JSON. Integrate with your existing analytics tools and workflows.</p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-[#fff5e0] rounded-xl mb-4">
+                        <i class="ph ph-lightning text-[#cc5500] text-xl"></i>
+                    </div>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Instant setup</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">From idea to live survey in under 60 seconds. No templates to browse, no complex configurations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="relative bg-[#fef9f3] py-16 md:py-24 z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
+                    Frequently asked questions
+                </h2>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- FAQ 1 -->
+                <div class="bg-white rounded-xl border border-[#e5e7eb] p-6">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">How does the AI understand natural language responses?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Our AI uses advanced natural language processing to understand context, handle multiple answers in one message, resolve conflicts, and extract structured data from conversational responses. It's trained to handle edge cases like vague answers, off-topic responses, and questions skipped by respondents.</p>
+                </div>
+                
+                <!-- FAQ 2 -->
+                <div class="bg-white rounded-xl border border-[#e5e7eb] p-6">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Is this really better than traditional forms?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Yes. Conversational forms get 3x higher completion rates because they feel personal and engaging. Without visible multiple choice options, responses are more authentic and unbiased. You also get richer qualitative data that reveals the "why" behind answers.</p>
+                </div>
+                
+                <!-- FAQ 3 -->
+                <div class="bg-white rounded-xl border border-[#e5e7eb] p-6">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">What types of questions can I ask?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Any type! Text responses, multiple choice, ratings, yes/no questions, and numbers. The AI automatically infers the question type from your description and handles the data extraction accordingly.</p>
+                </div>
+                
+                <!-- FAQ 4 -->
+                <div class="bg-white rounded-xl border border-[#e5e7eb] p-6">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">How do I analyze the responses?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">View responses in your dashboard with charts and insights. Export data as CSV or JSON to use with Excel, Google Sheets, or your analytics tools. All conversational responses are automatically structured into clean, analyzable data.</p>
+                </div>
+                
+                <!-- FAQ 5 -->
+                <div class="bg-white rounded-xl border border-[#e5e7eb] p-6">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Is respondent data private?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280]">Completely anonymous by design. We don't collect personal information or require respondents to create accounts. Only you can see your survey responses, and data is encrypted in transit and at rest.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="relative bg-gradient-to-br from-[#cc5500] to-[#d12b2e] py-16 md:py-24 z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-8 text-center">
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-white tracking-[-0.32px] mb-4">
+                Start getting better survey data today
+            </h2>
+            <p class="font-['DM_Sans'] text-base md:text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+                Join researchers, marketers, and HR teams who switched from boring forms to engaging conversations.
+            </p>
+            
+            <button onclick="signInWithGoogle()" 
+                    class="bg-white text-[#cc5500] font-['Plus_Jakarta_Sans'] font-semibold text-base md:text-lg px-8 py-3 md:px-10 md:py-4 rounded-[100px] hover:bg-gray-50 transition-colors inline-flex items-center gap-3">
+                <span>Create your first form</span>
+                <i class="ph ph-arrow-right text-xl"></i>
+            </button>
+            
+            <p class="font-['DM_Sans'] text-sm text-white/70 mt-4">
+                Free to start • No credit card required
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#1e1e1e] py-12 md:py-16 relative z-10">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Logo & Description -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-center bg-cover bg-no-repeat h-8 w-6"
+                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-white">
+                            Bermuda forms
+                        </h3>
+                    </div>
+                    <p class="font-['DM_Sans'] text-gray-400 max-w-md mb-6">
+                        Transform boring surveys into engaging conversations. Get 3x higher response rates with AI-powered conversational forms.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="ph ph-twitter-logo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="ph ph-linkedin-logo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="ph ph-github-logo text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Product -->
+                <div>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-white mb-4">Product</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">Templates</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">API</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Company -->
+                <div>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-white mb-4">Company</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">Privacy</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">Terms</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="font-['DM_Sans'] text-gray-400 text-sm">
+                    © 2025 Bermuda Forms. All rights reserved.
+                </p>
+                <p class="font-['DM_Sans'] text-gray-400 text-sm mt-4 md:mt-0">
+                    Made with ❤️ for better surveys
+                </p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Firebase Authentication -->
     <script>
@@ -232,6 +713,52 @@
             }
         }
         
+        // Template data
+        const templates = {
+            'customer-feedback': `Create a customer feedback form to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
+            
+            'employee-survey': `Create an employee engagement and satisfaction survey for our company. I want to measure workplace satisfaction, engagement levels, work-life balance, management effectiveness, career development opportunities, company culture, and identify areas where we can improve employee experience and retention.`,
+            
+            'market-research': `Create a market research survey to understand customer needs, preferences, and market trends in our industry. I want to gather data about target demographics, purchasing behaviors, brand awareness, competitor analysis, price sensitivity, and unmet needs in the market to guide our business strategy.`,
+            
+            'event-feedback': `Create an event feedback form to gather insights from attendees about their experience. I want to collect feedback on event organization, content quality, speaker performance, venue satisfaction, networking opportunities, and suggestions for future events to improve our event planning.`,
+            
+            'user-experience': `Create a user experience survey to evaluate how people interact with our website or application. I want to understand usability issues, navigation challenges, feature usefulness, design preferences, performance concerns, and overall user satisfaction to guide our product development.`,
+            
+            'course-evaluation': `Create a course evaluation form for students to provide feedback on their learning experience. I want to assess course content quality, instructor effectiveness, learning materials, difficulty level, engagement, and suggestions for improvement to enhance our educational offerings.`,
+            
+            'product-launch': `Create a product launch feedback survey to gather insights about our new product introduction. I want to understand initial impressions, purchase intent, feature appeal, pricing perception, marketing effectiveness, target audience fit, and early adopter feedback to optimize our launch strategy and future product development.`,
+            
+            'support-satisfaction': `Create a customer support satisfaction survey to evaluate our service quality. I want to measure response time satisfaction, resolution effectiveness, agent helpfulness, communication clarity, overall support experience, and identify areas for improvement in our customer service processes.`,
+            
+            'brand-awareness': `Create a brand awareness and perception study to understand how our brand is viewed in the market. I want to measure brand recognition, association strength, competitive positioning, brand attributes, purchase consideration, and overall brand sentiment to guide our marketing and branding strategies.`,
+            
+            'exit-interview': `Create an exit interview form for departing employees to gather honest feedback about their experience. I want to understand reasons for leaving, management feedback, workplace culture assessment, career development opportunities, compensation satisfaction, and suggestions for improvement to enhance employee retention.`,
+            
+            'website-feedback': `Create a website feedback survey to evaluate our online presence and user experience. I want to gather insights about site navigation, content usefulness, visual design, loading speed, mobile experience, feature functionality, and overall satisfaction to improve our website performance.`,
+            
+            'training-evaluation': `Create a training evaluation form to assess the effectiveness of our educational programs. I want to measure content relevance, instructor quality, delivery methods, engagement levels, knowledge retention, practical applicability, and overall training satisfaction to improve our learning and development initiatives.`
+        };
+
+        // Use template function
+        function useTemplate(templateId) {
+            const template = templates[templateId];
+            if (template) {
+                const formDescription = document.getElementById('formDescription');
+                formDescription.value = template;
+                
+                // Store in session for auth flow
+                sessionStorage.setItem('pendingFormDescription', template);
+                
+                // Scroll to the form input area
+                formDescription.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Focus and set cursor to end of text
+                formDescription.focus();
+                formDescription.setSelectionRange(formDescription.value.length, formDescription.value.length);
+            }
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Unauthenticated landing page loaded');

@@ -21,14 +21,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-[#fff5e0] relative min-h-screen">
-    <!-- Background Image -->
-    <div class="absolute inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45]" 
+    <!-- Fixed Background Image for entire page -->
+    <div class="fixed inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45] z-30 pointer-events-none" 
          style="background-image: url('/static/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
     
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen">
-        <!-- Navigation - Standardized Design -->
-        <nav class="flex justify-center pt-4 md:pt-8">
+        <!-- Navigation - Fixed Design -->
+        <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 md:pt-8 bg-[#fff5e0]/90 backdrop-blur-sm">
             <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-3">
                 <div class="flex items-center gap-8 md:gap-[72px]">
                     <!-- Logo Section -->
@@ -57,7 +57,7 @@
         </nav>
 
         <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 pt-20 md:pt-24 pb-8">
             <!-- Header Section -->
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-[40px] text-black tracking-[-0.4px]">Forms</h1>

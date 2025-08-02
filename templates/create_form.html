@@ -45,15 +45,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-[#fff5e0] relative h-screen overflow-hidden font-['DM_Sans']">
-    <!-- Background Image -->
-    <div class="absolute inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-45 pointer-events-none"
+    <!-- Fixed Background Image for entire page -->
+    <div class="fixed inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45] z-30 pointer-events-none" 
          style="background-image: url('/static/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png');">
     </div>
 
     <!-- Main Container -->
     <div class="relative z-10 h-full flex flex-col">
-        <!-- Navigation - Standardized Design -->
-        <nav class="flex-shrink-0 flex justify-center pt-4 md:pt-8">
+        <!-- Navigation - Fixed Design -->
+        <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 md:pt-8 bg-[#fff5e0]/90 backdrop-blur-sm">
             <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-3">
                 <div class="flex items-center gap-8 md:gap-[72px]">
                     <!-- Logo Section -->
@@ -82,7 +82,7 @@
         </nav>
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-4 md:space-y-6">
+        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-4 md:space-y-6 pt-28 md:pt-36">
             <!-- Main Heading -->
             <div class="text-center">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#1e1e1e] text-center max-w-2xl leading-tight tracking-tight">
@@ -141,6 +141,131 @@
                             class="mt-2 text-red-600 hover:text-red-800 font-['DM_Sans'] text-sm">
                         Dismiss
                     </button>
+                </div>
+            </div>
+            
+            <!-- Form Templates -->
+            <div class="w-full max-w-4xl mt-12 mb-12">
+                <div class="flex flex-wrap gap-2 md:gap-3 justify-center">
+                    <!-- Customer Feedback Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('customer-feedback')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chat-circle-dots text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Customer Feedback
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Employee Survey Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('employee-survey')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-users text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Employee Survey
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Market Research Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('market-research')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chart-line text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Market Research
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Feedback Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('event-feedback')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-check text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Event Feedback
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- User Experience Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('user-experience')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-devices text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                User Experience
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Course Evaluation Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('course-evaluation')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-graduation-cap text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Course Evaluation
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Launch Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('product-launch')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-rocket-launch text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Product Launch
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Support Satisfaction Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('support-satisfaction')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-headset text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Support Satisfaction
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Brand Awareness Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('brand-awareness')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-megaphone text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Brand Awareness
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Exit Interview Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('exit-interview')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-door-open text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Exit Interview
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Website Feedback Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('website-feedback')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-globe text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Website Feedback
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Training Evaluation Template -->
+                    <div class="bg-transparent border-2 border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('training-evaluation')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chalkboard-teacher text-[#DAB568] group-hover:text-[#8B4513] text-sm md:text-base transition-colors"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#DAB568] group-hover:text-[#8B4513] transition-colors whitespace-nowrap">
+                                Training Evaluation
+                            </h3>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -422,6 +547,52 @@
             console.log('Create form page loaded successfully');
         });
         
+        // Template data
+        const templates = {
+            'customer-feedback': `Create a customer feedback form to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
+            
+            'employee-survey': `Create an employee engagement and satisfaction survey for our company. I want to measure workplace satisfaction, engagement levels, work-life balance, management effectiveness, career development opportunities, company culture, and identify areas where we can improve employee experience and retention.`,
+            
+            'market-research': `Create a market research survey to understand customer needs, preferences, and market trends in our industry. I want to gather data about target demographics, purchasing behaviors, brand awareness, competitor analysis, price sensitivity, and unmet needs in the market to guide our business strategy.`,
+            
+            'event-feedback': `Create an event feedback form to gather insights from attendees about their experience. I want to collect feedback on event organization, content quality, speaker performance, venue satisfaction, networking opportunities, and suggestions for future events to improve our event planning.`,
+            
+            'user-experience': `Create a user experience survey to evaluate how people interact with our website or application. I want to understand usability issues, navigation challenges, feature usefulness, design preferences, performance concerns, and overall user satisfaction to guide our product development.`,
+            
+            'course-evaluation': `Create a course evaluation form for students to provide feedback on their learning experience. I want to assess course content quality, instructor effectiveness, learning materials, difficulty level, engagement, and suggestions for improvement to enhance our educational offerings.`,
+            
+            'product-launch': `Create a product launch feedback survey to gather insights about our new product introduction. I want to understand initial impressions, purchase intent, feature appeal, pricing perception, marketing effectiveness, target audience fit, and early adopter feedback to optimize our launch strategy and future product development.`,
+            
+            'support-satisfaction': `Create a customer support satisfaction survey to evaluate our service quality. I want to measure response time satisfaction, resolution effectiveness, agent helpfulness, communication clarity, overall support experience, and identify areas for improvement in our customer service processes.`,
+            
+            'brand-awareness': `Create a brand awareness and perception study to understand how our brand is viewed in the market. I want to measure brand recognition, association strength, competitive positioning, brand attributes, purchase consideration, and overall brand sentiment to guide our marketing and branding strategies.`,
+            
+            'exit-interview': `Create an exit interview form for departing employees to gather honest feedback about their experience. I want to understand reasons for leaving, management feedback, workplace culture assessment, career development opportunities, compensation satisfaction, and suggestions for improvement to enhance employee retention.`,
+            
+            'website-feedback': `Create a website feedback survey to evaluate our online presence and user experience. I want to gather insights about site navigation, content usefulness, visual design, loading speed, mobile experience, feature functionality, and overall satisfaction to improve our website performance.`,
+            
+            'training-evaluation': `Create a training evaluation form to assess the effectiveness of our educational programs. I want to measure content relevance, instructor quality, delivery methods, engagement levels, knowledge retention, practical applicability, and overall training satisfaction to improve our learning and development initiatives.`
+        };
+
+        // Use template function
+        function useTemplate(templateId) {
+            const template = templates[templateId];
+            if (template) {
+                const formDump = document.getElementById('formDump');
+                formDump.value = template;
+                
+                // Trigger validation
+                validateInput();
+                
+                // Focus and scroll to textarea
+                formDump.focus();
+                formDump.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Set cursor to end of text
+                formDump.setSelectionRange(formDump.value.length, formDump.value.length);
+            }
+        }
+
         // Allow Ctrl/Cmd+Enter to trigger form generation
         document.getElementById('formDump').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {

@@ -50,8 +50,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-bermuda-cream min-h-screen font-dm">
-    <!-- Navigation - Standardized Design -->
-    <nav class="bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-8 max-w-fit px-6 py-3">
+    <!-- Navigation - Fixed Design -->
+    <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-8 bg-[#fef5e0]/90 backdrop-blur-sm">
+        <div class="bg-white rounded-[100px] border border-[#fff0cf] px-6 py-3">
         <div class="flex items-center gap-[72px]">
             <!-- Logo Section -->
             <div class="flex items-center gap-3">
@@ -75,10 +76,11 @@
                 </button>
             </div>
         </div>
+        </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="max-w-4xl mx-auto px-8 py-12">
+    <div class="max-w-4xl mx-auto px-8 pt-24 pb-12">
         <!-- Go Back -->
         <div class="flex items-center gap-2 mb-8">
             <button onclick="goBack()" class="flex items-center gap-2 text-bermuda-light-gray hover:text-bermuda-orange transition-colors">
