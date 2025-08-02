@@ -493,11 +493,20 @@
             const questions = {{ questions | tojsonfilter }};
             
             if (container.innerHTML.trim() === '') {
+                console.log('Questions data:', questions);
+                console.log('Container found:', container);
+                
+                if (!questions || questions.length === 0) {
+                    container.innerHTML = '<div class="text-center py-8 text-[#797878]">No questions available</div>';
+                    return;
+                }
+                
                 questions.forEach((question, index) => {
                     const questionCard = document.createElement('div');
                     questionCard.className = 'bg-[#fef9ee] rounded-lg border border-[#fce9c1] p-4';
                     
-                    const responses = allResponses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
+                    // Handle case where allResponses might not be loaded yet
+                    const responses = allResponses ? allResponses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null) : [];
                     const responseCount = responses.length;
                     
                     questionCard.innerHTML = `
