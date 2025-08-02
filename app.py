@@ -1208,6 +1208,75 @@ def get_form_responses(form_id):
         print(f"Error getting responses: {str(e)}")
         return jsonify({'error': 'Failed to fetch responses'}), 500
 
+@app.route('/api/wordcloud/<form_id>/<int:question_index>')
+@login_required 
+def generate_wordcloud(form_id, question_index):
+    """Generate word cloud data for text questions"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({'error': 'Form not found'}), 404
+        
+        form_data = form_doc.to_dict()
+        if form_data.get('creator_id') != session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Get responses for this question
+        responses_query = db.collection('responses').where('form_id', '==', form_id).stream()
+        text_responses = []
+        
+        for response_doc in responses_query:
+            response_data = response_doc.to_dict()
+            if 'responses' in response_data:
+                answer = response_data['responses'].get(str(question_index))
+                if answer and answer.get('value') and answer.get('value') != '[SKIP]':
+                    text_responses.append(answer.get('value'))
+        
+        # Generate word frequency data
+        word_freq = generate_word_frequency_backend(text_responses)
+        
+        return jsonify({
+            'success': True,
+            'word_frequency': word_freq,
+            'total_responses': len(text_responses)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating word cloud: {str(e)}")
+        return jsonify({'error': 'Failed to generate word cloud'}), 500
+
+def generate_word_frequency_backend(text_responses):
+    """Generate word frequency data on the backend"""
+    import re
+    from collections import Counter
+    
+    # Common stop words
+    stop_words = {
+        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
+        'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 
+        'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 
+        'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 
+        'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those'
+    }
+    
+    all_words = []
+    for text in text_responses:
+        if text and text.strip():
+            # Clean and extract words
+            words = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())
+            words = [word for word in words if word not in stop_words]
+            all_words.extend(words)
+    
+    if not all_words:
+        return []
+    
+    # Count word frequencies
+    word_counts = Counter(all_words)
+    
+    # Return top 20 words with their frequencies
+    return [{'word': word, 'count': count} for word, count in word_counts.most_common(20)]
+
 @app.route('/responses/<form_id>')
 @login_required
 def view_form_responses(form_id):

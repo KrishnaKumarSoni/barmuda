@@ -250,7 +250,7 @@
                 // Initialize visualization after DOM is updated
                 setTimeout(() => {
                     if (question.type === 'text') {
-                        window.WordCloudConfig.initializeTextVisualization(index, responses);
+                        initializeBackendWordCloud(index);
                     } else {
                         window.ChartConfig.initializeQuestionChart(index, question.type, question, responses);
                     }
@@ -258,6 +258,84 @@
             });
         }
 
+        async function initializeBackendWordCloud(questionIndex) {
+            """Generate word cloud using backend API"""
+            try {
+                const response = await fetch(`/api/wordcloud/${formId}/${questionIndex}`);
+                const data = await response.json();
+                
+                if (data.success && data.word_frequency.length > 0) {
+                    renderBackendWordCloud(`wordcloud-${questionIndex}`, data.word_frequency);
+                } else {
+                    // Show "No significant words found" message
+                    const container = document.getElementById(`wordcloud-${questionIndex}`);
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="flex items-center justify-center h-full text-[#797878] font-['DM_Sans'] text-[14px]">
+                                No significant words found
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading word cloud:', error);
+                const container = document.getElementById(`wordcloud-${questionIndex}`);
+                if (container) {
+                    container.innerHTML = `
+                        <div class="flex items-center justify-center h-full text-[#797878] font-['DM_Sans'] text-[14px]">
+                            Failed to load word cloud
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function renderBackendWordCloud(containerId, wordFrequency) {
+            """Render word cloud using backend-generated data"""
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create HTML-based word cloud
+            const colors = ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'];
+            const maxCount = Math.max(...wordFrequency.map(item => item.count));
+            
+            let wordsHtml = '';
+            wordFrequency.forEach((item, index) => {
+                const size = Math.max(12, Math.min(28, (item.count / maxCount) * 28));
+                const color = colors[index % colors.length];
+                const opacity = 0.7 + (item.count / maxCount) * 0.3;
+                
+                wordsHtml += `
+                    <span style="
+                        font-size: ${size}px; 
+                        color: ${color}; 
+                        opacity: ${opacity};
+                        margin: 4px 8px;
+                        font-family: 'DM Sans';
+                        font-weight: 500;
+                        display: inline-block;
+                        line-height: 1.2;
+                    ">${item.word}</span>
+                `;
+            });
+            
+            container.innerHTML = `
+                <div style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    padding: 10px;
+                    text-align: center;
+                ">
+                    ${wordsHtml}
+                </div>
+            `;
+        }
 
         // Chart rendering is now handled by chart-config.js and wordcloud-config.js
 
