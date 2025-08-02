@@ -893,35 +893,6 @@ def update_form(form_id):
             'error': 'Internal server error while updating form'
         }), 500
 
-@app.route('/form/<form_id>')
-def form_response(form_id):
-    """Public form response page (for respondents)"""
-    try:
-        # Get form from Firestore
-        form_ref = db.collection('forms').document(form_id)
-        form_doc = form_ref.get()
-        
-        if not form_doc.exists:
-            return render_template('error.html', 
-                                 error="Form not found", 
-                                 message="The form you're looking for doesn't exist or has been removed."), 404
-        
-        form_data = form_doc.to_dict()
-        
-        if form_data.get('status') != 'active':
-            return render_template('error.html',
-                                 error="Form not available",
-                                 message="This form is currently not accepting responses."), 403
-        
-        # TODO: This will be implemented in Module 4 (Respondent Chat Interface)
-        # For now, return a placeholder
-        return render_template('form_placeholder.html', form=form_data, form_id=form_id)
-        
-    except Exception as e:
-        logger.error(f"Error loading form {form_id}: {str(e)}")
-        return render_template('error.html',
-                             error="Error loading form",
-                             message="There was an error loading this form. Please try again later."), 500
 
 @app.route('/api/form/<form_id>')
 @login_required
