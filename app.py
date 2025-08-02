@@ -43,6 +43,12 @@ def inject_user():
         })
     return dict(request={'user': None})
 
+# Add custom Jinja2 filter for JSON serialization
+@app.template_filter('tojsonfilter')
+def to_json_filter(obj):
+    import json
+    return json.dumps(obj)
+
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
     # Use service account key file
