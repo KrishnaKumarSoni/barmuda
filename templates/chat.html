@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         .chat-container {
-            max-height: 400px;
             overflow-y: auto;
             scroll-behavior: smooth;
         }
@@ -27,19 +26,30 @@
             transition: opacity 300ms, transform 300ms;
         }
         
-        .typing-indicator {
-            animation: pulse 1.5s ease-in-out infinite;
+        /* Animated typing ellipsis */
+        .typing-ellipsis::after {
+            content: '';
+            animation: ellipsis 1.5s infinite;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @keyframes ellipsis {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+        
+        /* Completion screen overlay */
+        .completion-overlay {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
-<body class="bg-[#fef5e0] min-h-screen">
+<body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col">
     <!-- Navigation - Standardized Design -->
-    <nav class="bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-8 max-w-fit px-6 py-3 shadow-sm">
+    <nav class="flex-shrink-0 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-4 max-w-fit px-6 py-3 shadow-sm">
         <div class="flex items-center gap-[72px]">
             <!-- Logo Section -->
             <div class="flex items-center gap-3">
@@ -60,62 +70,99 @@
         </div>
     </nav>
 
-    <!-- Form Title -->
-    <div class="text-center mt-12 mb-6">
-        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[36px] tracking-[-0.36px]">
-            {{ form_title }}
-        </h1>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="mx-auto w-[696px] mb-4">
-        <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
-            <div id="progress-bar" class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] transition-all duration-500" style="width: 0%"></div>
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col justify-center px-4 py-6 space-y-4">
+        <!-- Form Title -->
+        <div class="text-center">
+            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[28px] md:text-[36px] tracking-[-0.36px]">
+                {{ form_title }}
+            </h1>
         </div>
-    </div>
 
-    <!-- Chat Container -->
-    <div class="mx-auto w-[696px] bg-white rounded-t-[28px] rounded-b-[28px] border border-[#fce9c1] min-h-[503px] mb-4">
-        <!-- Chat Header -->
-        <div class="bg-white h-24 rounded-t-[28px] border-b border-[#fce9c1] flex items-center px-6">
-            <div class="font-['DM_Sans'] font-medium text-black text-[16px] tracking-[-0.16px]">
-                AI Assistant
+        <!-- Progress Bar -->
+        <div class="mx-auto w-full max-w-[696px]">
+            <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
+                <div id="progress-bar" class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
-        
-        <!-- Chat Messages -->
-        <div id="chat-messages" class="chat-container px-4 py-4 space-y-4">
-            <!-- Messages will be dynamically added here -->
-        </div>
-    </div>
 
-    <!-- Message Input -->
-    <div class="mx-auto w-[696px] bg-white rounded-full shadow-[0px_4px_16px_1px_rgba(0,0,0,0.05)] border border-[#fdedcc] mb-8">
-        <div class="flex items-center justify-between px-2 py-1">
-            <div class="flex-1 px-4 py-3">
-                <input 
-                    type="text" 
-                    id="message-input" 
-                    placeholder="Type your message..."
-                    class="w-full font-['DM_Sans'] text-[16px] text-[#1e1e1e] tracking-[-0.16px] bg-transparent border-none outline-none"
+        <!-- Chat Container -->
+        <div class="mx-auto w-full max-w-[696px] bg-white rounded-t-[28px] rounded-b-[28px] border border-[#fce9c1] flex-1 flex flex-col">
+            <!-- Chat Header -->
+            <div class="bg-white h-16 md:h-20 rounded-t-[28px] border-b border-[#fce9c1] flex items-center px-6 flex-shrink-0">
+                <div class="font-['DM_Sans'] font-medium text-black text-[16px] tracking-[-0.16px]">
+                    AI Assistant
+                </div>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="chat-container px-4 py-4 space-y-4 flex-1">
+                <!-- Messages will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="mx-auto w-full max-w-[696px] bg-white rounded-full shadow-[0px_4px_16px_1px_rgba(0,0,0,0.05)] border border-[#fdedcc]">
+            <div class="flex items-center justify-between px-2 py-1">
+                <div class="flex-1 px-4 py-3">
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        placeholder="Type your message..."
+                        class="w-full font-['DM_Sans'] text-[16px] text-[#1e1e1e] tracking-[-0.16px] bg-transparent border-none outline-none"
+                        disabled
+                    >
+                </div>
+                <button 
+                    id="send-button" 
+                    class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] w-10 h-10 rounded-full flex items-center justify-center border border-[#cc5500] disabled:opacity-50"
                     disabled
                 >
+                    <img src="/static/assets/7733a653400497d1823d04a9beec3d26199561e9.svg" alt="Send" class="w-[18px] h-[18px]">
+                </button>
             </div>
-            <button 
-                id="send-button" 
-                class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] w-10 h-10 rounded-full flex items-center justify-center border border-[#cc5500] disabled:opacity-50"
-                disabled
-            >
-                <img src="/static/assets/7733a653400497d1823d04a9beec3d26199561e9.svg" alt="Send" class="w-[18px] h-[18px]">
-            </button>
+        </div>
+
+        <!-- Typing Indicator (Hidden by default) -->
+        <div id="typing-indicator" class="mx-auto w-full max-w-[696px] px-4 hidden">
+            <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
+                <div class="font-['DM_Sans'] text-[#959494] text-[14px]">
+                    <span class="typing-ellipsis">AI is typing</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Typing Indicator (Hidden by default) -->
-    <div id="typing-indicator" class="mx-auto w-[696px] px-4 hidden">
-        <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
-            <div class="typing-indicator font-['DM_Sans'] text-[#959494] text-[14px]">
-                AI is typing...
+    <!-- Chat Completion Overlay -->
+    <div id="completion-overlay" class="hidden fixed inset-0 completion-overlay flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl border border-[#fce9c1] p-8 mx-4 max-w-md w-full text-center">
+            <!-- Form Title -->
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[24px] tracking-[-0.24px] mb-4">
+                {{ form_title }}
+            </h2>
+            
+            <!-- Progress Bar (Complete) -->
+            <div class="mb-6">
+                <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
+                    <div class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] w-full transition-all duration-500"></div>
+                </div>
+            </div>
+            
+            <!-- Completion Message -->
+            <div class="mb-2">
+                <p class="font-['DM_Sans'] text-[#959494] text-[16px] mb-2">form complete</p>
+                <p class="font-['DM_Sans'] text-black text-[18px] leading-relaxed">
+                    thank you for completing this form.<br>
+                    we have received your response.
+                </p>
+            </div>
+            
+            <!-- Action Button -->
+            <div class="mt-6">
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-6 py-3 text-white font-['DM_Sans'] text-[16px] hover:opacity-90 transition-opacity inline-flex items-center gap-2">
+                    <span>generate new form</span>
+                    <i class="ph ph-plus text-white text-lg"></i>
+                </a>
             </div>
         </div>
     </div>
@@ -131,6 +178,9 @@
         // Initialize FingerprintJS and start session
         async function initializeChat() {
             try {
+                // Show typing indicator immediately when page loads
+                showTypingIndicator();
+                
                 // Wait for FingerprintJS to be available
                 if (typeof FingerprintJS === 'undefined') {
                     console.log('FingerprintJS not loaded, using fallback device ID');
@@ -162,7 +212,8 @@
                 if (data.success) {
                     sessionId = data.session_id;
                     
-                    // Add initial greeting
+                    // Hide typing indicator and add initial greeting
+                    hideTypingIndicator();
                     addMessage('assistant', data.greeting);
                     
                     // Enable input
@@ -170,11 +221,13 @@
                     document.getElementById('send-button').disabled = false;
                     document.getElementById('message-input').focus();
                 } else {
+                    hideTypingIndicator();
                     throw new Error(data.error || 'Failed to start chat');
                 }
 
             } catch (error) {
                 console.error('Error initializing chat:', error);
+                hideTypingIndicator();
                 addMessage('system', 'Sorry, there was an error starting the chat. Please refresh the page and try again.');
             }
         }
@@ -293,10 +346,10 @@
                         input.disabled = true;
                         document.getElementById('send-button').disabled = true;
                         
-                        // Show completion message
+                        // Show completion overlay instead of system message
                         setTimeout(() => {
-                            addMessage('system', 'Chat completed! Thank you for your responses. 🎉');
-                        }, 1000);
+                            showCompletionScreen();
+                        }, 1500);
                     } else {
                         // Re-enable input
                         input.disabled = false;
@@ -344,6 +397,18 @@
                 }
             } catch (error) {
                 console.error('Error updating progress:', error);
+            }
+        }
+
+        // Show completion screen
+        function showCompletionScreen() {
+            const overlay = document.getElementById('completion-overlay');
+            overlay.classList.remove('hidden');
+            
+            // Set progress bar to 100% in completion screen
+            const completionProgressBar = overlay.querySelector('.bg-\\[\\#cd4c0b\\]');
+            if (completionProgressBar) {
+                completionProgressBar.style.width = '100%';
             }
         }
 
