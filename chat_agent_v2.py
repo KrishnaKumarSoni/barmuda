@@ -196,7 +196,7 @@ def save_response(session_id: str, response_value: str) -> str:
 def redirect_conversation(session_id: str) -> str:
     """Handle off-topic responses by redirecting back to the form"""
     try:
-        print(f"REDIRECT CALLED for session: {session_id}")
+        print(f"🎯 REDIRECT TOOL CALLED for session: {session_id}")
         session = load_session(session_id)
         session.metadata['redirect_count'] += 1
         
@@ -215,9 +215,11 @@ def redirect_conversation(session_id: str) -> str:
         
         save_session(session)
         message_idx = min(session.metadata['redirect_count'] - 1, len(redirect_messages) - 1)
+        print(f"🎯 REDIRECT MESSAGE: {redirect_messages[message_idx]}")
         return redirect_messages[message_idx]
         
     except Exception as e:
+        print(f"🎯 REDIRECT ERROR: {str(e)}")
         return f"Error redirecting: {str(e)}"
 
 @function_tool
@@ -402,10 +404,13 @@ Please respond naturally and use the appropriate tools to manage this conversati
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             
+            print(f"DEBUG: Running agent with input: {agent_input}")
             result = Runner.run_sync(self.agent, agent_input)
+            print(f"DEBUG: Agent result: {result}")
             
             # Extract response
             agent_response = result.final_output if hasattr(result, 'final_output') else str(result)
+            print(f"DEBUG: Agent response: {agent_response}")
             
             # Add agent response to history
             session.chat_history.append({
@@ -446,7 +451,8 @@ chat_agent = None
 def get_chat_agent():
     """Get or create the global chat agent instance"""
     global chat_agent
-    if chat_agent is None:
+    # Force recreation for testing - remove in production
+    if True or chat_agent is None:
         openai_api_key = os.getenv('OPENAI_API_KEY', '').strip()
         print(f"DEBUG: API key available: {bool(openai_api_key)}")
         print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}")
