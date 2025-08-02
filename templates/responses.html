@@ -487,71 +487,131 @@
             }
         }
         
+        // Get question preview based on type
+        function getQuestionPreview(question, responses) {
+            if (!responses || responses.length === 0) {
+                return '<div class="text-xs text-[#959494] font-[\'DM_Sans\']">No responses yet</div>';
+            }
+            
+            switch(question.type) {
+                case 'multiple_choice':
+                    // Show top choice
+                    const mcCounts = {};
+                    responses.forEach(r => {
+                        const val = r.value || 'No response';
+                        mcCounts[val] = (mcCounts[val] || 0) + 1;
+                    });
+                    const topChoice = Object.keys(mcCounts).reduce((a, b) => mcCounts[a] > mcCounts[b] ? a : b);
+                    const topPercent = Math.round((mcCounts[topChoice] / responses.length) * 100);
+                    return `
+                        <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Top Choice</div>
+                        <div class="text-xs text-[#1e1e1e] font-['DM_Sans'] truncate">${topChoice}</div>
+                        <div class="text-xs text-[#797878] font-['DM_Sans']">${topPercent}%</div>
+                    `;
+                    
+                case 'yes_no':
+                    const yesCount = responses.filter(r => r.value === 'Yes').length;
+                    const yesPercent = Math.round((yesCount / responses.length) * 100);
+                    return `
+                        <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Yes Responses</div>
+                        <div class="text-2xl text-[#1e1e1e] font-['DM_Sans'] font-bold">${yesPercent}%</div>
+                        <div class="text-xs text-[#797878] font-['DM_Sans']">${yesCount}/${responses.length}</div>
+                    `;
+                    
+                case 'rating':
+                    const ratings = responses.map(r => parseInt(r.value)).filter(r => !isNaN(r));
+                    const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : 0;
+                    return `
+                        <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Average Rating</div>
+                        <div class="flex items-center gap-1 mb-1">
+                            <div class="text-lg text-[#1e1e1e] font-['DM_Sans'] font-bold">${avgRating}</div>
+                            <i class="ph ph-star-fill text-[#ffa500] text-sm"></i>
+                        </div>
+                        <div class="text-xs text-[#797878] font-['DM_Sans']">${ratings.length} ratings</div>
+                    `;
+                    
+                case 'number':
+                    const numbers = responses.map(r => parseFloat(r.value)).filter(r => !isNaN(r));
+                    const avgNumber = numbers.length > 0 ? (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(1) : 0;
+                    return `
+                        <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Average</div>
+                        <div class="text-lg text-[#1e1e1e] font-['DM_Sans'] font-bold">${avgNumber}</div>
+                        <div class="text-xs text-[#797878] font-['DM_Sans']">${numbers.length} numbers</div>
+                    `;
+                    
+                case 'text':
+                    const textResponses = responses.filter(r => r.value && r.value !== '[SKIP]');
+                    const avgLength = textResponses.length > 0 ? Math.round(textResponses.reduce((sum, r) => sum + (r.value?.length || 0), 0) / textResponses.length) : 0;
+                    return `
+                        <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Text Responses</div>
+                        <div class="text-lg text-[#1e1e1e] font-['DM_Sans'] font-bold">${textResponses.length}</div>
+                        <div class="text-xs text-[#797878] font-['DM_Sans']">${avgLength} avg chars</div>
+                    `;
+                    
+                default:
+                    return `
+                        <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Responses</div>
+                        <div class="text-lg text-[#1e1e1e] font-['DM_Sans'] font-bold">${responses.length}</div>
+                    `;
+            }
+        }
+
         // Render questions overview
         function renderQuestionsOverview() {
             const container = document.getElementById('questions-overview');
             const questions = {{ questions | tojsonfilter }};
             
-            // Always clear and re-render for debugging
+            // Clear and re-render
             container.innerHTML = '';
             
-            console.log('=== QUESTIONS TAB DEBUG ===');
-            console.log('Questions data:', questions);
-            console.log('Questions type:', typeof questions);
-            console.log('Questions length:', questions ? questions.length : 'undefined');
+            if (!questions || questions.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-[#797878] bg-white rounded-lg border border-[#fce9c1] p-4">No questions found in this form</div>';
+                return;
+            }
             
-            if (true) {  // Always run for now
-                console.log('Questions data:', questions);
-                console.log('Container found:', container);
-                
-                if (!questions || questions.length === 0) {
-                    container.innerHTML = '<div class="text-center py-8 text-[#797878] bg-white rounded-lg border border-[#fce9c1] p-4">No questions found in this form</div>';
-                    return;
-                }
-                
-                // Add summary header
-                const summaryDiv = document.createElement('div');
-                summaryDiv.className = 'bg-white rounded-lg border border-[#fce9c1] p-4 mb-6';
-                summaryDiv.innerHTML = `
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg mb-1">Form Analysis</h3>
-                            <p class="font-['DM_Sans'] text-[#797878] text-sm">${questions.length} questions • ${allResponses ? allResponses.length : 0} total responses</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="bg-[#cc5500] text-white px-3 py-1.5 rounded-lg text-xs font-['DM_Sans'] hover:opacity-90">
-                                <i class="ph ph-download-simple mr-1"></i>Export Questions
-                            </button>
-                        </div>
+            // Add summary header
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'bg-white rounded-lg border border-[#fce9c1] p-4 mb-6';
+            summaryDiv.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg mb-1">Form Analysis</h3>
+                        <p class="font-['DM_Sans'] text-[#797878] text-sm">${questions.length} questions • ${allResponses ? allResponses.length : 0} total responses</p>
                     </div>
-                `;
-                container.appendChild(summaryDiv);
+                    <div class="flex gap-2">
+                        <button class="bg-[#cc5500] text-white px-3 py-1.5 rounded-lg text-xs font-['DM_Sans'] hover:opacity-90">
+                            <i class="ph ph-download-simple mr-1"></i>Export Questions
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(summaryDiv);
+            
+            // Create enhanced question cards
+            questions.forEach((question, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-6 shadow-sm hover:shadow-md transition-shadow mb-4';
                 
-                // Create enhanced question cards
-                questions.forEach((question, index) => {
-                    const questionCard = document.createElement('div');
-                    questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-6 shadow-sm hover:shadow-md transition-shadow mb-4';
-                    
-                    // Handle case where allResponses might not be loaded yet
-                    const responses = allResponses ? allResponses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null) : [];
-                    const totalPossibleResponses = allResponses ? allResponses.length : 0;
-                    const responseCount = responses.length;
-                    const skipCount = totalPossibleResponses - responseCount;
-                    const completionRate = totalPossibleResponses > 0 ? Math.round((responseCount / totalPossibleResponses) * 100) : 0;
-                    
-                    // Get question type icon
-                    const getQuestionIcon = (type) => {
-                        switch(type) {
-                            case 'multiple_choice': return 'ph-list-bullets';
-                            case 'yes_no': return 'ph-check-circle';
-                            case 'text': return 'ph-text-aa';
-                            case 'rating': return 'ph-star';
-                            case 'number': return 'ph-hash';
-                            default: return 'ph-question';
-                        }
-                    };
-                    
-                    questionCard.innerHTML = `
+                // Handle case where allResponses might not be loaded yet
+                const responses = allResponses ? allResponses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null) : [];
+                const totalPossibleResponses = allResponses ? allResponses.length : 0;
+                const responseCount = responses.length;
+                const skipCount = totalPossibleResponses - responseCount;
+                const completionRate = totalPossibleResponses > 0 ? Math.round((responseCount / totalPossibleResponses) * 100) : 0;
+                
+                // Get question type icon
+                const getQuestionIcon = (type) => {
+                    switch(type) {
+                        case 'multiple_choice': return 'ph-list-bullets';
+                        case 'yes_no': return 'ph-check-circle';
+                        case 'text': return 'ph-text-aa';
+                        case 'rating': return 'ph-star';
+                        case 'number': return 'ph-hash';
+                        default: return 'ph-question';
+                    }
+                };
+                
+                questionCard.innerHTML = `
                         <div class="flex flex-col lg:flex-row lg:items-start gap-4">
                             <!-- Question Info -->
                             <div class="flex-1">
@@ -616,11 +676,10 @@
                                 ${getQuestionPreview(question, responses)}
                             </div>
                         </div>
-                    `;
-                    
-                    container.appendChild(questionCard);
-                });
-            }
+                `;
+                
+                container.appendChild(questionCard);
+            });
         }
     </script>
 </body>
