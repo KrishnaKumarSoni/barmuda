@@ -1014,8 +1014,12 @@ def start_chat_session():
             return jsonify({'error': 'form_id is required'}), 400
         
         # Create session using chat agent
-        agent = get_chat_agent()
-        session_id = agent.create_session(form_id, device_id, location)
+        try:
+            agent = get_chat_agent()
+            session_id = agent.create_session(form_id, device_id, location)
+        except Exception as e:
+            logger.error(f"Failed to create chat agent or session: {str(e)}")
+            return jsonify({'error': f'Chat initialization failed: {str(e)}'}), 500
         
         # Get initial greeting
         try:

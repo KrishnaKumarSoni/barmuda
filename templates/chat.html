@@ -137,24 +137,8 @@
                     deviceId = result.visitorId;
                 }
 
-                // Get location (optional)
+                // Skip location collection to avoid permission prompt
                 let location = {};
-                if (navigator.geolocation) {
-                    try {
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                timeout: 5000,
-                                enableHighAccuracy: false
-                            });
-                        });
-                        location = {
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude
-                        };
-                    } catch (e) {
-                        console.log('Location not available:', e);
-                    }
-                }
 
                 // Start chat session
                 const response = await fetch('/api/chat/start', {

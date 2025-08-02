@@ -12,6 +12,10 @@ import firebase_admin
 from firebase_admin import firestore, db
 from agents import Agent, Runner, function_tool
 import openai
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize Firebase if not already done
 if not firebase_admin._apps:
