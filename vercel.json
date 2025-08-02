@@ -2,15 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "test_minimal.py",
+      "src": "app.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "250mb"
       }
-    },
-    {
-      "src": "bermuda-01-firebase-adminsdk-fbsvc-660474f630.json",
-      "use": "@vercel/static"
     },
     {
       "src": "static/**",
@@ -24,7 +20,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/test_minimal.py"
+      "dest": "/app.py"
     }
   ],
   "env": {
