@@ -598,11 +598,102 @@ def get_user_profile():
     except Exception as e:
         return jsonify({'error': 'Failed to get profile', 'details': str(e)}), 500
 
+def validate_form_generation_input(input_text):
+    """
+    Comprehensive validation for form generation input
+    Returns: (is_valid, error_message)
+    """
+    import re
+    
+    # Basic checks
+    if not input_text or not input_text.strip():
+        return False, "Please describe the form you want to create"
+    
+    text = input_text.strip()
+    
+    # Length checks
+    if len(text) < 20:
+        return False, "Please provide more details about your form (minimum 20 characters)"
+    
+    if len(text) > 5000:
+        return False, "Description too long (maximum 5000 characters)"
+    
+    # Content quality checks
+    if not re.search(r'\S', text) or len(text.replace(' ', '').replace('\n', '').replace('\t', '')) < 10:
+        return False, "Please provide a meaningful description"
+    
+    # Repetitive content detection
+    if re.search(r'(.)\1{6,}', text):
+        return False, "Please provide a meaningful description of your form"
+    
+    # Keyboard mashing detection
+    keyboard_patterns = [
+        r'^[qwertyuiop\s]+$',
+        r'^[asdfghjkl\s]+$',
+        r'^[zxcvbnm\s]+$',
+        r'^[1234567890\s]+$'
+    ]
+    
+    text_no_spaces = re.sub(r'\s+', '', text.lower())
+    for pattern in keyboard_patterns:
+        if len(text_no_spaces) > 10 and re.match(pattern, text_no_spaces):
+            return False, "Please provide a real description of the form you want to create"
+    
+    # Prompt injection detection
+    injection_patterns = [
+        r'\b(ignore|forget|disregard).{0,20}(previous|above|instruction|prompt|system)',
+        r'(system|assistant|user):\s',
+        r'\b(execute|run|command|script)\b',
+        r'</?(script|iframe|object|embed)',
+        r'\b(hack|exploit|inject|bypass)\b',
+        r'(you are|act as|pretend to be|roleplay)',
+        r'\b(jailbreak|prompt.?injection)\b'
+    ]
+    
+    for pattern in injection_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return False, "Invalid input detected. Please describe your form requirements clearly."
+    
+    # Form-related content validation
+    form_keywords = [
+        'form', 'survey', 'question', 'data', 'collect', 'response', 'feedback', 
+        'poll', 'quiz', 'assessment', 'evaluation', 'information', 'details', 
+        'input', 'field', 'answer', 'customer', 'user', 'participant', 'research',
+        'study', 'opinion', 'rating', 'review', 'contact', 'registration', 'application'
+    ]
+    
+    non_form_keywords = [
+        'weather', 'time', 'date', 'news', 'sports', 'movie', 'music', 'food', 
+        'recipe', 'game', 'joke', 'story', 'entertainment', 'celebrity', 'politics',
+        'shopping', 'travel', 'hotel', 'restaurant', 'directions', 'navigation'
+    ]
+    
+    # Check if it contains form-related content
+    has_form_keywords = any(keyword in text.lower() for keyword in form_keywords)
+    has_non_form_keywords = any(keyword in text.lower() for keyword in non_form_keywords)
+    
+    if has_non_form_keywords and not has_form_keywords:
+        return False, "This doesn't seem to be about creating a form. Please describe your survey goals and what data you want to collect."
+    
+    # Inappropriate content detection (basic)
+    inappropriate_patterns = [
+        r'\b(hate|kill|murder|violence|terrorist|bomb)\b',
+        r'\b(porn|sex|adult|nude|explicit)\b',
+        r'\b(drug|cocaine|heroin|marijuana)\b',
+        r'\b(scam|fraud|steal|money.?laundering)\b'
+    ]
+    
+    for pattern in inappropriate_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return False, "Cannot create forms for inappropriate content. Please describe a legitimate survey or data collection need."
+    
+    return True, ""
+
 @app.route('/api/infer', methods=['POST'])
 @login_required
 def infer_form():
     """
-    Infer form structure from unstructured text dump
+    Infer form structure from unstructured text dump with comprehensive validation
     
     Expected JSON payload:
     {
@@ -627,18 +718,18 @@ def infer_form():
                 'error': 'Text dump is required in request body'
             }), 400
         
-        input_text = data['dump'].strip()
-        if not input_text:
+        input_text = data['dump']
+        
+        # Comprehensive validation
+        is_valid, error_message = validate_form_generation_input(input_text)
+        if not is_valid:
+            logger.warning(f"Form generation validation failed for user {request.user['uid']}: {error_message}")
             return jsonify({
                 'success': False,
-                'error': 'Text dump cannot be empty'
+                'error': error_message
             }), 400
         
-        if len(input_text) > 5000:  # Reasonable limit
-            return jsonify({
-                'success': False,
-                'error': 'Text dump too long (max 5000 characters)'
-            }), 400
+        input_text = input_text.strip()
         
         logger.info(f"Form inference requested by user {request.user['uid']} for: {input_text[:100]}...")
         

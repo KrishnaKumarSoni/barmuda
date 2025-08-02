@@ -14,7 +14,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
@@ -82,12 +82,20 @@
             <div class="w-full max-w-3xl relative">
                 <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-xl relative">
                     <textarea 
-                        class="w-full h-32 md:h-40 p-4 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base md:text-[18px] text-[#1e1e1e] placeholder-[#c3c3c3]"
+                        class="w-full h-32 md:h-40 p-4 bg-transparent border-none outline-none resize-none font-['Inter'] text-base md:text-[18px] text-black placeholder-[#9ca3af]"
                         placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
-                        id="formDescription"></textarea>
-                    <button onclick="signInWithGoogle()" 
-                            class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-4 md:px-6 py-2 md:py-3 text-white font-['DM_Sans'] text-sm md:text-[18px] hover:opacity-90 transition-opacity">
-                        generate form
+                        id="formDescription"
+                        oninput="handleUnauthenticatedInput()"></textarea>
+                    <button onclick="handleUnauthenticatedGenerate()" 
+                            id="unauthGenerateBtn"
+                            class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-4 md:px-6 py-2 md:py-3 text-white font-['Inter'] font-medium text-sm md:text-base hover:opacity-90 transition-opacity flex items-center gap-2">
+                        <span id="unauthButtonText">generate form</span>
+                        <div id="unauthSpinner" class="hidden">
+                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -121,7 +129,68 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // Real Google Sign In
+        // Handle unauthenticated input validation
+        function handleUnauthenticatedInput() {
+            // Simple validation for unauthenticated users
+            const input = document.getElementById('formDescription');
+            const text = input.value.trim();
+            
+            // Store in sessionStorage for post-auth retrieval
+            if (text.length > 0) {
+                sessionStorage.setItem('pendingFormDescription', text);
+            }
+        }
+        
+        // Handle generate form attempt for unauthenticated users
+        async function handleUnauthenticatedGenerate() {
+            const input = document.getElementById('formDescription');
+            const text = input.value.trim();
+            
+            if (!text) {
+                alert('Please describe the form you want to create');
+                return;
+            }
+            
+            if (text.length < 20) {
+                alert('Please provide more details about your form (minimum 20 characters)');
+                return;
+            }
+            
+            // Store the form description for after authentication
+            sessionStorage.setItem('pendingFormDescription', text);
+            
+            // Show loading state
+            setUnauthButtonState('signing_in');
+            
+            try {
+                await signInWithGoogle();
+            } catch (error) {
+                setUnauthButtonState('idle');
+                console.error('Sign in error:', error);
+            }
+        }
+        
+        // Set button state for unauthenticated page
+        function setUnauthButtonState(state) {
+            const btn = document.getElementById('unauthGenerateBtn');
+            const text = document.getElementById('unauthButtonText');
+            const spinner = document.getElementById('unauthSpinner');
+            
+            switch(state) {
+                case 'signing_in':
+                    btn.disabled = true;
+                    text.textContent = 'signing in...';
+                    spinner.classList.remove('hidden');
+                    break;
+                case 'idle':
+                    btn.disabled = false;
+                    text.textContent = 'generate form';
+                    spinner.classList.add('hidden');
+                    break;
+            }
+        }
+        
+        // Enhanced Google Sign In with form data preservation
         async function signInWithGoogle() {
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
@@ -143,16 +212,36 @@
                 });
                 
                 if (response.ok) {
-                    window.location.href = '/create-form';
+                    // Check if we have pending form description
+                    const pendingDescription = sessionStorage.getItem('pendingFormDescription');
+                    if (pendingDescription) {
+                        // Redirect to create-form page (form will be auto-populated there)
+                        window.location.href = '/create-form';
+                    } else {
+                        window.location.href = '/create-form';
+                    }
                 } else {
                     const error = await response.json();
                     alert('Authentication failed: ' + error.error);
+                    setUnauthButtonState('idle');
                 }
             } catch (error) {
                 console.error('Sign in error:', error);
                 alert('Sign in failed: ' + error.message);
+                setUnauthButtonState('idle');
             }
         }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already authenticated
+            auth.onAuthStateChanged(function(user) {
+                if (user) {
+                    // User is signed in, redirect to create-form
+                    window.location.href = '/create-form';
+                }
+            });
+        });
     </script>
 </body>
 </html>

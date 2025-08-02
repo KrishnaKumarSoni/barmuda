@@ -38,7 +38,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
@@ -99,30 +99,35 @@
             
             <!-- Form Input Card -->
             <div class="w-full max-w-3xl relative">
-                <div class="bg-[#fffcf4] rounded-xl border border-[#fb9a9a] p-4 md:p-6">
+                <div class="bg-[#fffcf4] rounded-xl border border-[#fb9a9a] p-4 md:p-6 transition-colors" id="inputCard">
                     <textarea 
                         id="formDump"
                         placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
-                        class="w-full h-28 md:h-32 bg-transparent resize-none outline-none font-['DM_Sans'] text-base md:text-lg text-[#1e1e1e] placeholder-[#c3c3c3] leading-relaxed"
+                        class="w-full h-28 md:h-32 bg-transparent resize-none outline-none font-['Inter'] text-base md:text-lg text-black placeholder-[#9ca3af] leading-relaxed transition-colors"
+                        oninput="validateInput()"
                     ></textarea>
+                    
+                    <!-- Validation Message -->
+                    <div id="validationMessage" class="hidden mt-2 text-sm text-red-600 font-['Inter']"></div>
                     
                     <!-- Generate Button -->
                     <div class="flex justify-end mt-4">
                         <button 
                             id="generateBtn"
                             onclick="generateForm()"
-                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['DM_Sans'] text-sm md:text-lg px-6 md:px-8 py-2 md:py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
+                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['Inter'] font-medium text-sm md:text-base px-6 md:px-8 py-2.5 md:py-3 rounded-full hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 min-w-[140px] justify-center"
+                            disabled
                         >
-                            generate form
+                            <span id="buttonText">generate form</span>
+                            <div id="buttonSpinner" class="hidden">
+                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
                         </button>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Loading State -->
-            <div id="loadingState" class="hidden text-center">
-                <div class="animate-spin rounded-full h-6 md:h-8 w-6 md:w-8 border-b-2 border-[#cc5500] mx-auto mb-2 md:mb-4"></div>
-                <p class="font-['DM_Sans'] text-sm md:text-lg text-[#1e1e1e]">Generating your form...</p>
             </div>
             
             <!-- Error State -->
@@ -194,27 +199,159 @@
             });
         }
 
-        // Generate form function
+        // Validation state
+        let validationTimeout;
+        let isValid = false;
+        
+        // Real-time input validation with debouncing
+        function validateInput() {
+            const input = document.getElementById('formDump');
+            const generateBtn = document.getElementById('generateBtn');
+            const validationMessage = document.getElementById('validationMessage');
+            const inputCard = document.getElementById('inputCard');
+            
+            clearTimeout(validationTimeout);
+            
+            validationTimeout = setTimeout(() => {
+                const text = input.value.trim();
+                const validation = validateFormInput(text);
+                
+                if (validation.isValid) {
+                    // Valid input
+                    isValid = true;
+                    generateBtn.disabled = false;
+                    validationMessage.classList.add('hidden');
+                    inputCard.classList.remove('border-red-300');
+                    inputCard.classList.add('border-[#fb9a9a]');
+                } else {
+                    // Invalid input
+                    isValid = false;
+                    generateBtn.disabled = true;
+                    if (validation.message && text.length > 0) {
+                        validationMessage.textContent = validation.message;
+                        validationMessage.classList.remove('hidden');
+                        inputCard.classList.add('border-red-300');
+                        inputCard.classList.remove('border-[#fb9a9a]');
+                    } else {
+                        validationMessage.classList.add('hidden');
+                        inputCard.classList.remove('border-red-300');
+                        inputCard.classList.add('border-[#fb9a9a]');
+                    }
+                }
+            }, 300); // 300ms debounce
+        }
+        
+        // Comprehensive input validation
+        function validateFormInput(text) {
+            // Empty or too short
+            if (!text || text.length === 0) {
+                return { isValid: false, message: '' };
+            }
+            
+            if (text.length < 20) {
+                return { 
+                    isValid: false, 
+                    message: 'Please provide more details about your form (minimum 20 characters)' 
+                };
+            }
+            
+            // Only whitespace or newlines
+            if (!/\S/.test(text) || text.replace(/\s/g, '').length < 10) {
+                return { 
+                    isValid: false, 
+                    message: 'Please describe what kind of form you want to create' 
+                };
+            }
+            
+            // Repetitive characters (like "aaaaaaa" or "1111111")
+            const repetitivePattern = /(.)\1{6,}/;
+            if (repetitivePattern.test(text)) {
+                return { 
+                    isValid: false, 
+                    message: 'Please provide a meaningful description of your form' 
+                };
+            }
+            
+            // Keyboard mashing detection
+            const keyboardMashing = /^[qwertyuiop]+$|^[asdfghjkl]+$|^[zxcvbnm]+$/i;
+            if (keyboardMashing.test(text.replace(/\s/g, ''))) {
+                return { 
+                    isValid: false, 
+                    message: 'Please provide a real description of the form you want to create' 
+                };
+            }
+            
+            // Not form-related (basic check)
+            const formKeywords = /\b(form|survey|question|data|collect|response|feedback|poll|quiz|assessment|evaluation|information|details|input)\b/i;
+            const nonFormKeywords = /\b(weather|time|date|news|sports|movie|music|food|recipe|game|joke|story)\b/i;
+            
+            if (nonFormKeywords.test(text) && !formKeywords.test(text)) {
+                return { 
+                    isValid: false, 
+                    message: 'This doesn\'t seem to be about creating a form. Please describe your survey goals.' 
+                };
+            }
+            
+            return { isValid: true, message: '' };
+        }
+        
+        // Enhanced loading states
+        function setButtonState(state) {
+            const generateBtn = document.getElementById('generateBtn');
+            const buttonText = document.getElementById('buttonText');
+            const buttonSpinner = document.getElementById('buttonSpinner');
+            
+            switch(state) {
+                case 'validating':
+                    generateBtn.disabled = true;
+                    buttonText.textContent = 'validating...';
+                    buttonSpinner.classList.remove('hidden');
+                    break;
+                case 'generating':
+                    buttonText.textContent = 'generating...';
+                    buttonSpinner.classList.remove('hidden');
+                    break;
+                case 'redirecting':
+                    buttonText.textContent = 'redirecting...';
+                    buttonSpinner.classList.remove('hidden');
+                    break;
+                case 'idle':
+                    generateBtn.disabled = !isValid;
+                    buttonText.textContent = 'generate form';
+                    buttonSpinner.classList.add('hidden');
+                    break;
+                case 'error':
+                    generateBtn.disabled = false;
+                    buttonText.textContent = 'try again';
+                    buttonSpinner.classList.add('hidden');
+                    break;
+            }
+        }
+        
+        // Enhanced generate form function with progressive loading
         async function generateForm() {
             const dumpInput = document.getElementById('formDump');
-            const generateBtn = document.getElementById('generateBtn');
-            const loadingState = document.getElementById('loadingState');
             const errorState = document.getElementById('errorState');
             
             const dump = dumpInput.value.trim();
             
-            if (!dump) {
-                showError('Please describe the form you want to create');
+            // Final validation before submission
+            const validation = validateFormInput(dump);
+            if (!validation.isValid) {
+                showError(validation.message || 'Please provide a valid form description');
                 return;
             }
             
-            // Show loading state
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Generating...';
-            loadingState.classList.remove('hidden');
+            // Progressive loading states
+            setButtonState('validating');
             errorState.classList.add('hidden');
             
             try {
+                // Small delay for UX
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                setButtonState('generating');
+                
                 const response = await authenticatedFetch('/api/infer', {
                     method: 'POST',
                     body: JSON.stringify({ dump })
@@ -223,23 +360,30 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    setButtonState('redirecting');
+                    
                     // Store the form data in sessionStorage
                     sessionStorage.setItem('generatedForm', JSON.stringify(data.form));
+                    
+                    // Small delay before redirect
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     
                     // Redirect to edit form page
                     window.location.href = '/edit-form';
                 } else {
+                    setButtonState('error');
                     showError(data.error || 'Failed to generate form');
                 }
                 
             } catch (error) {
                 console.error('Generate form error:', error);
-                showError('Network error. Please check your connection and try again.');
-            } finally {
-                // Reset UI state
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'generate form';
-                loadingState.classList.add('hidden');
+                setButtonState('error');
+                
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    showError('Please sign in to generate forms');
+                } else {
+                    showError('Network error. Please check your connection and try again.');
+                }
             }
         }
         
@@ -252,14 +396,48 @@
             errorState.classList.remove('hidden');
         }
         
-        // No authentication check needed - Flask handles this at route level
-        console.log('Create form page loaded successfully');
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial validation state
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            
+            // Check for pending form description from unauthenticated flow
+            const pendingDescription = sessionStorage.getItem('pendingFormDescription');
+            if (pendingDescription) {
+                const formDump = document.getElementById('formDump');
+                formDump.value = pendingDescription;
+                // Clear from sessionStorage
+                sessionStorage.removeItem('pendingFormDescription');
+                // Validate the restored content
+                validateInput();
+                // Focus at end of text
+                formDump.focus();
+                formDump.setSelectionRange(formDump.value.length, formDump.value.length);
+            } else {
+                // Initialize validation on any existing content
+                validateInput();
+            }
+            
+            console.log('Create form page loaded successfully');
+        });
         
-        // Allow Enter key to trigger form generation
+        // Allow Ctrl/Cmd+Enter to trigger form generation
         document.getElementById('formDump').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
-                generateForm();
+                if (isValid) {
+                    generateForm();
+                }
+            }
+        });
+        
+        // Handle button state reset on error dismissal
+        document.addEventListener('click', function(e) {
+            if (e.target.textContent === 'Dismiss' && e.target.closest('#errorState')) {
+                setTimeout(() => {
+                    setButtonState('idle');
+                }, 100);
             }
         });
     </script>
