@@ -126,10 +126,16 @@
         // Initialize FingerprintJS and start session
         async function initializeChat() {
             try {
-                // Get device fingerprint
-                const fp = await FingerprintJS.load();
-                const result = await fp.get();
-                deviceId = result.visitorId;
+                // Wait for FingerprintJS to be available
+                if (typeof FingerprintJS === 'undefined') {
+                    console.log('FingerprintJS not loaded, using fallback device ID');
+                    deviceId = 'fallback-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                } else {
+                    // Get device fingerprint
+                    const fp = await FingerprintJS.load();
+                    const result = await fp.get();
+                    deviceId = result.visitorId;
+                }
 
                 // Get location (optional)
                 let location = {};
@@ -362,8 +368,8 @@
             }
         });
 
-        // Initialize chat on page load
-        document.addEventListener('DOMContentLoaded', initializeChat);
+        // Initialize chat after all scripts load
+        window.addEventListener('load', initializeChat);
 
         // Handle page unload (save partial responses)
         window.addEventListener('beforeunload', function() {
