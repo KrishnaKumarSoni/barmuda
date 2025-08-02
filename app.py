@@ -52,9 +52,23 @@ def to_json_filter(obj):
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
-    # Use service account key file
-    cred = credentials.Certificate('bermuda-01-firebase-adminsdk-fbsvc-660474f630.json')
-    firebase_admin.initialize_app(cred)
+    # Check if we're in production (Vercel) and have the service account as an environment variable
+    firebase_service_account = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+    if firebase_service_account:
+        # Production: Use service account from environment variable
+        try:
+            service_account_info = json.loads(firebase_service_account)
+            cred = credentials.Certificate(service_account_info)
+            firebase_admin.initialize_app(cred)
+        except (json.JSONDecodeError, Exception) as e:
+            logger.error(f"Failed to parse Firebase service account from environment: {e}")
+            # Fall back to local file for development
+            cred = credentials.Certificate('bermuda-01-firebase-adminsdk-fbsvc-660474f630.json')
+            firebase_admin.initialize_app(cred)
+    else:
+        # Development: Use local service account file
+        cred = credentials.Certificate('bermuda-01-firebase-adminsdk-fbsvc-660474f630.json')
+        firebase_admin.initialize_app(cred)
 
 # Initialize Firestore
 db = firestore.client()
