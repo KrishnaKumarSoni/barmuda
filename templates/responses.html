@@ -295,29 +295,37 @@
             const container = document.getElementById(containerId);
             if (!container) return;
             
-            // Clear container
+            // Clear container and set proper sizing
             container.innerHTML = '';
+            container.style.width = '290px';
+            container.style.height = '164px';
+            container.style.overflow = 'hidden';
+            container.style.position = 'relative';
             
-            // Create HTML-based word cloud
+            // Create HTML-based word cloud with better sizing
             const colors = ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'];
             const maxCount = Math.max(...wordFrequency.map(item => item.count));
             
+            // Limit to top 10 words to prevent overflow
+            const topWords = wordFrequency.slice(0, 10);
+            
             let wordsHtml = '';
-            wordFrequency.forEach((item, index) => {
-                const size = Math.max(12, Math.min(28, (item.count / maxCount) * 28));
+            topWords.forEach((item, index) => {
+                const size = Math.max(14, Math.min(22, (item.count / maxCount) * 20 + 14));
                 const color = colors[index % colors.length];
-                const opacity = 0.7 + (item.count / maxCount) * 0.3;
+                const opacity = 0.8 + (item.count / maxCount) * 0.2;
                 
                 wordsHtml += `
                     <span style="
                         font-size: ${size}px; 
                         color: ${color}; 
                         opacity: ${opacity};
-                        margin: 4px 8px;
+                        margin: 3px 6px;
                         font-family: 'DM Sans';
                         font-weight: 500;
                         display: inline-block;
-                        line-height: 1.2;
+                        line-height: 1.1;
+                        white-space: nowrap;
                     ">${item.word}</span>
                 `;
             });
@@ -328,9 +336,12 @@
                     flex-wrap: wrap;
                     align-items: center;
                     justify-content: center;
+                    width: 100%;
                     height: 100%;
-                    padding: 10px;
+                    padding: 8px;
                     text-align: center;
+                    overflow: hidden;
+                    box-sizing: border-box;
                 ">
                     ${wordsHtml}
                 </div>
