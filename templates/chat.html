@@ -26,18 +26,36 @@
             transition: opacity 300ms, transform 300ms;
         }
         
-        /* Animated typing ellipsis */
-        .typing-ellipsis::after {
-            content: '';
-            animation: ellipsis 1.5s infinite;
+        /* Bouncing typing ellipsis */
+        .typing-ellipsis {
+            display: inline-flex;
+            gap: 2px;
+            align-items: center;
+            justify-content: center;
+            height: 20px;
         }
         
-        @keyframes ellipsis {
-            0% { content: ''; }
-            25% { content: '.'; }
-            50% { content: '..'; }
-            75% { content: '...'; }
-            100% { content: ''; }
+        .typing-ellipsis .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #666;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-ellipsis .dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-ellipsis .dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-ellipsis .dot:nth-child(3) { animation-delay: 0s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { 
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1.2);
+                opacity: 1;
+            }
         }
         
         /* Completion screen overlay */
@@ -48,61 +66,54 @@
     </style>
 </head>
 <body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col">
-    <!-- Navigation - Standardized Design -->
-    <nav class="flex-shrink-0 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-4 max-w-fit px-6 py-3 shadow-sm">
-        <div class="flex items-center gap-[72px]">
+    <!-- Navigation - Responsive Design -->
+    <nav class="flex-shrink-0 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-4 max-w-fit px-4 md:px-6 py-3 shadow-sm">
+        <div class="flex items-center gap-4 md:gap-8 lg:gap-[72px]">
             <!-- Logo Section -->
-            <div class="flex items-center gap-3">
-                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
+            <div class="flex items-center gap-2 md:gap-3">
+                <div class="bg-center bg-cover bg-no-repeat h-8 md:h-11 w-[24px] md:w-[30px]"
                      style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg md:text-[24px] text-[#cc5500] tracking-[-0.24px]">
                     Bermuda forms
                 </h1>
             </div>
             
             <!-- Action Button -->
             <div class="flex items-center">
-                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-                    <span class="font-['DM_Sans'] text-[18px] text-white">generate new form</span>
-                    <i class="ph ph-plus text-white text-xl"></i>
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-3 md:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-2.5 hover:opacity-90 transition-opacity">
+                    <span class="font-['DM_Sans'] text-sm md:text-[18px] text-white">generate new form</span>
+                    <i class="ph ph-plus text-white text-lg md:text-xl"></i>
                 </a>
             </div>
         </div>
     </nav>
 
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col justify-center px-4 py-6 space-y-4">
+    <div class="flex-1 flex flex-col px-4 py-4 md:py-6 space-y-3 md:space-y-4 min-h-0">
         <!-- Form Title -->
-        <div class="text-center">
-            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[28px] md:text-[36px] tracking-[-0.36px]">
+        <div class="text-center flex-shrink-0">
+            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[24px] md:text-[32px] lg:text-[36px] tracking-[-0.36px]">
                 {{ form_title }}
             </h1>
         </div>
 
         <!-- Progress Bar -->
-        <div class="mx-auto w-full max-w-[696px]">
+        <div class="mx-auto w-full max-w-[696px] flex-shrink-0 mb-4">
             <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
-                <div id="progress-bar" class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] transition-all duration-500" style="width: 0%"></div>
+                <div id="progress-bar" class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] transition-all duration-500 ease-out" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Chat Container -->
-        <div class="mx-auto w-full max-w-[696px] bg-white rounded-t-[28px] rounded-b-[28px] border border-[#fce9c1] flex-1 flex flex-col">
-            <!-- Chat Header -->
-            <div class="bg-white h-16 md:h-20 rounded-t-[28px] border-b border-[#fce9c1] flex items-center px-6 flex-shrink-0">
-                <div class="font-['DM_Sans'] font-medium text-black text-[16px] tracking-[-0.16px]">
-                    AI Assistant
-                </div>
-            </div>
-            
+        <div class="mx-auto w-full max-w-[696px] bg-white rounded-[28px] border border-[#fce9c1] flex-1 flex flex-col min-h-0">
             <!-- Chat Messages -->
-            <div id="chat-messages" class="chat-container px-4 py-4 space-y-4 flex-1">
+            <div id="chat-messages" class="chat-container px-4 py-4 space-y-4 flex-1 min-h-0">
                 <!-- Messages will be dynamically added here -->
             </div>
         </div>
 
         <!-- Message Input -->
-        <div class="mx-auto w-full max-w-[696px] bg-white rounded-full shadow-[0px_4px_16px_1px_rgba(0,0,0,0.05)] border border-[#fdedcc]">
+        <div class="mx-auto w-full max-w-[696px] bg-white rounded-full shadow-[0px_4px_16px_1px_rgba(0,0,0,0.05)] border border-[#fdedcc] flex-shrink-0">
             <div class="flex items-center justify-between px-2 py-1">
                 <div class="flex-1 px-4 py-3">
                     <input 
@@ -123,14 +134,6 @@
             </div>
         </div>
 
-        <!-- Typing Indicator (Hidden by default) -->
-        <div id="typing-indicator" class="mx-auto w-full max-w-[696px] px-4 hidden">
-            <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
-                <div class="font-['DM_Sans'] text-[#959494] text-[14px]">
-                    <span class="typing-ellipsis">AI is typing</span>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Chat Completion Overlay -->
@@ -181,15 +184,37 @@
                 // Show typing indicator immediately when page loads
                 showTypingIndicator();
                 
-                // Wait for FingerprintJS to be available
-                if (typeof FingerprintJS === 'undefined') {
-                    console.log('FingerprintJS not loaded, using fallback device ID');
-                    deviceId = 'fallback-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                } else {
-                    // Get device fingerprint
-                    const fp = await FingerprintJS.load();
-                    const result = await fp.get();
-                    deviceId = result.visitorId;
+                // Get consistent device ID - try FingerprintJS first, then localStorage fallback
+                try {
+                    // Wait a bit for FingerprintJS to load if it's not ready
+                    if (typeof FingerprintJS === 'undefined') {
+                        // Wait up to 2 seconds for FingerprintJS to load
+                        for (let i = 0; i < 20; i++) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            if (typeof FingerprintJS !== 'undefined') break;
+                        }
+                    }
+                    
+                    if (typeof FingerprintJS !== 'undefined') {
+                        // Get device fingerprint
+                        const fp = await FingerprintJS.load();
+                        const result = await fp.get();
+                        deviceId = result.visitorId;
+                        console.log('Using FingerprintJS device ID:', deviceId);
+                    } else {
+                        throw new Error('FingerprintJS not available');
+                    }
+                } catch (fpError) {
+                    console.log('FingerprintJS failed:', fpError.message, '- using localStorage fallback');
+                    // Use a consistent fallback stored in localStorage
+                    deviceId = localStorage.getItem('bermuda_device_id');
+                    if (!deviceId) {
+                        deviceId = 'fallback-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('bermuda_device_id', deviceId);
+                        console.log('Generated new fallback device ID:', deviceId);
+                    } else {
+                        console.log('Using stored fallback device ID:', deviceId);
+                    }
                 }
 
                 // Skip location collection to avoid permission prompt
@@ -212,14 +237,70 @@
                 if (data.success) {
                     sessionId = data.session_id;
                     
-                    // Hide typing indicator and add initial greeting
+                    // Hide typing indicator
                     hideTypingIndicator();
-                    addMessage('assistant', data.greeting);
                     
-                    // Enable input
-                    document.getElementById('message-input').disabled = false;
-                    document.getElementById('send-button').disabled = false;
-                    document.getElementById('message-input').focus();
+                    // Check if session is ended
+                    if (data.ended) {
+                        console.log('Session is already ended');
+                        isEnded = true;
+                        
+                        // Show chat history if available
+                        if (data.chat_history) {
+                            data.chat_history.forEach(msg => {
+                                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+                                if (msg.role === 'user') {
+                                    addMessage('user', msg.content, timestamp);
+                                } else if (msg.role === 'assistant') {
+                                    addMessage('assistant', msg.content, timestamp);
+                                }
+                            });
+                        }
+                        
+                        // Show completion message
+                        addMessage('assistant', data.greeting);
+                        
+                        // Show completion screen immediately
+                        setTimeout(() => {
+                            showCompletionScreen();
+                        }, 1500);
+                        
+                        // Keep input disabled
+                        document.getElementById('message-input').disabled = true;
+                        document.getElementById('send-button').disabled = true;
+                    } else if (data.resumed && data.chat_history) {
+                        console.log('Resuming active session with', data.chat_history.length, 'messages');
+                        
+                        // Add all previous messages from history
+                        data.chat_history.forEach(msg => {
+                            const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+                            if (msg.role === 'user') {
+                                addMessage('user', msg.content, timestamp);
+                            } else if (msg.role === 'assistant') {
+                                addMessage('assistant', msg.content, timestamp);
+                            }
+                        });
+                        
+                        // Update progress after resuming
+                        updateProgress();
+                        
+                        // Add greeting (welcome back)
+                        addMessage('assistant', data.greeting);
+                        
+                        // Enable input
+                        document.getElementById('message-input').disabled = false;
+                        document.getElementById('send-button').disabled = false;
+                        document.getElementById('message-input').focus();
+                    } else {
+                        // New session
+                        // Add initial greeting
+                        addMessage('assistant', data.greeting);
+                        
+                        // Enable input
+                        document.getElementById('message-input').disabled = false;
+                        document.getElementById('send-button').disabled = false;
+                        document.getElementById('message-input').focus();
+                    }
                 } else {
                     hideTypingIndicator();
                     throw new Error(data.error || 'Failed to start chat');
@@ -259,9 +340,6 @@
                 `;
             } else if (sender === 'assistant') {
                 messageDiv.innerHTML = `
-                    <div class="flex justify-start mb-2">
-                        <div class="font-['DM_Sans'] font-medium text-black text-[16px]">AI Assistant</div>
-                    </div>
                     <div class="flex justify-start">
                         <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
                             <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] mb-4">
@@ -373,14 +451,48 @@
             }
         }
 
-        // Show typing indicator
+        // Show typing indicator using existing chat bubble
         function showTypingIndicator() {
-            document.getElementById('typing-indicator').classList.remove('hidden');
+            // Remove existing typing indicator if any
+            hideTypingIndicator();
+            
+            // Use existing addMessage function with special typing content
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-enter typing-message';
+            
+            messageDiv.innerHTML = `
+                <div class="flex justify-start">
+                    <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
+                        <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] flex items-center justify-center">
+                            <div class="typing-ellipsis">
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Trigger same animation as regular messages
+            setTimeout(() => {
+                messageDiv.classList.remove('message-enter');
+                messageDiv.classList.add('message-enter-active');
+            }, 10);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Hide typing indicator
         function hideTypingIndicator() {
-            document.getElementById('typing-indicator').classList.add('hidden');
+            const messagesContainer = document.getElementById('chat-messages');
+            const typingMessage = messagesContainer.querySelector('.typing-message');
+            if (typingMessage) {
+                typingMessage.remove();
+            }
         }
 
         // Update progress bar
@@ -391,9 +503,23 @@
                 const response = await fetch(`/api/chat/status/${sessionId}`);
                 const data = await response.json();
                 
+                console.log('Progress update:', data.progress); // Debug logging
+                
                 if (data.progress) {
                     const progressBar = document.getElementById('progress-bar');
-                    progressBar.style.width = `${data.progress.percentage}%`;
+                    const percentage = data.progress.percentage;
+                    
+                    console.log(`Setting progress to ${percentage}% (${data.progress.answered_questions}/${data.progress.total_questions})`);
+                    
+                    // Update progress bar width
+                    progressBar.style.width = `${percentage}%`;
+                    
+                    // Visual feedback for debugging
+                    if (percentage > 0) {
+                        console.log('✅ Progress is updating!');
+                    } else {
+                        console.log('⚠️ Progress is still 0% - responses may not be saving');
+                    }
                 }
             } catch (error) {
                 console.error('Error updating progress:', error);

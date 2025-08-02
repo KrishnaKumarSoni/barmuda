@@ -3,11 +3,11 @@
  * Matches Figma design specifications
  */
 
-// Bermuda Design System Colors
+// Bermuda Design System Colors - Updated to match Figma
 const BERMUDA_COLORS = {
-    primary: ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'],
-    yesNo: ['#0eac00', '#233203'], // Green for Yes, Dark for No
-    rating: ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'],
+    primary: ['#1e90ff', '#32cd32', '#ff6347', '#ffa500', '#9370db', '#20b2aa'],
+    yesNo: ['#32cd32', '#333333'], // Green for Yes, Dark for No
+    rating: ['#1e90ff', '#9370db', '#32cd32', '#ffa500', '#ff6347'],
     text: '#1e1e1e',
     background: '#ffffff',
     border: '#fce9c1'
@@ -165,18 +165,25 @@ function createCustomLegend(containerId, labels, data, colors) {
     
     const total = data.reduce((a, b) => a + b, 0);
     
-    let legendHtml = '<div class="space-y-3">';
+    let legendHtml = '<div class="grid grid-cols-2 gap-x-8 gap-y-3">';
     
     labels.forEach((label, index) => {
         if (data[index] > 0) {
             const percentage = Math.round((data[index] / total) * 100);
             const color = colors[index % colors.length];
             
+            // Style [SKIP] differently
+            const displayLabel = label === '[SKIP]' 
+                ? '<span class="text-[#959494]">[SKIP]</span>' 
+                : label;
+            
             legendHtml += `
-                <div class="flex items-center gap-3">
-                    <div class="w-4 h-4 rounded" style="background-color: ${color}"></div>
-                    <span class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px] flex-1">${label}</span>
-                    <span class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px]">${percentage}%</span>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 flex-1">
+                        <div class="w-4 h-4 rounded flex-shrink-0" style="background-color: ${color}"></div>
+                        <span class="font-['DM_Sans'] text-[#1e1e1e] text-sm">${displayLabel}</span>
+                    </div>
+                    <span class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-sm">${percentage}%</span>
                 </div>
             `;
         }

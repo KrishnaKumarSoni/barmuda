@@ -1016,7 +1016,7 @@ def form_response_page(form_id):
 
 @app.route('/api/chat/start', methods=['POST'])
 def start_chat_session():
-    """Start a new chat session"""
+    """Start a new chat session or resume existing one"""
     try:
         data = request.get_json()
         form_id = data.get('form_id')
@@ -1026,7 +1026,89 @@ def start_chat_session():
         if not form_id:
             return jsonify({'error': 'form_id is required'}), 400
         
-        # Create session using chat agent
+        # Check for existing session by device_id + form_id
+        existing_session = None
+        if device_id:
+            try:
+                print(f"Looking for existing session with device_id: {device_id}, form_id: {form_id}")
+                
+                # Query Firestore for existing sessions with this device_id and form_id
+                sessions_ref = db.collection('chat_sessions')
+                
+                # First, let's check all sessions for this device_id
+                all_device_sessions = list(sessions_ref.where('metadata.device_id', '==', device_id).stream())
+                print(f"Total sessions for device {device_id}: {len(all_device_sessions)}")
+                
+                # Debug: List all sessions in the collection
+                all_sessions = list(sessions_ref.limit(5).stream())
+                print(f"\nDEBUG: First 5 sessions in collection:")
+                for sess in all_sessions:
+                    sess_data = sess.to_dict()
+                    print(f"  - ID: {sess.id}")
+                    print(f"    Device ID: {sess_data.get('metadata', {}).get('device_id')}")
+                    print(f"    Form ID: {sess_data.get('form_id')}")
+                    print(f"    Ended: {sess_data.get('metadata', {}).get('ended')}")
+                
+                # Simplified query to avoid index requirement
+                # First get all sessions for this device and form
+                query = sessions_ref.where('metadata.device_id', '==', device_id)\
+                                   .where('form_id', '==', form_id)
+                
+                # Get all matching sessions
+                all_matching = list(query.stream())
+                
+                # Sort by start time (newest first)
+                all_matching.sort(
+                    key=lambda s: s.to_dict().get('metadata', {}).get('start_time', ''), 
+                    reverse=True
+                )
+                
+                # Get most recent session (ended or not)
+                existing_sessions = all_matching[:1] if all_matching else []
+                print(f"Found {len(all_matching)} total sessions")
+                
+                if existing_sessions:
+                    existing_session = existing_sessions[0]
+                    print(f"Found existing session: {existing_session.id}")
+                    session_data = existing_session.to_dict()
+                    print(f"Session device_id: {session_data.get('metadata', {}).get('device_id')}")
+                    print(f"Session form_id: {session_data.get('form_id')}")
+                    print(f"Session ended: {session_data.get('metadata', {}).get('ended')}")
+                else:
+                    print("No existing sessions found")
+            except Exception as e:
+                print(f"Error checking for existing sessions: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        # If existing session found, check if it's ended
+        if existing_session:
+            session_id = existing_session.id
+            session_data = existing_session.to_dict()
+            is_ended = session_data.get('metadata', {}).get('ended', False)
+            
+            # If session is ended, return the ended state
+            if is_ended:
+                return jsonify({
+                    'session_id': session_id,
+                    'greeting': "This form has already been completed. Thank you! 🎉",
+                    'chat_history': session_data.get('chat_history', []),
+                    'resumed': False,
+                    'ended': True,
+                    'success': True
+                })
+            else:
+                # Resume active session
+                return jsonify({
+                    'session_id': session_id,
+                    'greeting': "Welcome back! Let's continue where we left off. 😊",
+                    'chat_history': session_data.get('chat_history', []),
+                    'resumed': True,
+                    'ended': False,
+                    'success': True
+                })
+        
+        # Create new session using chat agent
         try:
             agent = get_chat_agent()
             session_id = agent.create_session(form_id, device_id, location)
@@ -1045,6 +1127,7 @@ def start_chat_session():
         return jsonify({
             'session_id': session_id,
             'greeting': greeting_message,
+            'resumed': False,
             'success': True
         })
         
@@ -1112,11 +1195,22 @@ def process_chat_message():
 def get_chat_status(session_id):
     """Get chat session status"""
     try:
-        agent = get_chat_agent()
-        session = agent._load_session(session_id)
+        from chat_agent_v2 import load_session
+        session = load_session(session_id)
         
         total_questions = len([q for q in session.form_data.get('questions', []) if q.get('enabled', True)])
         answered_questions = len([r for r in session.responses.values() if r.get('value') != '[SKIP]'])
+        
+        # Debug logging
+        print(f"Progress Debug - Session: {session_id}")
+        print(f"  Total questions: {total_questions}")
+        print(f"  Responses count: {len(session.responses)}")
+        print(f"  Answered questions: {answered_questions}")
+        print(f"  Current question index: {session.current_question_index}")
+        print(f"  Session responses: {session.responses}")
+        
+        progress_percentage = int((answered_questions / max(total_questions, 1)) * 100)
+        print(f"  Calculated progress: {progress_percentage}%")
         
         return jsonify({
             'session_id': session_id,
@@ -1124,7 +1218,8 @@ def get_chat_status(session_id):
                 'current_question': session.current_question_index,
                 'total_questions': total_questions,
                 'answered_questions': answered_questions,
-                'percentage': int((answered_questions / max(total_questions, 1)) * 100)
+                'percentage': progress_percentage,
+                'responses_debug': session.responses  # Debug info
             },
             'metadata': session.metadata,
             'ended': session.metadata.get('ended', False)

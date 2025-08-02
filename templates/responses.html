@@ -13,6 +13,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.js"></script>
     
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <!-- Custom Chart Configurations -->
     <script src="/static/js/chart-config.js"></script>
     <script src="/static/js/wordcloud-config.js"></script>
@@ -74,44 +77,46 @@
 
     <!-- Stats Cards -->
     <div class="max-w-6xl mx-auto mt-6 grid grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
-            <div id="total-responses" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0</div>
-            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">responses</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="total-responses" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">responses</div>
         </div>
-        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
-            <div id="completion-rate" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0%</div>
-            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">completion rate</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="completion-rate" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0%</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">completion rate</div>
         </div>
-        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
-            <div id="total-messages" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0</div>
-            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">messages received</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="total-messages" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">messages received</div>
         </div>
-        <div class="bg-white rounded-xl border border-[#fce9c1] p-4 text-center opacity-80">
-            <div id="avg-time" class="font-['DM_Sans'] font-medium text-[#000000] text-[24px] tracking-[-0.24px]">0m 0s</div>
-            <div class="font-['DM_Sans'] font-medium text-[#000000] text-[14px] tracking-[-0.14px]">average chat time</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="avg-time" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0m 0s</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">average chat time</div>
         </div>
     </div>
 
     <!-- Tab Navigation -->
     <div class="max-w-6xl mx-auto mt-6">
-        <div class="bg-[#fef5e0] border border-[#fbe7bd] rounded-lg p-[5px] flex">
-            <button id="summary-tab" class="flex-1 bg-[#e17d36] text-white rounded px-4 py-3 flex items-center justify-center gap-1.5">
-                <img src="/static/assets/c5ed93ceef8b85a0255caecfd16c67238a885ec3.svg" alt="" class="w-6 h-6">
-                <span class="font-['DM_Sans'] font-medium text-[14px] tracking-[-0.14px]">Summary</span>
+        <div class="bg-[#fef5e0] border border-[#fbe7bd] rounded-xl p-1.5 flex gap-1">
+            <button id="summary-tab" class="flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all">
+                <i class="ph ph-chart-pie-slice text-xl"></i>
+                <span class="font-['DM_Sans'] font-medium text-sm">Summary</span>
             </button>
-            <button id="individual-tab" class="flex-1 bg-[#fce9c1] text-[#e17d36] rounded px-4 py-3 flex items-center justify-center gap-1.5">
-                <img src="/static/assets/e65ff87e294c601214fd4b832c6c043d0528d445.svg" alt="" class="w-6 h-6">
-                <span class="font-['DM_Sans'] font-medium text-[14px] tracking-[-0.14px]">Individual</span>
+            <button id="individual-tab" class="flex-1 bg-transparent text-[#cc5500] rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all hover:bg-[#fff5e0]">
+                <i class="ph ph-users text-xl"></i>
+                <span class="font-['DM_Sans'] font-medium text-sm">Individual</span>
             </button>
         </div>
     </div>
 
     <!-- Export Buttons -->
     <div class="max-w-6xl mx-auto mt-6 flex gap-4">
-        <button onclick="exportData('json')" class="bg-[#cc5500] text-white px-6 py-2 rounded-lg font-['DM_Sans'] text-[14px] hover:bg-[#b34900] transition-colors">
+        <button onclick="exportData('json')" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-6 py-2.5 rounded-full font-['DM_Sans'] text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+            <i class="ph ph-export text-lg"></i>
             Export JSON
         </button>
-        <button onclick="exportData('csv')" class="bg-[#cc5500] text-white px-6 py-2 rounded-lg font-['DM_Sans'] text-[14px] hover:bg-[#b34900] transition-colors">
+        <button onclick="exportData('csv')" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-6 py-2.5 rounded-full font-['DM_Sans'] text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+            <i class="ph ph-file-csv text-lg"></i>
             Export CSV
         </button>
     </div>
@@ -119,8 +124,8 @@
     <!-- Content Area -->
     <div class="max-w-6xl mx-auto mt-6 mb-8">
         <!-- Summary View -->
-        <div id="summary-content" class="space-y-6">
-            <div id="questions-summary">
+        <div id="summary-content" class="space-y-8">
+            <div id="questions-summary" class="space-y-8">
                 <!-- Questions will be populated here -->
             </div>
         </div>
@@ -212,39 +217,39 @@
             
             questions.forEach((question, index) => {
                 const questionCard = document.createElement('div');
-                questionCard.className = 'bg-white rounded-lg border border-[#fce9c1] p-6';
+                questionCard.className = 'bg-white rounded-2xl border border-[#fce9c1] p-8 shadow-sm hover:shadow-md transition-shadow';
                 
                 const responses = data.responses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
                 const responseCount = responses.length;
                 
                 let summaryHtml = `
-                    <div class="mb-4">
-                        <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-[28px] tracking-[-0.28px]">question ${index + 1}</span>
-                        <div class="mt-2">
-                            <span class="bg-[#fce9c1] border border-[#ffb889] rounded-full px-3 py-2 font-['DM_Sans'] text-[14px] text-[#1e1e1e] tracking-[-0.14px]">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-3xl">question ${index + 1}</span>
+                            <span class="bg-[#fff5e0] border border-[#ffb889] rounded-full px-4 py-2 font-['DM_Sans'] text-sm font-medium text-[#cc5500]">
                                 ${question.type.replace('_', ' ')} question
                             </span>
                         </div>
                     </div>
-                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-[20px] tracking-[-0.2px] mb-2">${question.text}</h3>
-                    <p class="font-['DM_Sans'] text-[#1e1e1e] text-[14px] tracking-[-0.14px] mb-4">${responseCount} Responses</p>
+                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-xl font-medium mb-3">${question.text}</h3>
+                    <p class="font-['DM_Sans'] text-[#5e5d5d] text-base font-medium mb-6">${responseCount} Responses</p>
                 `;
 
                 // Create visualization container based on question type
                 if (question.type === 'text') {
                     summaryHtml += `
-                        <div class="flex items-center justify-center">
-                            <div id="wordcloud-${index}" class="w-[290px] h-[164px]"></div>
+                        <div class="bg-[#fef9ee] rounded-xl p-6 flex items-center justify-center min-h-[200px]">
+                            <div id="wordcloud-${index}" class="w-full max-w-[400px] h-[200px]"></div>
                         </div>
                     `;
                 } else {
                     // Chart + Legend layout for choice/rating questions
                     summaryHtml += `
-                        <div class="flex items-center gap-6">
-                            <div class="w-[132px] h-[132px] flex-shrink-0">
-                                <canvas id="chart-${index}" width="132" height="132"></canvas>
+                        <div class="flex items-center gap-8">
+                            <div class="w-48 h-48 flex-shrink-0">
+                                <canvas id="chart-${index}" width="192" height="192"></canvas>
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 max-w-md">
                                 <div id="legend-${index}" class="space-y-3"></div>
                             </div>
                         </div>
@@ -304,34 +309,33 @@
             
             // Clear container and set proper sizing
             container.innerHTML = '';
-            container.style.width = '290px';
-            container.style.height = '164px';
+            container.style.width = '100%';
+            container.style.height = '200px';
             container.style.overflow = 'hidden';
             container.style.position = 'relative';
             
             // Create HTML-based word cloud with better sizing
-            const colors = ['#233203', '#7e1dc8', '#03abff', '#0eac00', '#ff6b35'];
+            const colors = ['#e17d36', '#cc5500', '#d12b2e', '#ff6b35', '#e4b65b'];
             const maxCount = Math.max(...wordFrequency.map(item => item.count));
             
-            // Limit to top 10 words to prevent overflow
-            const topWords = wordFrequency.slice(0, 10);
+            // Limit to top 15 words for better display
+            const topWords = wordFrequency.slice(0, 15);
             
             let wordsHtml = '';
             topWords.forEach((item, index) => {
-                const size = Math.max(14, Math.min(22, (item.count / maxCount) * 20 + 14));
+                const size = Math.max(16, Math.min(36, (item.count / maxCount) * 28 + 16));
                 const color = colors[index % colors.length];
-                const opacity = 0.8 + (item.count / maxCount) * 0.2;
+                const fontWeight = item.count > maxCount * 0.7 ? '700' : item.count > maxCount * 0.4 ? '600' : '500';
                 
                 wordsHtml += `
                     <span style="
                         font-size: ${size}px; 
                         color: ${color}; 
-                        opacity: ${opacity};
-                        margin: 3px 6px;
+                        margin: 4px 8px;
                         font-family: 'DM Sans';
-                        font-weight: 500;
+                        font-weight: ${fontWeight};
                         display: inline-block;
-                        line-height: 1.1;
+                        line-height: 1.2;
                         white-space: nowrap;
                     ">${item.word}</span>
                 `;
@@ -345,7 +349,7 @@
                     justify-content: center;
                     width: 100%;
                     height: 100%;
-                    padding: 8px;
+                    padding: 12px;
                     text-align: center;
                     overflow: hidden;
                     box-sizing: border-box;
@@ -396,15 +400,15 @@
 
         // Tab switching
         document.getElementById('summary-tab').addEventListener('click', () => {
-            document.getElementById('summary-tab').className = 'flex-1 bg-[#e17d36] text-white rounded px-4 py-3 flex items-center justify-center gap-1.5';
-            document.getElementById('individual-tab').className = 'flex-1 bg-[#fce9c1] text-[#e17d36] rounded px-4 py-3 flex items-center justify-center gap-1.5';
+            document.getElementById('summary-tab').className = 'flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all';
+            document.getElementById('individual-tab').className = 'flex-1 bg-transparent text-[#cc5500] rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all hover:bg-[#fff5e0]';
             document.getElementById('summary-content').classList.remove('hidden');
             document.getElementById('individual-content').classList.add('hidden');
         });
 
         document.getElementById('individual-tab').addEventListener('click', () => {
-            document.getElementById('individual-tab').className = 'flex-1 bg-[#e17d36] text-white rounded px-4 py-3 flex items-center justify-center gap-1.5';
-            document.getElementById('summary-tab').className = 'flex-1 bg-[#fce9c1] text-[#e17d36] rounded px-4 py-3 flex items-center justify-center gap-1.5';
+            document.getElementById('individual-tab').className = 'flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all';
+            document.getElementById('summary-tab').className = 'flex-1 bg-transparent text-[#cc5500] rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all hover:bg-[#fff5e0]';
             document.getElementById('individual-content').classList.remove('hidden');
             document.getElementById('summary-content').classList.add('hidden');
         });
