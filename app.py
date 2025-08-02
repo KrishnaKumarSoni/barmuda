@@ -52,8 +52,9 @@ if not firebase_admin._apps:
 # Initialize Firestore
 db = firestore.client()
 
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+# Initialize OpenAI client - strip whitespace from API key to prevent header errors
+openai_api_key = os.environ.get('OPENAI_API_KEY', '').strip()
+openai_client = OpenAI(api_key=openai_api_key)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -343,7 +344,7 @@ def infer_form_from_text(input_text, max_retries=2):
     """Use OpenAI GPT-4o-mini to infer form structure from unstructured text"""
     
     # Debug API key availability
-    api_key = os.environ.get('OPENAI_API_KEY')
+    api_key = os.environ.get('OPENAI_API_KEY', '').strip()
     if not api_key:
         logger.error("OPENAI_API_KEY environment variable not found!")
         return None, "OpenAI API key not configured"
@@ -429,7 +430,7 @@ def test_openai():
     """Test route to debug OpenAI API connectivity in production"""
     try:
         # Check environment variables
-        api_key = os.environ.get('OPENAI_API_KEY')
+        api_key = os.environ.get('OPENAI_API_KEY', '').strip()
         if not api_key:
             return jsonify({
                 'error': 'OPENAI_API_KEY not found in environment',
