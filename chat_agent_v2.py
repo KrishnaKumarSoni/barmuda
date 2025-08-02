@@ -14,8 +14,15 @@ from agents import Agent, Runner, function_tool
 import openai
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables and clean API key
 load_dotenv()
+
+# Critical: Strip the API key to prevent header errors
+original_key = os.getenv('OPENAI_API_KEY', '')
+clean_key = original_key.strip()
+if original_key != clean_key:
+    print(f"WARNING: Cleaned API key (removed {len(original_key) - len(clean_key)} characters)")
+    os.environ['OPENAI_API_KEY'] = clean_key
 
 # Initialize Firebase if not already done
 if not firebase_admin._apps:
