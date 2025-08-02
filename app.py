@@ -1301,5 +1301,76 @@ def export_responses(form_id, format):
         print(f"Error exporting responses: {str(e)}")
         return jsonify({'error': 'Failed to export responses'}), 500
 
+@app.route('/api/forms/<form_id>/status', methods=['PUT'])
+@login_required
+def update_form_status(form_id):
+    """Toggle form active/inactive status"""
+    try:
+        data = request.get_json()
+        if not data or 'status' not in data:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        new_status = data['status']
+        if new_status not in ['active', 'inactive']:
+            return jsonify({'error': 'Status must be active or inactive'}), 400
+        
+        # Verify form ownership
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({'error': 'Form not found'}), 404
+        
+        form_data = form_doc.to_dict()
+        if form_data.get('creator_id') != session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Update status
+        db.collection('forms').document(form_id).update({
+            'status': new_status,
+            'updated_at': datetime.now().isoformat()
+        })
+        
+        return jsonify({'success': True, 'status': new_status})
+        
+    except Exception as e:
+        logger.error(f"Error updating form status: {str(e)}")
+        return jsonify({'error': 'Failed to update form status'}), 500
+
+@app.route('/api/forms/<form_id>', methods=['DELETE'])
+@login_required
+def delete_form(form_id):
+    """Delete a form and all its responses"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection('forms').document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({'error': 'Form not found'}), 404
+        
+        form_data = form_doc.to_dict()
+        if form_data.get('creator_id') != session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Delete form
+        db.collection('forms').document(form_id).delete()
+        
+        # Delete associated responses (optional - you might want to keep them)
+        responses_ref = db.collection('responses').where('form_id', '==', form_id)
+        responses = responses_ref.stream()
+        
+        for response in responses:
+            response.reference.delete()
+        
+        # Delete chat sessions
+        sessions_ref = db.collection('chat_sessions').where('form_id', '==', form_id)
+        sessions = sessions_ref.stream()
+        
+        for session in sessions:
+            session.reference.delete()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error deleting form: {str(e)}")
+        return jsonify({'error': 'Failed to delete form'}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
