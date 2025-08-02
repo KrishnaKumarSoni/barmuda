@@ -555,12 +555,18 @@ def dashboard():
     try:
         user_id = request.user['uid']
         
-        # Get user's forms
+        # Get user's forms with response counts
         forms_ref = db.collection('forms').where('creator_id', '==', user_id)
         forms = []
         for doc in forms_ref.stream():
             form_data = doc.to_dict()
             form_data['form_id'] = doc.id
+            
+            # Count responses for this form
+            responses_ref = db.collection('responses').where('form_id', '==', doc.id)
+            response_count = len(list(responses_ref.stream()))
+            form_data['response_count'] = response_count
+            
             forms.append(form_data)
         
         return render_template('dashboard.html', forms=forms, user=request.user)

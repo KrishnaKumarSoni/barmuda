@@ -51,7 +51,7 @@
             <!-- Responses Count -->
             <div class="absolute right-[19px] bottom-[45px] text-right">
                 <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
-                    0 responses
+                    {{ form.response_count or 0 }} response{{ 's' if (form.response_count or 0) != 1 else '' }}
                 </span>
             </div>
             
