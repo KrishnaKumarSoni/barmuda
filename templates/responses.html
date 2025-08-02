@@ -50,7 +50,7 @@
     </nav>
 
     <!-- Go Back -->
-    <div class="max-w-6xl mx-auto mt-8 flex items-center">
+    <div class="max-w-6xl mx-auto mt-8 px-4 flex items-center">
         <div class="flex items-center text-[#797878] cursor-pointer" onclick="window.history.back()">
             <div class="rotate-90 mr-2">
                 <img src="/static/assets/1bbfb7e635384ea78a694417f46663c7e2781155.svg" alt="" class="w-[9px] h-5">
@@ -60,69 +60,79 @@
     </div>
 
     <!-- Page Title -->
-    <div class="max-w-6xl mx-auto mt-8">
-        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-[40px] tracking-[-0.4px]">
+    <div class="max-w-6xl mx-auto mt-8 px-4">
+        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-2xl md:text-3xl lg:text-[40px] tracking-[-0.4px]">
             collected responses
         </h1>
     </div>
 
     <!-- Form Title Card -->
-    <div class="max-w-6xl mx-auto mt-6">
-        <div class="bg-white rounded-[10px] border border-[#fbe7bd] p-[18px]">
-            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-[32px] tracking-[-0.32px]">
+    <div class="max-w-6xl mx-auto mt-6 px-4">
+        <div class="bg-white rounded-[10px] border border-[#fbe7bd] p-4 md:p-[18px]">
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-xl md:text-2xl lg:text-[32px] tracking-[-0.32px]">
                 {{ form_title }}
             </h2>
         </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="max-w-6xl mx-auto mt-6 grid grid-cols-4 gap-4">
-        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
-            <div id="total-responses" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0</div>
-            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">responses</div>
+    <div class="max-w-6xl mx-auto mt-6 px-4 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-4 md:p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="total-responses" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-xl md:text-2xl mb-1">0</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-xs md:text-sm">responses</div>
         </div>
-        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
-            <div id="completion-rate" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0%</div>
-            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">completion rate</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-4 md:p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="completion-rate" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-xl md:text-2xl mb-1">0%</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-xs md:text-sm">completion rate</div>
         </div>
-        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
-            <div id="total-messages" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0</div>
-            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">messages received</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-4 md:p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="total-messages" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-xl md:text-2xl mb-1">0</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-xs md:text-sm">messages received</div>
         </div>
-        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
-            <div id="avg-time" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-2xl mb-1">0m 0s</div>
-            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-sm">average chat time</div>
+        <div class="bg-white/80 rounded-xl border border-[#fce9c1] p-4 md:p-6 text-center backdrop-blur-sm hover:bg-white transition-colors">
+            <div id="avg-time" class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-xl md:text-2xl mb-1">0m 0s</div>
+            <div class="font-['DM_Sans'] font-medium text-[#5e5d5d] text-xs md:text-sm">average chat time</div>
         </div>
     </div>
 
     <!-- Tab Navigation -->
-    <div class="max-w-6xl mx-auto mt-6">
+    <div class="max-w-6xl mx-auto mt-6 px-4">
         <div class="bg-[#fef5e0] border border-[#fbe7bd] rounded-xl p-1.5 flex gap-1">
-            <button id="summary-tab" class="flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all">
-                <i class="ph ph-chart-pie-slice text-xl"></i>
-                <span class="font-['DM_Sans'] font-medium text-sm">Summary</span>
+            <button id="summary-tab" class="flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all">
+                <i class="ph ph-chart-pie-slice text-lg md:text-xl"></i>
+                <span class="font-['DM_Sans'] font-medium text-xs md:text-sm">Summary</span>
             </button>
-            <button id="individual-tab" class="flex-1 bg-transparent text-[#cc5500] rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all hover:bg-[#fff5e0]">
-                <i class="ph ph-users text-xl"></i>
-                <span class="font-['DM_Sans'] font-medium text-sm">Individual</span>
+            <button id="individual-tab" class="flex-1 bg-transparent text-[#cc5500] rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all hover:bg-[#fff5e0]">
+                <i class="ph ph-users text-lg md:text-xl"></i>
+                <span class="font-['DM_Sans'] font-medium text-xs md:text-sm">Individual</span>
+            </button>
+            <button id="insights-tab" class="flex-1 bg-transparent text-[#cc5500] rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all hover:bg-[#fff5e0]">
+                <i class="ph ph-lightbulb text-lg md:text-xl"></i>
+                <span class="font-['DM_Sans'] font-medium text-xs md:text-sm">Insights</span>
+            </button>
+            <button id="questions-tab" class="flex-1 bg-transparent text-[#cc5500] rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all hover:bg-[#fff5e0]">
+                <i class="ph ph-question text-lg md:text-xl"></i>
+                <span class="font-['DM_Sans'] font-medium text-xs md:text-sm">Questions</span>
             </button>
         </div>
     </div>
 
     <!-- Export Buttons -->
-    <div class="max-w-6xl mx-auto mt-6 flex gap-4">
-        <button onclick="exportData('json')" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-6 py-2.5 rounded-full font-['DM_Sans'] text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-            <i class="ph ph-export text-lg"></i>
-            Export JSON
+    <div class="max-w-6xl mx-auto mt-6 px-4 flex flex-wrap gap-3">
+        <button onclick="exportData('json')" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-['DM_Sans'] text-xs md:text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+            <i class="ph ph-export text-sm md:text-lg"></i>
+            <span class="hidden sm:inline">Export JSON</span>
+            <span class="sm:hidden">JSON</span>
         </button>
-        <button onclick="exportData('csv')" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-6 py-2.5 rounded-full font-['DM_Sans'] text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-            <i class="ph ph-file-csv text-lg"></i>
-            Export CSV
+        <button onclick="exportData('csv')" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-['DM_Sans'] text-xs md:text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+            <i class="ph ph-file-csv text-sm md:text-lg"></i>
+            <span class="hidden sm:inline">Export CSV</span>
+            <span class="sm:hidden">CSV</span>
         </button>
     </div>
 
     <!-- Content Area -->
-    <div class="max-w-6xl mx-auto mt-6 mb-8">
+    <div class="max-w-6xl mx-auto mt-6 mb-8 px-4">
         <!-- Summary View -->
         <div id="summary-content" class="space-y-8">
             <div id="questions-summary" class="space-y-8">
@@ -132,12 +142,40 @@
 
         <!-- Individual Responses View -->
         <div id="individual-content" class="hidden">
-            <div class="bg-white rounded-lg border border-[#fce9c1] p-6">
-                <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-[24px] tracking-[-0.24px] mb-4">
+            <div class="bg-white rounded-lg border border-[#fce9c1] p-4 md:p-6">
+                <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-lg md:text-xl lg:text-[24px] tracking-[-0.24px] mb-4">
                     Individual Responses
                 </h3>
                 <div id="individual-responses" class="space-y-4">
                     <!-- Individual responses will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insights View -->
+        <div id="insights-content" class="hidden">
+            <div class="bg-white rounded-lg border border-[#fce9c1] p-4 md:p-6">
+                <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-lg md:text-xl lg:text-[24px] tracking-[-0.24px] mb-4">
+                    Insights
+                </h3>
+                <div class="flex flex-col items-center justify-center py-16 text-center">
+                    <i class="ph ph-lightbulb text-6xl text-[#cc5500] mb-4"></i>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-[#1e1e1e] text-xl mb-2">Coming Soon</h4>
+                    <p class="font-['DM_Sans'] text-[#797878] text-base max-w-md">
+                        We're working on powerful insights to help you understand your form responses better. Stay tuned!
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Questions View -->
+        <div id="questions-content" class="hidden">
+            <div class="bg-white rounded-lg border border-[#fce9c1] p-4 md:p-6">
+                <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-lg md:text-xl lg:text-[24px] tracking-[-0.24px] mb-4">
+                    Questions Overview
+                </h3>
+                <div id="questions-overview" class="space-y-4">
+                    <!-- Questions overview will be populated here -->
                 </div>
             </div>
         </div>
@@ -217,40 +255,40 @@
             
             questions.forEach((question, index) => {
                 const questionCard = document.createElement('div');
-                questionCard.className = 'bg-white rounded-2xl border border-[#fce9c1] p-8 shadow-sm hover:shadow-md transition-shadow';
+                questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-4 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition-shadow';
                 
                 const responses = data.responses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
                 const responseCount = responses.length;
                 
                 let summaryHtml = `
-                    <div class="mb-6">
-                        <div class="flex items-center justify-between">
-                            <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-3xl">question ${index + 1}</span>
-                            <span class="bg-[#fff5e0] border border-[#ffb889] rounded-full px-4 py-2 font-['DM_Sans'] text-sm font-medium text-[#cc5500]">
+                    <div class="mb-4 md:mb-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-xl md:text-2xl lg:text-3xl">question ${index + 1}</span>
+                            <span class="bg-[#fff5e0] border border-[#ffb889] rounded-full px-3 py-1.5 font-['DM_Sans'] text-xs md:text-sm font-medium text-[#cc5500] w-fit">
                                 ${question.type.replace('_', ' ')} question
                             </span>
                         </div>
                     </div>
-                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-xl font-medium mb-3">${question.text}</h3>
-                    <p class="font-['DM_Sans'] text-[#5e5d5d] text-base font-medium mb-6">${responseCount} Responses</p>
+                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-base md:text-lg lg:text-xl font-medium mb-2 md:mb-3">${question.text}</h3>
+                    <p class="font-['DM_Sans'] text-[#5e5d5d] text-sm md:text-base font-medium mb-4 md:mb-6">${responseCount} Responses</p>
                 `;
 
                 // Create visualization container based on question type
                 if (question.type === 'text') {
                     summaryHtml += `
-                        <div class="bg-[#fef9ee] rounded-xl p-6 flex items-center justify-center min-h-[200px]">
-                            <div id="wordcloud-${index}" class="w-full max-w-[400px] h-[200px]"></div>
+                        <div class="bg-[#fef9ee] rounded-xl p-4 md:p-6 flex items-center justify-center min-h-[150px] md:min-h-[200px]">
+                            <div id="wordcloud-${index}" class="w-full max-w-[300px] md:max-w-[400px] h-[150px] md:h-[200px]"></div>
                         </div>
                     `;
                 } else {
                     // Chart + Legend layout for choice/rating questions
                     summaryHtml += `
-                        <div class="flex items-center gap-8">
-                            <div class="w-48 h-48 flex-shrink-0">
-                                <canvas id="chart-${index}" width="192" height="192"></canvas>
+                        <div class="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+                            <div class="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 flex-shrink-0 mx-auto md:mx-0">
+                                <canvas id="chart-${index}" width="128" height="128" class="md:!w-40 md:!h-40 lg:!w-48 lg:!h-48"></canvas>
                             </div>
-                            <div class="flex-1 max-w-md">
-                                <div id="legend-${index}" class="space-y-3"></div>
+                            <div class="flex-1">
+                                <div id="legend-${index}" class="space-y-2 md:space-y-3"></div>
                             </div>
                         </div>
                     `;
@@ -367,14 +405,14 @@
             
             data.responses.forEach((response, index) => {
                 const responseCard = document.createElement('div');
-                responseCard.className = 'border border-[#fce9c1] rounded-lg p-4 mb-4';
+                responseCard.className = 'border border-[#fce9c1] rounded-lg p-3 md:p-4 mb-4';
                 
                 let html = `
-                    <div class="flex justify-between items-center mb-3">
-                        <h4 class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-[16px]">Response #${index + 1}</h4>
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
+                        <h4 class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-sm md:text-[16px]">Response #${index + 1}</h4>
                         <div class="flex gap-2">
                             ${response.partial ? '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Partial</span>' : ''}
-                            <span class="text-[#797878] text-[12px]">${response.created_at ? new Date(response.created_at).toLocaleDateString() : 'Unknown date'}</span>
+                            <span class="text-[#797878] text-xs">${response.created_at ? new Date(response.created_at).toLocaleDateString() : 'Unknown date'}</span>
                         </div>
                     </div>
                     <div class="space-y-3">
@@ -386,8 +424,8 @@
                     
                     html += `
                         <div class="flex flex-col">
-                            <span class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-[14px] mb-1">Q${qIndex + 1}: ${question.text}</span>
-                            <span class="font-['DM_Sans'] text-[#797878] text-[14px] pl-4">${value}</span>
+                            <span class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-xs md:text-[14px] mb-1">Q${qIndex + 1}: ${question.text}</span>
+                            <span class="font-['DM_Sans'] text-[#797878] text-xs md:text-[14px] pl-2 md:pl-4">${value}</span>
                         </div>
                     `;
                 });
@@ -398,19 +436,33 @@
             });
         }
 
-        // Tab switching
-        document.getElementById('summary-tab').addEventListener('click', () => {
-            document.getElementById('summary-tab').className = 'flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all';
-            document.getElementById('individual-tab').className = 'flex-1 bg-transparent text-[#cc5500] rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all hover:bg-[#fff5e0]';
-            document.getElementById('summary-content').classList.remove('hidden');
-            document.getElementById('individual-content').classList.add('hidden');
-        });
-
-        document.getElementById('individual-tab').addEventListener('click', () => {
-            document.getElementById('individual-tab').className = 'flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all';
-            document.getElementById('summary-tab').className = 'flex-1 bg-transparent text-[#cc5500] rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-all hover:bg-[#fff5e0]';
-            document.getElementById('individual-content').classList.remove('hidden');
-            document.getElementById('summary-content').classList.add('hidden');
+        // Tab switching function
+        function switchTab(activeTabId, activeContentId) {
+            const tabs = ['summary', 'individual', 'insights', 'questions'];
+            const activeClasses = 'flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all';
+            const inactiveClasses = 'flex-1 bg-transparent text-[#cc5500] rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all hover:bg-[#fff5e0]';
+            
+            tabs.forEach(tab => {
+                const tabElement = document.getElementById(`${tab}-tab`);
+                const contentElement = document.getElementById(`${tab}-content`);
+                
+                if (tab === activeTabId) {
+                    tabElement.className = activeClasses;
+                    contentElement.classList.remove('hidden');
+                } else {
+                    tabElement.className = inactiveClasses;
+                    contentElement.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Tab event listeners
+        document.getElementById('summary-tab').addEventListener('click', () => switchTab('summary', 'summary-content'));
+        document.getElementById('individual-tab').addEventListener('click', () => switchTab('individual', 'individual-content'));
+        document.getElementById('insights-tab').addEventListener('click', () => switchTab('insights', 'insights-content'));
+        document.getElementById('questions-tab').addEventListener('click', () => {
+            switchTab('questions', 'questions-content');
+            renderQuestionsOverview();
         });
 
         // Export functions
@@ -434,6 +486,38 @@
             } catch (error) {
                 console.error('Export error:', error);
                 alert('Failed to export data. Please try again.');
+        }
+        
+        // Render questions overview
+        function renderQuestionsOverview() {
+            const container = document.getElementById('questions-overview');
+            const questions = {{ questions | tojsonfilter }};
+            
+            if (container.innerHTML.trim() === '') {
+                questions.forEach((question, index) => {
+                    const questionCard = document.createElement('div');
+                    questionCard.className = 'bg-[#fef9ee] rounded-lg border border-[#fce9c1] p-4';
+                    
+                    const responses = allResponses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
+                    const responseCount = responses.length;
+                    
+                    questionCard.innerHTML = `
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                            <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-[#cc5500] text-base md:text-lg">Question ${index + 1}</h4>
+                            <span class="bg-white border border-[#ffb889] rounded-full px-3 py-1 font-['DM_Sans'] text-xs font-medium text-[#cc5500] w-fit">
+                                ${question.type.replace('_', ' ')}
+                            </span>
+                        </div>
+                        <p class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base mb-2">${question.text}</p>
+                        <div class="flex items-center gap-4 text-xs md:text-sm text-[#797878]">
+                            <span><strong>${responseCount}</strong> responses</span>
+                            ${question.options ? `<span><strong>${question.options.length}</strong> options</span>` : ''}
+                            <span>Type: <strong>${question.type}</strong></span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(questionCard);
+                });
             }
         }
     </script>

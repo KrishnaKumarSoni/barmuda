@@ -165,7 +165,7 @@ function createCustomLegend(containerId, labels, data, colors) {
     
     const total = data.reduce((a, b) => a + b, 0);
     
-    let legendHtml = '<div class="grid grid-cols-2 gap-x-8 gap-y-3">';
+    let legendHtml = '<div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 md:gap-x-6 gap-y-2 md:gap-y-3">';
     
     labels.forEach((label, index) => {
         if (data[index] > 0) {
@@ -178,12 +178,12 @@ function createCustomLegend(containerId, labels, data, colors) {
                 : label;
             
             legendHtml += `
-                <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-2 flex-1">
-                        <div class="w-4 h-4 rounded flex-shrink-0" style="background-color: ${color}"></div>
-                        <span class="font-['DM_Sans'] text-[#1e1e1e] text-sm">${displayLabel}</span>
+                <div class="flex items-center justify-between gap-2 md:gap-3">
+                    <div class="flex items-center gap-1.5 md:gap-2 flex-1 min-w-0">
+                        <div class="w-3 h-3 md:w-4 md:h-4 rounded flex-shrink-0" style="background-color: ${color}"></div>
+                        <span class="font-['DM_Sans'] text-[#1e1e1e] text-xs md:text-sm truncate">${displayLabel}</span>
                     </div>
-                    <span class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-sm">${percentage}%</span>
+                    <span class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-xs md:text-sm">${percentage}%</span>
                 </div>
             `;
         }
