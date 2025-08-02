@@ -259,7 +259,7 @@
         }
 
         async function initializeBackendWordCloud(questionIndex) {
-            """Generate word cloud using backend API"""
+            // Generate word cloud using backend API
             try {
                 const response = await fetch(`/api/wordcloud/${formId}/${questionIndex}`);
                 const data = await response.json();
@@ -291,7 +291,7 @@
         }
 
         function renderBackendWordCloud(containerId, wordFrequency) {
-            """Render word cloud using backend-generated data"""
+            // Render word cloud using backend-generated data
             const container = document.getElementById(containerId);
             if (!container) return;
             
