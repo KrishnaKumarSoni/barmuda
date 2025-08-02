@@ -333,6 +333,9 @@ IMPORTANT: Always use your tools to manage the conversation flow and data collec
             return session_id
             
         except Exception as e:
+            import traceback
+            print(f"SESSION CREATION ERROR: {str(e)}")
+            print(f"TRACEBACK: {traceback.format_exc()}")
             raise Exception(f"Failed to create session: {str(e)}")
 
     def process_message(self, session_id: str, user_message: str) -> Dict[str, Any]:
@@ -381,10 +384,19 @@ Please respond naturally and use the appropriate tools to manage this conversati
             }
             
         except Exception as e:
+            # Log the actual error for debugging
+            import traceback
+            error_details = {
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'traceback': traceback.format_exc()
+            }
+            print(f"CHAT AGENT ERROR: {error_details}")
+            
             return {
                 'success': False,
                 'error': f'Message processing failed: {str(e)}',
-                'response': "I'm having trouble right now. Could you try again? 😅"
+                'response': f"I'm having trouble right now. Error: {str(e)[:100]}..." if str(e) else "I'm having trouble right now. Could you try again? 😅"
             }
 
 # Global agent instance
@@ -395,7 +407,14 @@ def get_chat_agent():
     global chat_agent
     if chat_agent is None:
         openai_api_key = os.getenv('OPENAI_API_KEY')
+        print(f"DEBUG: API key available: {bool(openai_api_key)}")
+        print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}")
+        if openai_api_key:
+            print(f"DEBUG: API key prefix: {openai_api_key[:10]}...")
+        
         if not openai_api_key:
+            print("ERROR: OPENAI_API_KEY environment variable not set")
             raise ValueError("OPENAI_API_KEY environment variable not set")
         chat_agent = FormChatAgent(openai_api_key)
+        print("DEBUG: Chat agent created successfully")
     return chat_agent
