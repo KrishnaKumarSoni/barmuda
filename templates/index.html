@@ -20,78 +20,88 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
-<body class="bg-[#fff5e0] relative min-h-screen">
+<body class="bg-[#fff5e0] relative h-screen overflow-hidden">
     <!-- Background Image -->
-    <div class="absolute bg-center bg-cover bg-no-repeat h-[760px] left-1/2 mix-blend-darken opacity-[0.45] top-0 translate-x-[-50%] w-[1440px]" 
-         style="background-image: url('/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
+    <div class="absolute inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45]" 
+         style="background-image: url('/static/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png')"></div>
     
-    <!-- Navigation - Standardized Design -->
-    <nav class="absolute bg-white rounded-[100px] border border-[#fff0cf] top-8 left-1/2 translate-x-[-50%] px-6 py-3 z-10">
-        <div class="flex items-center gap-[72px]">
-            <!-- Logo Section -->
-            <div class="flex items-center gap-3">
-                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
-                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
-                    Bermuda forms
+    <!-- Main Container -->
+    <div class="relative z-10 h-full flex flex-col">
+        <!-- Navigation - Standardized Design -->
+        <nav class="flex-shrink-0 flex justify-center pt-4 md:pt-8">
+            <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-3">
+                <div class="flex items-center gap-8 md:gap-[72px]">
+                    <!-- Logo Section -->
+                    <div class="flex items-center gap-3">
+                        <div class="bg-center bg-cover bg-no-repeat h-8 md:h-11 w-[24px] md:w-[30px]"
+                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                        <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg md:text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                            Bermuda forms
+                        </h1>
+                    </div>
+                    
+                    <!-- Sign In Button -->
+                    <div class="flex items-center">
+                        <button onclick="signInWithGoogle()" 
+                                class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-3 md:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-2.5 hover:opacity-90 transition-opacity">
+                            <span class="font-['DM_Sans'] text-sm md:text-[18px] text-white">Sign in</span>
+                            <i class="ph ph-sign-in text-white text-lg md:text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-4 md:space-y-6">
+            <!-- Main Heading -->
+            <div class="text-center">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-3xl md:text-4xl lg:text-5xl xl:text-[56px] text-[#1e1e1e] tracking-[-0.56px] leading-none">
+                    stop quizzing.<br>start learning.
                 </h1>
             </div>
             
-            <!-- Sign In Button -->
-            <div class="flex items-center">
-                <button onclick="signInWithGoogle()" 
-                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-                    <span class="font-['DM_Sans'] text-[18px] text-white">Sign in</span>
-                    <i class="ph ph-sign-in text-white text-xl"></i>
-                </button>
+            <!-- Tags -->
+            <div class="flex gap-2 flex-wrap justify-center">
+                <div class="border border-[#e3d1c3] rounded-[100px] px-4 md:px-[25px] py-2 md:py-2.5">
+                    <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">text to form</p>
+                </div>
+                <div class="border border-[#e3d1c3] rounded-[100px] px-4 md:px-[29px] py-2 md:py-2.5">
+                    <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">chat to respond</p>
+                </div>
+            </div>
+            
+            <!-- Subtitle -->
+            <div class="text-center max-w-2xl">
+                <p class="font-['DM_Sans'] text-base md:text-lg lg:text-[20px] text-[#1e1e1e] tracking-[-0.2px]">
+                    make forms using ai and let people respond by chatting naturally
+                </p>
+            </div>
+            
+            <!-- Form Input Area -->
+            <div class="w-full max-w-3xl relative">
+                <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-xl relative">
+                    <textarea 
+                        class="w-full h-32 md:h-40 p-4 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base md:text-[18px] text-[#1e1e1e] placeholder-[#c3c3c3]"
+                        placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
+                        id="formDescription"></textarea>
+                    <button onclick="signInWithGoogle()" 
+                            class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-4 md:px-6 py-2 md:py-3 text-white font-['DM_Sans'] text-sm md:text-[18px] hover:opacity-90 transition-opacity">
+                        generate form
+                    </button>
+                </div>
             </div>
         </div>
-    </nav>
-    
-    <!-- Tags -->
-    <div class="absolute flex gap-2 left-1/2 top-[323px] translate-x-[-50%]">
-        <div class="border border-[#e3d1c3] rounded-[100px] px-[25px] py-2.5">
-            <p class="font-['DM_Sans'] text-[15px] text-[#1e1e1e] text-center">text to form</p>
+        
+        <!-- Bottom Text -->
+        <div class="flex-shrink-0 text-center px-4 md:px-8 pb-4 md:pb-8">
+            <div class="max-w-4xl mx-auto">
+                <p class="font-['DM_Sans'] text-sm md:text-base lg:text-lg xl:text-[20px] text-[#000000] leading-relaxed">
+                    Transform boring surveys into engaging conversations that people actually want to complete. 
+                    Get 3x higher response rates and uncover insights that checkboxes miss.
+                </p>
+            </div>
         </div>
-        <div class="border border-[#e3d1c3] rounded-[100px] px-[29px] py-2.5">
-            <p class="font-['DM_Sans'] text-[15px] text-[#1e1e1e] text-center">chat to respond</p>
-        </div>
-    </div>
-    
-    <!-- Main Heading -->
-    <div class="absolute left-1/2 top-[236px] translate-x-[-50%] translate-y-[-50%] text-center">
-        <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[56px] text-[#1e1e1e] tracking-[-0.56px] leading-none">
-            stop quizzing.<br>start learning.
-        </h1>
-    </div>
-    
-    <!-- Subtitle -->
-    <div class="absolute left-1/2 top-[392px] translate-x-[-50%] translate-y-[-50%] text-center">
-        <p class="font-['DM_Sans'] text-[20px] text-[#1e1e1e] tracking-[-0.2px]">
-            make forms using ai and let people respond by chatting naturally
-        </p>
-    </div>
-    
-    <!-- Form Input Area -->
-    <div class="absolute left-1/2 top-[437px] translate-x-[-50%]">
-        <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-xl w-[762px] h-[216px] relative">
-            <textarea 
-                class="w-full h-full p-4 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-[18px] text-[#1e1e1e] placeholder-[#c3c3c3]"
-                placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
-                id="formDescription"></textarea>
-        </div>
-        <button onclick="signInWithGoogle()" 
-                class="absolute right-0 top-[156px] bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-6 py-3 text-white font-['DM_Sans'] text-[18px]">
-            generate form
-        </button>
-    </div>
-    
-    <!-- Bottom Text -->
-    <div class="absolute left-1/2 top-[730px] translate-x-[-50%] translate-y-[-50%] text-center max-w-[806px]">
-        <p class="font-['DM_Sans'] text-[20px] text-[#000000]">
-            Transform boring surveys into engaging conversations that people actually want to complete. 
-            Get 3x higher response rates and uncover insights that checkboxes miss.
-        </p>
     </div>
 
     <!-- Firebase Authentication -->
