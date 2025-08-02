@@ -72,10 +72,10 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for form in forms %}
                 <!-- Form Card -->
-                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[228px] relative hover:shadow-lg transition-shadow">
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[228px] relative hover:shadow-lg transition-all duration-300 {{ 'opacity-50' if form.status == 'inactive' else '' }}" data-form-id="{{ form.form_id }}">
                     <!-- Form Title -->
                     <div class="mb-4">
-                        <h3 class="font-['DM_Sans'] font-semibold text-[20px] md:text-[24px] text-black tracking-[-0.24px] leading-tight line-clamp-2">
+                        <h3 class="font-['DM_Sans'] font-semibold text-[20px] md:text-[24px] text-black tracking-[-0.24px] leading-tight line-clamp-2 {{ 'text-gray-400' if form.status == 'inactive' else 'text-black' }}">
                             {{ form.title }}
                         </h3>
                     </div>
@@ -84,11 +84,11 @@
                     <div class="absolute bottom-6 left-6 right-6">
                         <!-- Questions Count and Responses -->
                         <div class="flex justify-between items-center mb-4">
-                            <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
+                            <span class="font-['DM_Sans'] font-semibold text-[18px] tracking-[-0.18px] {{ 'text-gray-400' if form.status == 'inactive' else 'text-[#cc5500]' }}">
                                 {{ form.questions|length }} q
                             </span>
-                            <div class="text-right cursor-pointer hover:text-[#d12b2e]" onclick="viewResponses('{{ form.form_id }}')">
-                                <span class="font-['DM_Sans'] font-semibold text-[18px] text-[#cc5500] tracking-[-0.18px]">
+                            <div class="text-right cursor-pointer hover:text-[#d12b2e] transition-colors" onclick="viewResponses('{{ form.form_id }}')">
+                                <span class="font-['DM_Sans'] font-semibold text-[18px] tracking-[-0.18px] {{ 'text-gray-400' if form.status == 'inactive' else 'text-[#cc5500]' }}">
                                     {{ form.response_count or 0 }} response{{ 's' if (form.response_count or 0) != 1 else '' }}
                                 </span>
                             </div>
@@ -98,29 +98,34 @@
                         <div class="flex justify-between items-center">
                             <!-- Action Icons -->
                             <div class="flex gap-3">
-                                <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit form">
+                                <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 hover:text-[#cc5500] transition-colors {{ 'text-gray-300' if form.status == 'inactive' else 'text-[#666]' }}" title="Edit form">
                                     <i class="ph ph-pencil-line text-xl"></i>
                                 </button>
                                 <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete form">
                                     <i class="ph ph-trash text-xl"></i>
                                 </button>
-                                <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test form">
+                                <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 hover:text-[#cc5500] transition-colors {{ 'text-gray-300' if form.status == 'inactive' else 'text-[#666]' }}" title="Test form">
                                     <i class="ph ph-play text-xl"></i>
                                 </button>
-                                <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
+                                <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 hover:text-[#cc5500] transition-colors {{ 'text-gray-300' if form.status == 'inactive' else 'text-[#666]' }}" title="Share form">
                                     <i class="ph ph-share text-xl"></i>
                                 </button>
-                                <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
+                                <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 hover:text-[#cc5500] transition-colors {{ 'text-gray-300' if form.status == 'inactive' else 'text-[#666]' }}" title="View responses">
                                     <i class="ph ph-chart-bar text-xl"></i>
                                 </button>
                             </div>
                             
-                            <!-- Status Toggle -->
-                            <div class="bg-[#fff5e0] border border-[#e4b65b] rounded-[100px] px-3 py-1 flex items-center gap-2 cursor-pointer" onclick="toggleFormStatus('{{ form.form_id }}', {{ 'true' if form.status == 'active' else 'false' }})">
-                                <span id="status-text-{{ form.form_id }}" class="font-['DM_Sans'] font-medium text-[14px] text-[#e4b65b] tracking-[-0.14px]">{{ form.status or 'active' }}</span>
-                                <div class="w-4 h-4">
-                                    <i id="status-icon-{{ form.form_id }}" class="ph {{ 'ph-toggle-right' if form.status == 'active' else 'ph-toggle-left' }} text-[#e4b65b] text-sm"></i>
-                                </div>
+                            <!-- Status Toggle - Figma Design -->
+                            <div class="flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 {{ 'bg-[#fff5e0] border border-[#e4b65b]' if form.status == 'active' else 'bg-[#f8f8f8] border border-[#b8b8b8]' }}" onclick="toggleFormStatus('{{ form.form_id }}', '{{ form.status or 'active' }}')">
+                                {% if form.status == 'active' %}
+                                    <!-- Active State: "on" text left, orange circle right -->
+                                    <span class="font-['DM_Sans'] font-medium text-[14px] text-[#e4b65b] tracking-[-0.14px]">on</span>
+                                    <div class="w-4 h-4 bg-[#e4b65b] rounded-full"></div>
+                                {% else %}
+                                    <!-- Inactive State: grey circle left, "off" text right -->
+                                    <div class="w-4 h-4 bg-[#b8b8b8] rounded-full"></div>
+                                    <span class="font-['DM_Sans'] font-medium text-[14px] text-[#b8b8b8] tracking-[-0.14px]">off</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -202,7 +207,8 @@
 
         async function toggleFormStatus(formId, currentStatus) {
             try {
-                const newStatus = currentStatus ? 'inactive' : 'active';
+                // Determine new status - toggle between active and inactive
+                const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
                 
                 const response = await fetch(`/api/forms/${formId}/status`, {
                     method: 'PUT',
@@ -214,12 +220,74 @@
                 });
 
                 if (response.ok) {
-                    // Update UI
-                    const statusText = document.getElementById(`status-text-${formId}`);
-                    const statusIcon = document.getElementById(`status-icon-${formId}`);
+                    // Update the entire form card's visual state
+                    const formCard = document.querySelector(`[data-form-id="${formId}"]`);
+                    const toggleContainer = formCard.querySelector('.flex.items-center.gap-2.px-2.py-1.rounded-\\[100px\\]');
                     
-                    statusText.textContent = newStatus;
-                    statusIcon.className = `ph ${newStatus === 'active' ? 'ph-toggle-right' : 'ph-toggle-left'} text-[#e4b65b] text-sm`;
+                    if (newStatus === 'active') {
+                        // Update card to active state
+                        formCard.classList.remove('opacity-50');
+                        
+                        // Update title color
+                        const title = formCard.querySelector('h3');
+                        title.classList.remove('text-gray-400');
+                        title.classList.add('text-black');
+                        
+                        // Update question count and response count colors
+                        const counts = formCard.querySelectorAll('.font-\\[\'DM_Sans\'\\]');
+                        counts.forEach(count => {
+                            if (count.classList.contains('text-gray-400')) {
+                                count.classList.remove('text-gray-400');
+                                count.classList.add('text-[#cc5500]');
+                            }
+                        });
+                        
+                        // Update action icons
+                        const actionButtons = formCard.querySelectorAll('button[title*="form"], button[title*="Test"], button[title*="Share"], button[title*="View"]');
+                        actionButtons.forEach(btn => {
+                            btn.classList.remove('text-gray-300');
+                            btn.classList.add('text-[#666]');
+                        });
+                        
+                        // Update toggle appearance - Active: orange background, "on" text left, orange circle right
+                        toggleContainer.className = 'flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 bg-[#fff5e0] border border-[#e4b65b]';
+                        toggleContainer.innerHTML = `
+                            <span class="font-['DM_Sans'] font-medium text-[14px] text-[#e4b65b] tracking-[-0.14px]">on</span>
+                            <div class="w-4 h-4 bg-[#e4b65b] rounded-full"></div>
+                        `;
+                    } else {
+                        // Update card to inactive state
+                        formCard.classList.add('opacity-50');
+                        
+                        // Update title color
+                        const title = formCard.querySelector('h3');
+                        title.classList.remove('text-black');
+                        title.classList.add('text-gray-400');
+                        
+                        // Update question count and response count colors
+                        const counts = formCard.querySelectorAll('.text-\\[\\#cc5500\\]');
+                        counts.forEach(count => {
+                            count.classList.remove('text-[#cc5500]');
+                            count.classList.add('text-gray-400');
+                        });
+                        
+                        // Update action icons
+                        const actionButtons = formCard.querySelectorAll('button[title*="Edit"], button[title*="Test"], button[title*="Share"], button[title*="View"]');
+                        actionButtons.forEach(btn => {
+                            btn.classList.remove('text-[#666]');
+                            btn.classList.add('text-gray-300');
+                        });
+                        
+                        // Update toggle appearance - Inactive: grey background, grey circle left, "off" text right
+                        toggleContainer.className = 'flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 bg-[#f8f8f8] border border-[#b8b8b8]';
+                        toggleContainer.innerHTML = `
+                            <div class="w-4 h-4 bg-[#b8b8b8] rounded-full"></div>
+                            <span class="font-['DM_Sans'] font-medium text-[14px] text-[#b8b8b8] tracking-[-0.14px]">off</span>
+                        `;
+                    }
+                    
+                    // Update the onclick attribute for next toggle
+                    toggleContainer.setAttribute('onclick', `toggleFormStatus('${formId}', '${newStatus}')`);
                     
                     showNotification(`Form ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, 'success');
                 } else {
