@@ -67,69 +67,69 @@
 </head>
 <body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col">
     <!-- Navigation - Responsive Design -->
-    <nav class="flex-shrink-0 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-4 max-w-fit px-4 md:px-6 py-3 shadow-sm">
-        <div class="flex items-center gap-4 md:gap-8 lg:gap-[72px]">
+    <nav class="flex-shrink-0 bg-white rounded-[100px] border border-[#fff0cf] mx-auto mt-3 md:mt-4 max-w-fit px-4 md:px-6 py-2.5 md:py-3 shadow-sm">
+        <div class="flex items-center gap-6 md:gap-12 lg:gap-16">
             <!-- Logo Section -->
             <div class="flex items-center gap-2 md:gap-3">
-                <div class="bg-center bg-cover bg-no-repeat h-8 md:h-11 w-[24px] md:w-[30px]"
+                <div class="bg-center bg-cover bg-no-repeat h-7 md:h-9 w-[21px] md:w-[27px]"
                      style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg md:text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-base md:text-lg text-[#cc5500] tracking-[-0.18px]">
                     Bermuda forms
                 </h1>
             </div>
             
             <!-- Action Button -->
             <div class="flex items-center">
-                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-3 md:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-2.5 hover:opacity-90 transition-opacity">
-                    <span class="font-['DM_Sans'] text-sm md:text-[18px] text-white">generate new form</span>
-                    <i class="ph ph-plus text-white text-lg md:text-xl"></i>
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-3 md:px-4 py-1.5 md:py-2 flex items-center gap-1.5 md:gap-2 hover:opacity-90 transition-opacity">
+                    <span class="font-['DM_Sans'] text-sm md:text-base text-white">generate new form</span>
+                    <i class="ph ph-plus text-white text-base md:text-lg"></i>
                 </a>
             </div>
         </div>
     </nav>
 
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col px-4 py-4 md:py-6 space-y-3 md:space-y-4 min-h-0">
+    <div class="flex-1 flex flex-col px-3 md:px-4 py-3 md:py-4 space-y-2 md:space-y-3 min-h-0">
         <!-- Form Title -->
         <div class="text-center flex-shrink-0">
-            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[24px] md:text-[32px] lg:text-[36px] tracking-[-0.36px]">
+            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg md:text-xl lg:text-2xl tracking-[-0.24px]">
                 {{ form_title }}
             </h1>
         </div>
 
         <!-- Progress Bar -->
-        <div class="mx-auto w-full max-w-[696px] flex-shrink-0 mb-4">
-            <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
-                <div id="progress-bar" class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] transition-all duration-500 ease-out" style="width: 0%"></div>
+        <div class="mx-auto w-full max-w-2xl flex-shrink-0 mb-2">
+            <div class="bg-[#ffddc5] h-2 md:h-2.5 rounded-full border border-[#fdefd1]">
+                <div id="progress-bar" class="bg-[#cc5500] h-2 md:h-2.5 rounded-full border border-[#fdefd1] transition-all duration-500 ease-out" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Chat Container -->
-        <div class="mx-auto w-full max-w-[696px] bg-white rounded-[28px] border border-[#fce9c1] flex-1 flex flex-col min-h-0">
+        <div class="mx-auto w-full max-w-2xl bg-white rounded-2xl md:rounded-3xl border border-[#fce9c1] flex-1 flex flex-col min-h-0 shadow-sm">
             <!-- Chat Messages -->
-            <div id="chat-messages" class="chat-container px-4 py-4 space-y-4 flex-1 min-h-0">
+            <div id="chat-messages" class="chat-container px-3 md:px-4 py-3 md:py-4 space-y-3 flex-1 min-h-0">
                 <!-- Messages will be dynamically added here -->
             </div>
         </div>
 
         <!-- Message Input -->
-        <div class="mx-auto w-full max-w-[696px] bg-white rounded-full shadow-[0px_4px_16px_1px_rgba(0,0,0,0.05)] border border-[#fdedcc] flex-shrink-0">
-            <div class="flex items-center justify-between px-2 py-1">
-                <div class="flex-1 px-4 py-3">
+        <div class="mx-auto w-full max-w-2xl bg-white rounded-full shadow-lg border border-[#fce9c1] flex-shrink-0">
+            <div class="flex items-center gap-2 px-3 py-2">
+                <div class="flex-1 px-3 py-2">
                     <input 
                         type="text" 
                         id="message-input" 
                         placeholder="Type your message..."
-                        class="w-full font-['DM_Sans'] text-[16px] text-[#1e1e1e] tracking-[-0.16px] bg-transparent border-none outline-none"
+                        class="w-full font-['DM_Sans'] text-sm md:text-base text-[#1e1e1e] tracking-[-0.16px] bg-transparent border-none outline-none placeholder:text-[#959494]"
                         disabled
                     >
                 </div>
                 <button 
                     id="send-button" 
-                    class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] w-10 h-10 rounded-full flex items-center justify-center border border-[#cc5500] disabled:opacity-50"
+                    class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center border border-[#cc5500] disabled:opacity-50 hover:shadow-md transition-shadow"
                     disabled
                 >
-                    <img src="/static/assets/7733a653400497d1823d04a9beec3d26199561e9.svg" alt="Send" class="w-[18px] h-[18px]">
+                    <img src="/static/assets/7733a653400497d1823d04a9beec3d26199561e9.svg" alt="Send" class="w-4 h-4 md:w-[18px] md:h-[18px]">
                 </button>
             </div>
         </div>
@@ -137,34 +137,34 @@
     </div>
 
     <!-- Chat Completion Overlay -->
-    <div id="completion-overlay" class="hidden fixed inset-0 completion-overlay flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl border border-[#fce9c1] p-8 mx-4 max-w-md w-full text-center">
+    <div id="completion-overlay" class="hidden fixed inset-0 completion-overlay flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl border border-[#fce9c1] p-6 md:p-8 mx-4 max-w-sm w-full text-center shadow-xl">
             <!-- Form Title -->
-            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cd4c0b] text-[24px] tracking-[-0.24px] mb-4">
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg md:text-xl tracking-[-0.2px] mb-4">
                 {{ form_title }}
             </h2>
             
             <!-- Progress Bar (Complete) -->
             <div class="mb-6">
-                <div class="bg-[#ffddc5] h-4 rounded-full border border-[#fdefd1]">
-                    <div class="bg-[#cd4c0b] h-4 rounded-full border border-[#fdefd1] w-full transition-all duration-500"></div>
+                <div class="bg-[#ffddc5] h-2.5 rounded-full border border-[#fdefd1]">
+                    <div class="bg-[#cc5500] h-2.5 rounded-full border border-[#fdefd1] w-full transition-all duration-500"></div>
                 </div>
             </div>
             
             <!-- Completion Message -->
-            <div class="mb-2">
-                <p class="font-['DM_Sans'] text-[#959494] text-[16px] mb-2">form complete</p>
-                <p class="font-['DM_Sans'] text-black text-[18px] leading-relaxed">
+            <div class="mb-6">
+                <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-2">form complete</p>
+                <p class="font-['DM_Sans'] text-[#1e1e1e] text-base leading-relaxed">
                     thank you for completing this form.<br>
                     we have received your response.
                 </p>
             </div>
             
             <!-- Action Button -->
-            <div class="mt-6">
-                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-6 py-3 text-white font-['DM_Sans'] text-[16px] hover:opacity-90 transition-opacity inline-flex items-center gap-2">
+            <div>
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-5 py-2.5 text-white font-['DM_Sans'] text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2">
                     <span>generate new form</span>
-                    <i class="ph ph-plus text-white text-lg"></i>
+                    <i class="ph ph-plus text-white text-base"></i>
                 </a>
             </div>
         </div>
@@ -324,15 +324,12 @@
             
             if (sender === 'user') {
                 messageDiv.innerHTML = `
-                    <div class="flex justify-end mb-2">
-                        <div class="font-['DM_Sans'] font-medium text-black text-[16px] text-right">You</div>
-                    </div>
                     <div class="flex justify-end">
-                        <div class="bg-[#ffddc5] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[24px] rounded-tr-[2px] border border-[#cc5500]">
-                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] mb-4">
+                        <div class="bg-[#cc5500] max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tr-md shadow-sm">
+                            <div class="font-['DM_Sans'] text-white text-sm md:text-base leading-relaxed mb-1">
                                 ${message}
                             </div>
-                            <div class="font-['DM_Sans'] text-[#959494] text-[12px] tracking-[-0.12px]">
+                            <div class="font-['DM_Sans'] text-white/70 text-xs">
                                 ${timeStr}
                             </div>
                         </div>
@@ -341,11 +338,11 @@
             } else if (sender === 'assistant') {
                 messageDiv.innerHTML = `
                     <div class="flex justify-start">
-                        <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
-                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] mb-4">
+                        <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
+                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed mb-1">
                                 ${message}
                             </div>
-                            <div class="font-['DM_Sans'] text-[#959494] text-[12px] tracking-[-0.12px]">
+                            <div class="font-['DM_Sans'] text-[#6b7280] text-xs">
                                 ${timeStr}
                             </div>
                         </div>
@@ -355,7 +352,7 @@
                 // System message
                 messageDiv.innerHTML = `
                     <div class="flex justify-center">
-                        <div class="bg-[#fee] text-[#c33] px-4 py-2 rounded-lg text-sm">
+                        <div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">
                             ${message}
                         </div>
                     </div>
@@ -463,8 +460,8 @@
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
-                    <div class="bg-[#f9f9f9] max-w-[375px] px-[18px] py-3 rounded-bl-[24px] rounded-br-[24px] rounded-tl-[2px] rounded-tr-[24px] border border-[#c4c4c4]">
-                        <div class="font-['DM_Sans'] text-[#1e1e1e] text-[16px] tracking-[-0.16px] flex items-center justify-center">
+                    <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
+                        <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base flex items-center justify-center">
                             <div class="typing-ellipsis">
                                 <div class="dot"></div>
                                 <div class="dot"></div>
@@ -532,7 +529,7 @@
             overlay.classList.remove('hidden');
             
             // Set progress bar to 100% in completion screen
-            const completionProgressBar = overlay.querySelector('.bg-\\[\\#cd4c0b\\]');
+            const completionProgressBar = overlay.querySelector('.bg-\\[\\#cc5500\\]');
             if (completionProgressBar) {
                 completionProgressBar.style.width = '100%';
             }
