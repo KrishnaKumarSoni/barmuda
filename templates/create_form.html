@@ -156,7 +156,10 @@
         async function signOut() {
             try {
                 await auth.signOut();
-                localStorage.removeItem('idToken');
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
                 window.location.href = '/';
             } catch (error) {
                 console.error('Sign out error:', error);
@@ -164,18 +167,13 @@
             }
         }
 
-        // Helper function for authenticated requests
+        // Helper function for session-based authenticated requests
         async function authenticatedFetch(url, options = {}) {
-            const idToken = localStorage.getItem('idToken');
-            if (!idToken) {
-                throw new Error('No authentication token');
-            }
-
             return fetch(url, {
                 ...options,
+                credentials: 'include',
                 headers: {
                     ...options.headers,
-                    'Authorization': `Bearer ${idToken}`,
                     'Content-Type': 'application/json',
                 }
             });
