@@ -258,6 +258,14 @@ class FormChatAgent:
         self.openai_api_key = openai_api_key
         openai.api_key = openai_api_key
         
+        # Ensure event loop exists for async operations
+        import asyncio
+        try:
+            asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
         # Create the agent with standalone function tools
         self.agent = Agent(
             name="FormBot",
@@ -360,7 +368,16 @@ User said: "{user_message}"
 Please respond naturally and use the appropriate tools to manage this conversation.
 """
             
-            # Run the agent
+            # Run the agent with proper event loop handling
+            import asyncio
+            try:
+                # Try to get existing event loop
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # No event loop in current thread, create a new one
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
             result = Runner.run_sync(self.agent, agent_input)
             
             # Extract response
