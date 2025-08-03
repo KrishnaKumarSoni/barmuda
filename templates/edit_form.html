@@ -298,7 +298,7 @@
                         if (data.form.active) {
                             // Already active form - update button
                             saveBtn.innerHTML = `
-                                Update Survey
+                                Update Form
                                 <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
                             `;
                         } else {
@@ -665,7 +665,7 @@
                     // Update existing form and activate it
                     const updatedFormData = {
                         ...formData,
-                        active: true,  // Activate the survey
+                        active: true,  // Activate the form
                         last_modified: new Date().toISOString()
                     };
                     
