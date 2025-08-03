@@ -76,54 +76,78 @@ def mock_firestore_data():
 
 @pytest.fixture
 def mock_firestore_client(mock_firestore_data):
-    """Mock Firestore client that uses in-memory data"""
-
-    class MockDocument:
-        def __init__(self, data_store, collection_name, doc_id):
-            self.data_store = data_store
-            self.collection_name = collection_name
-            self.doc_id = doc_id
-
-        def get(self):
-            doc_data = self.data_store[self.collection_name].get(self.doc_id)
+    """Mock Firestore client that uses Mock objects with in-memory data"""
+    
+    def create_mock_document(data_store, collection_name, doc_id):
+        mock_doc = Mock()
+        
+        def mock_get():
+            doc_data = data_store[collection_name].get(doc_id)
             result = Mock()
             result.exists = doc_data is not None
-            result.to_dict.return_value = doc_data
+            result.to_dict = Mock(return_value=doc_data)
             return result
-
-        def set(self, data):
-            self.data_store[self.collection_name][self.doc_id] = data
-
-        def update(self, data):
-            if self.doc_id in self.data_store[self.collection_name]:
-                self.data_store[self.collection_name][self.doc_id].update(data)
-
-        def delete(self):
-            if self.doc_id in self.data_store[self.collection_name]:
-                del self.data_store[self.collection_name][self.doc_id]
-
-    class MockCollection:
-        def __init__(self, data_store, collection_name):
-            self.data_store = data_store
-            self.collection_name = collection_name
-
-        def document(self, doc_id):
-            return MockDocument(self.data_store, self.collection_name, doc_id)
-
-        def where(self, field, op, value):
-            # Simple implementation for basic queries
+        
+        def mock_set(data):
+            data_store[collection_name][doc_id] = data
+        
+        def mock_update(data):
+            if doc_id in data_store[collection_name]:
+                data_store[collection_name][doc_id].update(data)
+        
+        def mock_delete():
+            if doc_id in data_store[collection_name]:
+                del data_store[collection_name][doc_id]
+        
+        mock_doc.get = Mock(side_effect=mock_get)
+        mock_doc.set = Mock(side_effect=mock_set)
+        mock_doc.update = Mock(side_effect=mock_update)
+        mock_doc.delete = Mock(side_effect=mock_delete)
+        
+        return mock_doc
+    
+    def create_mock_collection(data_store, collection_name):
+        mock_collection = Mock()
+        
+        def mock_document(doc_id):
+            return create_mock_document(data_store, collection_name, doc_id)
+        
+        def mock_where(field, op, value):
+            # Simple query implementation
             result = Mock()
-            result.stream.return_value = []
+            matching_docs = []
+            
+            for doc_id, doc_data in data_store[collection_name].items():
+                if field in doc_data:
+                    if op == "==" and doc_data[field] == value:
+                        mock_doc_ref = Mock()
+                        mock_doc_ref.id = doc_id
+                        mock_doc_ref.to_dict = Mock(return_value=doc_data)
+                        matching_docs.append(mock_doc_ref)
+            
+            result.stream = Mock(return_value=matching_docs)
             return result
-
-    class MockFirestore:
-        def __init__(self, data_store):
-            self.data_store = data_store
-
-        def collection(self, collection_name):
-            return MockCollection(self.data_store, collection_name)
-
-    return MockFirestore(mock_firestore_data)
+        
+        def mock_add(data):
+            import uuid
+            doc_id = str(uuid.uuid4())
+            data_store[collection_name][doc_id] = data
+            return None, doc_id
+        
+        mock_collection.document = Mock(side_effect=mock_document)
+        mock_collection.where = Mock(side_effect=mock_where)
+        mock_collection.add = Mock(side_effect=mock_add)
+        
+        return mock_collection
+    
+    mock_db = Mock()
+    
+    def mock_collection(collection_name):
+        return create_mock_collection(mock_firestore_data, collection_name)
+    
+    mock_db.collection = Mock(side_effect=mock_collection)
+    
+    return mock_db
 
 
 # Cleanup function for global mocks

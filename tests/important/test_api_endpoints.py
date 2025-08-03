@@ -103,8 +103,8 @@ class TestAPIEndpointValidation:
 
     def test_update_form_nonexistent(self, authenticated_session):
         """Test /api/update_form with nonexistent form"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
@@ -113,15 +113,15 @@ class TestAPIEndpointValidation:
             )
             assert response.status_code == 404
 
-    def test_update_form_wrong_owner(self, authenticated_session, mock_db, sample_form):
+    def test_update_form_wrong_owner(self, authenticated_session, mock_firestore_client, sample_form):
         """Test /api/update_form with wrong owner"""
         sample_form["creator_id"] = "other_user"
 
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -133,8 +133,8 @@ class TestAPIEndpointValidation:
 
     def test_form_api_nonexistent_form(self, client):
         """Test /api/form/<form_id> with nonexistent form"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
@@ -150,14 +150,14 @@ class TestAPIEndpointValidation:
         assert data["status"] == "healthy"
 
     def test_form_status_invalid_data(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test /api/forms/<form_id>/status with invalid data"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -175,8 +175,8 @@ class TestAPIEndpointValidation:
 
     def test_delete_form_nonexistent(self, authenticated_session):
         """Test /api/forms/<form_id> DELETE with nonexistent form"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
@@ -203,8 +203,8 @@ class TestAPIEndpointValidation:
 
     def test_chat_start_nonexistent_form(self, client):
         """Test /api/chat/start with nonexistent form"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
@@ -232,8 +232,8 @@ class TestAPIEndpointValidation:
 
     def test_chat_message_nonexistent_session(self, client):
         """Test /api/chat/message with nonexistent session"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
@@ -245,8 +245,8 @@ class TestAPIEndpointValidation:
 
     def test_chat_status_nonexistent_session(self, client):
         """Test /api/chat/status/<session_id> with nonexistent session"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
@@ -262,23 +262,23 @@ class TestAPIEndpointValidation:
 
     def test_responses_nonexistent_form(self, authenticated_session):
         """Test /api/responses/<form_id> with nonexistent form"""
-        with patch("app.db") as mock_db:
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db") as mock_firestore_client:
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
 
             response = authenticated_session.get("/api/responses/nonexistent")
             assert response.status_code == 404
 
-    def test_responses_wrong_owner(self, authenticated_session, mock_db, sample_form):
+    def test_responses_wrong_owner(self, authenticated_session, mock_firestore_client, sample_form):
         """Test /api/responses/<form_id> with wrong owner"""
         sample_form["creator_id"] = "other_user"
 
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -286,14 +286,14 @@ class TestAPIEndpointValidation:
             assert response.status_code == 403
 
     def test_wordcloud_invalid_question_index(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test /api/wordcloud/<form_id>/<question_index> with invalid index"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -305,13 +305,13 @@ class TestAPIEndpointValidation:
             response = authenticated_session.get("/api/wordcloud/test_form_123/-1")
             assert response.status_code == 400
 
-    def test_export_invalid_format(self, authenticated_session, mock_db, sample_form):
+    def test_export_invalid_format(self, authenticated_session, mock_firestore_client, sample_form):
         """Test /api/export/<form_id>/<format> with invalid format"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -378,15 +378,15 @@ class TestAPIEndpointValidation:
             # Should handle safely
             assert response.status_code in [200, 400]
 
-    def test_concurrent_requests(self, authenticated_session, mock_db):
+    def test_concurrent_requests(self, authenticated_session, mock_firestore_client):
         """Test handling of concurrent requests to same endpoint"""
-        with patch("app.db", mock_db), patch("app.openai_client") as mock_openai:
+        with patch("app.db", mock_firestore_client), patch("app.openai_client") as mock_openai:
 
             mock_openai.chat.completions.create.return_value.choices = [Mock()]
             mock_openai.chat.completions.create.return_value.choices[
                 0
             ].message.content = json.dumps({"title": "Test", "questions": []})
-            mock_db.collection.return_value.add.return_value = (None, "test_123")
+            mock_firestore_client.collection.return_value.add.return_value = (None, "test_123")
 
             # Multiple rapid requests
             responses = []

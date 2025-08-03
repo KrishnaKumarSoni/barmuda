@@ -13,11 +13,11 @@ class TestChatAgentEdgeCases:
     """Test chat agent edge case handling from EdgeCases.md"""
 
     def test_off_topic_redirect_bananas(
-        self, client, mock_db, sample_chat_session, edge_case_messages
+        self, client, mock_firestore_client, sample_chat_session, edge_case_messages
     ):
         """Test off-topic 'bananas' redirect handling (max 3 redirects)"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
@@ -25,10 +25,10 @@ class TestChatAgentEdgeCases:
             mock_agent_class.return_value = mock_agent
 
             # Setup session
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -69,21 +69,21 @@ class TestChatAgentEdgeCases:
             assert "[END]" in data["response"] or data.get("status") == "ended"
 
     def test_skip_question_handling(
-        self, client, mock_db, sample_chat_session, edge_case_messages
+        self, client, mock_firestore_client, sample_chat_session, edge_case_messages
     ):
         """Test explicit question skipping with [SKIP] tagging"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -108,21 +108,21 @@ class TestChatAgentEdgeCases:
                 )
 
     def test_multi_answer_parsing(
-        self, client, mock_db, sample_chat_session, edge_case_messages
+        self, client, mock_firestore_client, sample_chat_session, edge_case_messages
     ):
         """Test parsing multiple answers in one response"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -147,21 +147,21 @@ class TestChatAgentEdgeCases:
             )
 
     def test_conflicting_answer_resolution(
-        self, client, mock_db, sample_chat_session, edge_case_messages
+        self, client, mock_firestore_client, sample_chat_session, edge_case_messages
     ):
         """Test that conflicting answers prioritize latest response"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -205,21 +205,21 @@ class TestChatAgentEdgeCases:
             )
 
     def test_vague_response_follow_up(
-        self, client, mock_db, sample_chat_session, edge_case_messages
+        self, client, mock_firestore_client, sample_chat_session, edge_case_messages
     ):
         """Test follow-up prompts for vague responses"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -242,20 +242,20 @@ class TestChatAgentEdgeCases:
                     for word in ["specific", "scale", "more"]
                 )
 
-    def test_no_fit_response_acceptance(self, client, mock_db, sample_chat_session):
+    def test_no_fit_response_acceptance(self, client, mock_firestore_client, sample_chat_session):
         """Test that no-fit responses are accepted openly"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -277,20 +277,20 @@ class TestChatAgentEdgeCases:
             assert "yellow" in data["response"].lower()
             assert any(emoji in data["response"] for emoji in ["🌞", "☀️", "😊"])
 
-    def test_premature_ending_request(self, client, mock_db, sample_chat_session):
+    def test_premature_ending_request(self, client, mock_firestore_client, sample_chat_session):
         """Test handling of premature ending requests"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -310,20 +310,20 @@ class TestChatAgentEdgeCases:
             assert "[END]" in data["response"] or data.get("status") == "ended"
             assert "thanks" in data["response"].lower()
 
-    def test_invalid_input_type_handling(self, client, mock_db, sample_chat_session):
+    def test_invalid_input_type_handling(self, client, mock_firestore_client, sample_chat_session):
         """Test handling of invalid input types (e.g., non-number for number question)"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -347,10 +347,10 @@ class TestChatAgentEdgeCases:
                 for word in ["several", "like", "2", "3"]
             )
 
-    def test_session_timeout_partial_save(self, client, mock_db, sample_chat_session):
+    def test_session_timeout_partial_save(self, client, mock_firestore_client, sample_chat_session):
         """Test that session timeout triggers partial save"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
@@ -362,10 +362,10 @@ class TestChatAgentEdgeCases:
             timeout_session["status"] = "timeout"
             timeout_session["ended_at"] = "2025-01-01T00:05:00Z"  # 5 minutes later
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 timeout_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -375,10 +375,10 @@ class TestChatAgentEdgeCases:
             data = json.loads(response.data)
             assert data["status"] in ["timeout", "ended"]
 
-    def test_message_limit_enforcement(self, client, mock_db, sample_chat_session):
+    def test_message_limit_enforcement(self, client, mock_firestore_client, sample_chat_session):
         """Test 30 message limit enforcement"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
@@ -389,10 +389,10 @@ class TestChatAgentEdgeCases:
             limit_session = sample_chat_session.copy()
             limit_session["message_count"] = 30
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 limit_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -414,21 +414,21 @@ class TestChatAgentEdgeCases:
                 assert "[END]" in data["response"] or data.get("status") == "ended"
 
     def test_multi_language_response_handling(
-        self, client, mock_db, sample_chat_session
+        self, client, mock_firestore_client, sample_chat_session
     ):
         """Test multi-language response handling"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -449,20 +449,20 @@ class TestChatAgentEdgeCases:
             assert "paris" in data["response"].lower()
             # Should respond appropriately to French input
 
-    def test_agent_tool_execution(self, client, mock_db, sample_chat_session):
+    def test_agent_tool_execution(self, client, mock_firestore_client, sample_chat_session):
         """Test that agent tools are properly executed"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("chat_agent.ChatAgent") as mock_agent_class,
         ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_chat_session
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 

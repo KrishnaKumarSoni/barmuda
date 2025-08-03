@@ -188,6 +188,63 @@ def skip_current_question(session_id: str, reason: str = "user_request") -> str:
 
 
 @function_tool
+def detect_skip_intent(session_id: str, user_message: str) -> str:
+    """Detect if user wants to skip the current question using GPT"""
+    try:
+        # Use GPT to detect skip intent with fallback
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip())
+            
+            prompt = f"""Does this user message indicate they want to skip the current question?
+
+User Message: "{user_message}"
+
+Return JSON:
+{{
+    "wants_to_skip": true/false,
+    "confidence": 0.0-1.0
+}}
+
+Examples:
+"skip this" → {{"wants_to_skip": true, "confidence": 0.95}}
+"I won't answer that, move on to the next" → {{"wants_to_skip": true, "confidence": 0.9}}
+"pass" → {{"wants_to_skip": true, "confidence": 0.85}}
+"I don't want to say" → {{"wants_to_skip": true, "confidence": 0.8}}
+"next question please" → {{"wants_to_skip": true, "confidence": 0.9}}
+"I love pizza" → {{"wants_to_skip": false, "confidence": 0.95}}
+"maybe" → {{"wants_to_skip": false, "confidence": 0.7}}"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=50
+            )
+            
+            import json
+            result = json.loads(response.choices[0].message.content.strip())
+            
+            if result.get("wants_to_skip", False) and result.get("confidence", 0) > 0.7:
+                return skip_current_question(session_id, "gpt_detected_skip")
+            else:
+                return "not_skip_intent"
+                
+        except Exception as gpt_error:
+            print(f"GPT skip detection failed: {str(gpt_error)}, using fallback")
+            # Fallback to simple keyword detection
+            skip_keywords = ["skip", "pass", "next", "move on", "don't want to answer", "won't answer"]
+            if any(keyword in user_message.lower() for keyword in skip_keywords):
+                return skip_current_question(session_id, "keyword_detected_skip")
+            else:
+                return "not_skip_intent"
+
+    except Exception as e:
+        print(f"Error in skip detection: {str(e)}")
+        return "not_skip_intent"
+
+
+@function_tool
 def save_response(session_id: str, response_value: str) -> str:
     """Save a response to the current question"""
     try:
@@ -214,18 +271,12 @@ def save_response(session_id: str, response_value: str) -> str:
 
 
 @function_tool
-def redirect_conversation(session_id: str) -> str:
-    """Handle off-topic responses by redirecting back to the form"""
+def redirect_conversation(session_id: str, user_message: str = "") -> str:
+    """Handle off-topic responses by redirecting back to the form with GPT-generated bananas responses"""
     try:
         print(f"🎯 REDIRECT TOOL CALLED for session: {session_id}")
         session = load_session(session_id)
         session.metadata["redirect_count"] += 1
-
-        redirect_messages = [
-            "That's a bit bananas! 😄 Let's focus on the form question.",
-            "Interesting! But let's get back to the question at hand. 😊",
-            "I'd love to chat about that later! Right now, let's focus on your response.",
-        ]
 
         if session.metadata["redirect_count"] >= 3:
             # Max redirects reached - end conversation
@@ -234,12 +285,60 @@ def redirect_conversation(session_id: str) -> str:
             save_session(session)
             return "I think we might be getting off track. Let's wrap up here. Thanks for your time! 👋"
 
-        save_session(session)
-        message_idx = min(
-            session.metadata["redirect_count"] - 1, len(redirect_messages) - 1
-        )
-        print(f"🎯 REDIRECT MESSAGE: {redirect_messages[message_idx]}")
-        return redirect_messages[message_idx]
+        # Get current question for context
+        current_q_idx = session.current_question_index
+        current_question = ""
+        if current_q_idx < len(session.form_data.get("questions", [])):
+            current_question = session.form_data["questions"][current_q_idx]["text"]
+
+        # Generate GPT bananas response with fallback
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip())
+            
+            prompt = f"""Generate a short, friendly redirect message with 'bananas' personality.
+            
+Current Question: "{current_question}"
+Off-topic Message: "{user_message}"
+Redirect Count: {session.metadata["redirect_count"]}/3
+
+Requirements:
+- Include the word "bananas" creatively
+- Keep it short (1-2 sentences)
+- Use 1-2 emojis
+- Gently redirect back to the question
+- Be conversational and fun
+
+Examples:
+"That's totally bananas! 😄 But let's focus on your hobby."
+"Haha, bananas topic! 🍌 Back to the satisfaction rating though..."
+"That's bananas! 😅 Let's get back to the question about your experience."""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=60
+            )
+            
+            gpt_response = response.choices[0].message.content.strip()
+            print(f"🎯 GPT REDIRECT MESSAGE: {gpt_response}")
+            save_session(session)
+            return gpt_response
+            
+        except Exception as gpt_error:
+            print(f"🎯 GPT REDIRECT FAILED: {str(gpt_error)}, using fallback")
+            # Fallback to original hardcoded messages
+            redirect_messages = [
+                "That's a bit bananas! 😄 Let's focus on the form question.",
+                "Interesting! But let's get back to the question at hand. 😊",
+                "I'd love to chat about that later! Right now, let's focus on your response.",
+            ]
+            message_idx = min(
+                session.metadata["redirect_count"] - 1, len(redirect_messages) - 1
+            )
+            save_session(session)
+            return redirect_messages[message_idx]
 
     except Exception as e:
         print(f"🎯 REDIRECT ERROR: {str(e)}")
@@ -276,6 +375,247 @@ def end_conversation(session_id: str, reason: str = "completion") -> str:
 
     except Exception as e:
         return f"Error ending conversation: {str(e)}"
+
+
+@function_tool
+def detect_end_intent(session_id: str, user_message: str) -> str:
+    """Detect if user wants to end the survey using GPT"""
+    try:
+        # Use GPT to detect end intent with fallback
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip())
+            
+            prompt = f"""Does this user message indicate they want to end/quit/stop the survey?
+
+User Message: "{user_message}"
+
+Return JSON:
+{{
+    "wants_to_end": true/false,
+    "confidence": 0.0-1.0
+}}
+
+Examples:
+"I'm done" → {{"wants_to_end": true, "confidence": 0.9}}
+"I want to no longer respond to this survey" → {{"wants_to_end": true, "confidence": 0.95}}
+"stop this" → {{"wants_to_end": true, "confidence": 0.9}}
+"I don't want to continue" → {{"wants_to_end": true, "confidence": 0.85}}
+"enough questions" → {{"wants_to_end": true, "confidence": 0.8}}
+"this is boring" → {{"wants_to_end": false, "confidence": 0.7}}
+"I love pizza" → {{"wants_to_end": false, "confidence": 0.95}}"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=50
+            )
+            
+            import json
+            result = json.loads(response.choices[0].message.content.strip())
+            
+            if result.get("wants_to_end", False) and result.get("confidence", 0) > 0.8:
+                return request_end_confirmation(session_id)
+            else:
+                return "not_end_intent"
+                
+        except Exception as gpt_error:
+            print(f"GPT end detection failed: {str(gpt_error)}, using fallback")
+            # Fallback to simple keyword detection
+            end_keywords = ["done", "stop", "quit", "end", "finish", "enough", "no more"]
+            if any(keyword in user_message.lower() for keyword in end_keywords):
+                return request_end_confirmation(session_id)
+            else:
+                return "not_end_intent"
+
+    except Exception as e:
+        print(f"Error in end detection: {str(e)}")
+        return "not_end_intent"
+
+
+@function_tool
+def request_end_confirmation(session_id: str) -> str:
+    """Request confirmation before ending survey"""
+    try:
+        session = load_session(session_id)
+        
+        # Set confirmation state
+        session.metadata.update({
+            "state": "confirmation_pending",
+            "confirmation_type": "end_survey"
+        })
+        
+        # Calculate progress for user
+        total_questions = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
+        answered_questions = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
+        
+        save_session(session)
+        
+        return f"Are you sure you want to end the survey? You've answered {answered_questions} out of {total_questions} questions. Type 'yes' to end or 'no' to continue. 🤔"
+        
+    except Exception as e:
+        return f"Error requesting confirmation: {str(e)}"
+
+
+@function_tool
+def handle_confirmation_response(session_id: str, user_message: str) -> str:
+    """Handle responses when in confirmation state"""
+    try:
+        session = load_session(session_id)
+        confirmation_type = session.metadata.get("confirmation_type")
+        
+        if confirmation_type == "end_survey":
+            # Use GPT to detect yes/no with context and fallback
+            try:
+                from openai import OpenAI
+                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip())
+                
+                prompt = f"""User was asked: "Are you sure you want to end the survey?"
+User responded: "{user_message}"
+
+Does this mean YES (confirm ending) or NO (continue survey)?
+Return just: "YES", "NO", or "UNCLEAR"
+
+Examples:
+"yes" → YES
+"yeah sure" → YES  
+"no way" → NO
+"actually let's continue" → NO
+"maybe" → UNCLEAR
+"banana" → UNCLEAR"""
+
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.1,
+                    max_tokens=10
+                )
+                
+                decision = response.choices[0].message.content.strip().upper()
+                
+            except Exception as gpt_error:
+                print(f"GPT confirmation failed: {str(gpt_error)}, using fallback")
+                # Fallback to simple keyword detection
+                if any(word in user_message.lower() for word in ["yes", "yeah", "sure", "ok", "okay"]):
+                    decision = "YES"
+                elif any(word in user_message.lower() for word in ["no", "nope", "continue", "keep going"]):
+                    decision = "NO"
+                else:
+                    decision = "UNCLEAR"
+            
+            if "YES" in decision:
+                return end_conversation(session_id, "user_confirmed")
+            elif "NO" in decision:
+                # Clear confirmation state, resume normal flow
+                session.metadata.update({
+                    "state": "normal",
+                    "confirmation_type": None
+                })
+                save_session(session)
+                return "Great! Let's continue with the survey. 😊"
+            else:
+                return "I didn't understand. Please type 'yes' to end the survey or 'no' to continue. 🤷‍♀️"
+        
+        return "Unexpected confirmation state"
+        
+    except Exception as e:
+        return f"Error handling confirmation: {str(e)}"
+
+
+@function_tool
+def detect_user_intent(session_id: str, user_message: str) -> str:
+    """Master router - analyze user intent and route to appropriate handler"""
+    try:
+        session = load_session(session_id)
+        
+        # Handle confirmation state first
+        if session.metadata.get("state") == "confirmation_pending":
+            return handle_confirmation_response(session_id, user_message)
+        
+        # Try different intent detections in order of priority
+        
+        # 1. Check for end intent first (high priority)
+        end_result = detect_end_intent(session_id, user_message)
+        if end_result != "not_end_intent":
+            return end_result
+        
+        # 2. Check for skip intent
+        skip_result = detect_skip_intent(session_id, user_message)
+        if skip_result != "not_skip_intent":
+            return skip_result
+        
+        # 3. Use GPT to analyze for other intents
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip())
+            
+            current_q_idx = session.current_question_index
+            current_question = ""
+            if current_q_idx < len(session.form_data.get("questions", [])):
+                current_question = session.form_data["questions"][current_q_idx]["text"]
+            
+            prompt = f"""Analyze user intent for this survey response:
+
+Current Question: "{current_question}"
+User Message: "{user_message}"
+
+Return JSON:
+{{
+    "intent": "answer|off_topic|multi_answer|vague|unclear",
+    "confidence": 0.0-1.0,
+    "reasoning": "brief explanation"
+}}
+
+Intent definitions:
+- answer: Direct response to the question
+- off_topic: Completely unrelated to the question  
+- multi_answer: Answering multiple questions at once
+- vague: Unclear or ambiguous response
+- unclear: Cannot determine intent
+
+Examples:
+Question: "What's your favorite hobby?" 
+"I love reading" → {{"intent": "answer", "confidence": 0.95}}
+"What's the weather?" → {{"intent": "off_topic", "confidence": 0.9}}
+"Reading, I'm 25, from NYC" → {{"intent": "multi_answer", "confidence": 0.85}}
+"Meh" → {{"intent": "vague", "confidence": 0.8}}"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=100
+            )
+            
+            import json
+            intent_data = json.loads(response.choices[0].message.content.strip())
+            intent = intent_data.get("intent")
+            confidence = intent_data.get("confidence", 0)
+            
+            # Route based on detected intent
+            if intent == "answer" and confidence > 0.7:
+                return save_response(session_id, user_message)
+            elif intent == "off_topic" and confidence > 0.7:
+                return redirect_conversation(session_id, user_message)
+            elif intent == "multi_answer" and confidence > 0.8:
+                # For now, just save the first part and acknowledge
+                return save_response(session_id, user_message) + " I'll note the extra info for later questions. 😎"
+            elif intent == "vague" and confidence > 0.8:
+                return f"Interesting! Could you be more specific? 🤔"
+            else:
+                # Default to saving response
+                return save_response(session_id, user_message)
+                
+        except Exception as gpt_error:
+            print(f"GPT intent detection failed: {str(gpt_error)}, defaulting to save response")
+            # Fallback - just save the response
+            return save_response(session_id, user_message)
+
+    except Exception as e:
+        print(f"Error in intent detection: {str(e)}")
+        # Ultimate fallback
+        return save_response(session_id, user_message)
 
 
 @function_tool
@@ -324,18 +664,23 @@ class FormChatAgent:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        # Create the agent with standalone function tools
+        # Create the agent with enhanced GPT tools
         self.agent = Agent(
             name="FormBot",
             model="gpt-4o-mini",
             instructions=self._get_system_instructions(),
             tools=[
+                detect_user_intent,          # NEW - Master router
                 get_next_question,
                 skip_current_question,
                 save_response,
-                redirect_conversation,
+                redirect_conversation,       # Enhanced with GPT
                 end_conversation,
                 check_session_status,
+                detect_skip_intent,          # NEW - GPT skip detection
+                detect_end_intent,           # NEW - GPT end detection  
+                request_end_confirmation,    # NEW - Confirmation flow
+                handle_confirmation_response, # NEW - Handle confirmations
             ],
         )
 
@@ -343,43 +688,39 @@ class FormChatAgent:
         """Get system instructions for the agent"""
         return """You are a friendly, empathetic chatbot collecting form responses through natural conversation.
 
-CRITICAL: You MUST detect and redirect off-topic responses. Examples:
-- Question: "What's your favorite hobby?" → User: "What's the weather?" → OFF-TOPIC
-- Question: "How often do you exercise?" → User: "Tell me a joke" → OFF-TOPIC
-- Question: "Rate your satisfaction 1-5" → User: "What's AI?" → OFF-TOPIC
-Any response that doesn't answer the current question is OFF-TOPIC.
+🎯 NEW WORKFLOW (GPT-Enhanced):
+For EVERY user message, FIRST call detect_user_intent which will automatically:
+- Detect skip requests ("I won't answer that, move on to the next")
+- Detect end requests ("I want to no longer respond to this survey") 
+- Handle confirmations when in confirmation state
+- Detect off-topic responses and generate dynamic "bananas" redirects
+- Identify vague/multi-answer responses
+- Route to appropriate tools automatically
 
 CORE GUIDELINES:
 - Ask ONE question at a time using get_next_question
 - Use casual, conversational language with appropriate emojis 😊
 - NEVER show multiple choice options directly (anti-bias design)
 - Be patient and understanding with users
-- Respect privacy - users can skip any question using skip_current_question
-- Save responses using save_response after getting valid answers
+- Let detect_user_intent handle ALL edge cases automatically
 
 CONVERSATION FLOW:
-1. Greet warmly and get the first question
-2. Ask questions one by one from the form
-3. For EACH user response, FIRST determine if it's:
-   - A valid answer to the current question → save_response
-   - Off-topic/unrelated → redirect_conversation ("bananas" redirect)
-   - A skip request → skip_current_question
-   - Vague/unclear → ask for clarification
-4. Acknowledge responses positively and save them
-5. Thank users at the end using end_conversation
+1. Greet warmly and get the first question with get_next_question
+2. For EACH user response: 
+   - ALWAYS call detect_user_intent first
+   - It will automatically route to the right handler
+   - Just respond naturally based on what the tool returns
+3. The tools handle all the complex logic automatically
 
-EDGE CASE HANDLING:
-- Off-topic responses: IMMEDIATELY call redirect_conversation tool when user goes off-topic (never repeat questions manually)
-- Skip requests: Call skip_current_question for "skip", "next", "pass"
-- Vague answers: Accept vague responses warmly and clarify once: "Interesting! Could you be more specific?"
-- Multi-answers: "Got it! 😎 I'll note the extra info for later questions."
-- Conflicts: "Updating that - got it! ☕" when user changes answers
-- Invalid numbers: Ask "Could you give me a number?" once, then accept text response
-- When all questions done: Use end_conversation
+CRITICAL FEATURES:
+- End confirmation flow: "I'm done" → confirms before ending (solves "yes" confusion)
+- Smart skip detection: "I won't answer that" → automatic skip
+- Dynamic bananas redirects: Context-aware off-topic responses  
+- Fallback safety: If GPT fails, tools use simple keyword detection
 
-CRITICAL RULE: When user goes off-topic, you MUST call redirect_conversation tool immediately. Do NOT manually repeat the question or create your own redirect message. The tool provides the proper "bananas" personality response.
+The detect_user_intent tool is your main interface - it handles ALL edge cases automatically with GPT intelligence and manual fallbacks for reliability.
 
-IMPORTANT: Always use your tools to manage the conversation flow and data collection. Never make assumptions about the session state - use check_session_status when needed."""
+IMPORTANT: Trust the tools to handle edge cases. Just be conversational and friendly!"""
 
     def create_session(
         self, form_id: str, device_id: str = None, location: Dict = None

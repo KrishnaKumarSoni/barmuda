@@ -13,7 +13,7 @@ class TestDataExtractionAccuracy:
     """Test accurate data extraction from chat conversations"""
 
     def test_complete_conversation_extraction(
-        self, client, mock_db, sample_chat_session
+        self, client, mock_firestore_client, sample_chat_session
     ):
         """Test extraction of complete conversation data"""
         complete_transcript = [
@@ -33,7 +33,7 @@ class TestDataExtractionAccuracy:
         }
 
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("data_extraction.extract_responses") as mock_extract,
         ):
 
@@ -44,10 +44,10 @@ class TestDataExtractionAccuracy:
             session_data["transcript"] = complete_transcript
             session_data["status"] = "ended"
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 session_data
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -68,7 +68,7 @@ class TestDataExtractionAccuracy:
             )
 
     def test_partial_conversation_extraction(
-        self, client, mock_db, sample_chat_session
+        self, client, mock_firestore_client, sample_chat_session
     ):
         """Test extraction of partial conversation (every 5 messages)"""
         partial_transcript = [
@@ -80,7 +80,7 @@ class TestDataExtractionAccuracy:
         ]
 
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("data_extraction.extract_responses") as mock_extract,
         ):
 
@@ -97,10 +97,10 @@ class TestDataExtractionAccuracy:
             session_data["transcript"] = partial_transcript
             session_data["message_count"] = 5
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 session_data
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -113,7 +113,7 @@ class TestDataExtractionAccuracy:
             # Should trigger partial save
             assert response.status_code == 200
 
-    def test_conflicting_answers_latest_wins(self, mock_db):
+    def test_conflicting_answers_latest_wins(self, mock_firestore_client):
         """Test that conflicting answers prioritize the latest response"""
         conflicting_transcript = [
             {"role": "assistant", "content": "Do you like coffee?"},
@@ -152,7 +152,7 @@ class TestDataExtractionAccuracy:
             assert result["0"]["answer"] == "no"
             assert "conflicts" in result["0"]
 
-    def test_skip_tagging_preservation(self, mock_db):
+    def test_skip_tagging_preservation(self, mock_firestore_client):
         """Test that [SKIP] tags are preserved in extraction"""
         skip_transcript = [
             {"role": "assistant", "content": "What's your age?"},
@@ -197,7 +197,7 @@ class TestDataExtractionAccuracy:
             assert result["0"]["skipped"] is True
             assert result["1"]["answer"] == "Blue"
 
-    def test_no_fit_response_bucketing(self, mock_db):
+    def test_no_fit_response_bucketing(self, mock_firestore_client):
         """Test that no-fit responses are bucketed to 'other'"""
         no_fit_transcript = [
             {
@@ -244,7 +244,7 @@ class TestDataExtractionAccuracy:
             assert result["0"]["original_answer"] == "Yellow"
             assert result["0"]["bucketed"] is True
 
-    def test_vague_response_mapping(self, mock_db):
+    def test_vague_response_mapping(self, mock_firestore_client):
         """Test that vague responses are mapped to closest values"""
         vague_transcript = [
             {"role": "assistant", "content": "Rate your satisfaction 1-5?"},
@@ -289,7 +289,7 @@ class TestDataExtractionAccuracy:
             assert result["0"]["original_answer"] == "Meh"
             assert result["0"]["clarified"] is True
 
-    def test_multi_answer_parsing_accuracy(self, mock_db):
+    def test_multi_answer_parsing_accuracy(self, mock_firestore_client):
         """Test accurate parsing of multiple answers in one response"""
         multi_answer_transcript = [
             {"role": "assistant", "content": "What's your name?"},
@@ -330,7 +330,7 @@ class TestDataExtractionAccuracy:
             assert result["pre_answered"]["age"] == "25"
             assert result["pre_answered"]["location"] == "LA"
 
-    def test_extraction_error_handling(self, mock_db):
+    def test_extraction_error_handling(self, mock_firestore_client):
         """Test handling of extraction errors and retries"""
         with patch("data_extraction.openai_client") as mock_openai:
             # First call fails
@@ -352,7 +352,7 @@ class TestDataExtractionAccuracy:
             assert isinstance(result, dict)
             assert mock_openai.chat.completions.create.call_count == 2
 
-    def test_invalid_json_extraction_retry(self, mock_db):
+    def test_invalid_json_extraction_retry(self, mock_firestore_client):
         """Test retry mechanism for invalid JSON responses"""
         with patch("data_extraction.openai_client") as mock_openai:
             # First call returns invalid JSON
@@ -373,7 +373,7 @@ class TestDataExtractionAccuracy:
             assert isinstance(result, dict)
             assert mock_openai.chat.completions.create.call_count == 2
 
-    def test_demographics_data_extraction(self, mock_db):
+    def test_demographics_data_extraction(self, mock_firestore_client):
         """Test extraction of demographics data"""
         demographics_transcript = [
             {"role": "assistant", "content": "What's your age range?"},
@@ -407,10 +407,10 @@ class TestDataExtractionAccuracy:
             assert result["demographics"]["age"] == "25-30"
             assert result["demographics"]["gender"] == "Male"
 
-    def test_extraction_metadata_accuracy(self, client, mock_db, sample_chat_session):
+    def test_extraction_metadata_accuracy(self, client, mock_firestore_client, sample_chat_session):
         """Test that extraction preserves important metadata"""
         with (
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
             patch("data_extraction.extract_responses") as mock_extract,
         ):
 
@@ -427,15 +427,15 @@ class TestDataExtractionAccuracy:
             session_data = sample_chat_session.copy()
             session_data["status"] = "ended"
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 session_data
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
             # Mock saving extracted data
-            mock_db.collection.return_value.add.return_value = (None, "response_123")
+            mock_firestore_client.collection.return_value.add.return_value = (None, "response_123")
 
             response = client.post(
                 "/api/chat/message",

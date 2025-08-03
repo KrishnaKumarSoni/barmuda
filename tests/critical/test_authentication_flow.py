@@ -12,7 +12,7 @@ import pytest
 class TestAuthenticationFlow:
     """Test authentication and authorization flows"""
 
-    def test_google_auth_with_valid_token(self, client, mock_db):
+    def test_google_auth_with_valid_token(self, client, mock_firestore_client):
         """Test successful Google authentication with valid token"""
         mock_user_data = {
             "uid": "google_user_123",
@@ -22,14 +22,14 @@ class TestAuthenticationFlow:
 
         with (
             patch("firebase_admin.auth.verify_id_token") as mock_verify,
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
         ):
 
             mock_verify.return_value = mock_user_data
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
-            mock_db.collection.return_value.document.return_value.set.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.set.return_value = (
                 None
             )
 
@@ -43,7 +43,7 @@ class TestAuthenticationFlow:
             assert "user" in data
 
             # Verify user creation in database
-            mock_db.collection.assert_called_with("users")
+            mock_firestore_client.collection.assert_called_with("users")
 
     def test_google_auth_with_invalid_token(self, client):
         """Test Google authentication with invalid token"""
@@ -56,7 +56,7 @@ class TestAuthenticationFlow:
             data = json.loads(response.data)
             assert "error" in data
 
-    def test_google_auth_creates_new_user_profile(self, client, mock_db):
+    def test_google_auth_creates_new_user_profile(self, client, mock_firestore_client):
         """Test that new users get profiles created"""
         mock_user_data = {
             "uid": "new_user_123",
@@ -66,14 +66,14 @@ class TestAuthenticationFlow:
 
         with (
             patch("firebase_admin.auth.verify_id_token") as mock_verify,
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
         ):
 
             mock_verify.return_value = mock_user_data
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
-            mock_db.collection.return_value.document.return_value.set.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.set.return_value = (
                 None
             )
 
@@ -82,16 +82,16 @@ class TestAuthenticationFlow:
             assert response.status_code == 200
 
             # Verify profile creation
-            mock_db.collection.return_value.document.return_value.set.assert_called_once()
+            mock_firestore_client.collection.return_value.document.return_value.set.assert_called_once()
             call_args = (
-                mock_db.collection.return_value.document.return_value.set.call_args[0][
+                mock_firestore_client.collection.return_value.document.return_value.set.call_args[0][
                     0
                 ]
             )
             assert call_args["email"] == "newuser@example.com"
             assert "created_at" in call_args
 
-    def test_google_auth_retrieves_existing_user(self, client, mock_db):
+    def test_google_auth_retrieves_existing_user(self, client, mock_firestore_client):
         """Test that existing users are retrieved, not recreated"""
         mock_user_data = {"uid": "existing_user_123", "email": "existing@example.com"}
 
@@ -102,14 +102,14 @@ class TestAuthenticationFlow:
 
         with (
             patch("firebase_admin.auth.verify_id_token") as mock_verify,
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
         ):
 
             mock_verify.return_value = mock_user_data
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 existing_profile
             )
 
@@ -118,22 +118,22 @@ class TestAuthenticationFlow:
             assert response.status_code == 200
 
             # Should NOT create new profile
-            mock_db.collection.return_value.document.return_value.set.assert_not_called()
+            mock_firestore_client.collection.return_value.document.return_value.set.assert_not_called()
 
-    def test_session_creation_after_auth(self, client, mock_db):
+    def test_session_creation_after_auth(self, client, mock_firestore_client):
         """Test that session is properly created after authentication"""
         mock_user_data = {"uid": "user_123", "email": "test@example.com"}
 
         with (
             patch("firebase_admin.auth.verify_id_token") as mock_verify,
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
         ):
 
             mock_verify.return_value = mock_user_data
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
-            mock_db.collection.return_value.document.return_value.set.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.set.return_value = (
                 None
             )
 
@@ -181,23 +181,23 @@ class TestAuthenticationFlow:
             assert response.status_code in [401, 302]
 
     def test_protected_routes_allow_authenticated_users(
-        self, authenticated_session, mock_db
+        self, authenticated_session, mock_firestore_client
     ):
         """Test that authenticated users can access protected routes"""
-        with patch("app.db", mock_db):
+        with patch("app.db", mock_firestore_client):
             # Mock database responses for dashboard
-            mock_db.collection.return_value.where.return_value.stream.return_value = []
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = []
 
             response = authenticated_session.get("/dashboard")
             assert response.status_code == 200
 
-    def test_token_verification_endpoint(self, client, mock_db):
+    def test_token_verification_endpoint(self, client, mock_firestore_client):
         """Test the token verification endpoint"""
         mock_user_data = {"uid": "user_123", "email": "test@example.com"}
 
         with (
             patch("firebase_admin.auth.verify_id_token") as mock_verify,
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
         ):
 
             mock_verify.return_value = mock_user_data
@@ -228,18 +228,18 @@ class TestAuthenticationFlow:
         data = json.loads(response.data)
         assert "error" in data
 
-    def test_user_profile_api_endpoint(self, authenticated_session, mock_db):
+    def test_user_profile_api_endpoint(self, authenticated_session, mock_firestore_client):
         """Test the user profile API endpoint"""
         profile_data = {
             "email": "test@example.com",
             "created_at": "2024-01-01T00:00:00Z",
         }
 
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 profile_data
             )
 
@@ -254,20 +254,20 @@ class TestAuthenticationFlow:
         response = client.get("/api/user/profile")
         assert response.status_code in [401, 302]
 
-    def test_session_persistence_across_requests(self, client, mock_db):
+    def test_session_persistence_across_requests(self, client, mock_firestore_client):
         """Test that session persists across multiple requests"""
         mock_user_data = {"uid": "user_123", "email": "test@example.com"}
 
         with (
             patch("firebase_admin.auth.verify_id_token") as mock_verify,
-            patch("app.db", mock_db),
+            patch("app.db", mock_firestore_client),
         ):
 
             mock_verify.return_value = mock_user_data
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 False
             )
-            mock_db.collection.return_value.document.return_value.set.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.set.return_value = (
                 None
             )
 
@@ -276,7 +276,7 @@ class TestAuthenticationFlow:
             assert auth_response.status_code == 200
 
             # Mock for dashboard
-            mock_db.collection.return_value.where.return_value.stream.return_value = []
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = []
 
             # Access protected route in same session
             dashboard_response = client.get("/dashboard")

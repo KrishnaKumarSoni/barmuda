@@ -15,15 +15,15 @@ class TestExportAccuracy:
     """Test export functionality for CSV and JSON formats"""
 
     def test_csv_export_basic_structure(
-        self, authenticated_session, mock_db, sample_form, sample_responses
+        self, authenticated_session, mock_firestore_client, sample_form, sample_responses
     ):
         """Test basic CSV export structure and headers"""
-        with patch("app.db", mock_db):
+        with patch("app.db", mock_firestore_client):
             # Mock form lookup
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -47,7 +47,7 @@ class TestExportAccuracy:
                 },
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in mock_responses_data
             ]
 
@@ -71,14 +71,14 @@ class TestExportAccuracy:
             assert any("How satisfied" in header for header in headers)  # Question text
 
     def test_csv_export_data_accuracy(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test CSV export data accuracy and formatting"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -99,7 +99,7 @@ class TestExportAccuracy:
                 }
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in test_responses
             ]
 
@@ -125,14 +125,14 @@ class TestExportAccuracy:
             )  # Text response with punctuation
 
     def test_csv_export_handles_special_characters(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test CSV export properly handles special characters and escaping"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -151,7 +151,7 @@ class TestExportAccuracy:
                 }
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in special_responses
             ]
 
@@ -166,13 +166,13 @@ class TestExportAccuracy:
                 or '"Text with ""quotes""' in csv_content
             )
 
-    def test_json_export_structure(self, authenticated_session, mock_db, sample_form):
+    def test_json_export_structure(self, authenticated_session, mock_firestore_client, sample_form):
         """Test JSON export structure and completeness"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -189,7 +189,7 @@ class TestExportAccuracy:
                 }
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in mock_responses
             ]
 
@@ -215,14 +215,14 @@ class TestExportAccuracy:
             assert json_data["responses"][0]["session_id"] == "json_test_1"
 
     def test_json_export_data_types_preserved(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test that JSON export preserves data types correctly"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -241,7 +241,7 @@ class TestExportAccuracy:
                 }
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in typed_responses
             ]
 
@@ -258,18 +258,18 @@ class TestExportAccuracy:
             assert isinstance(response_data["metadata"]["message_count"], int)
             assert isinstance(response_data["demographics"]["enabled"], bool)
 
-    def test_export_empty_responses(self, authenticated_session, mock_db, sample_form):
+    def test_export_empty_responses(self, authenticated_session, mock_firestore_client, sample_form):
         """Test export behavior with no responses"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
             # Mock empty responses
-            mock_db.collection.return_value.where.return_value.stream.return_value = []
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = []
 
             # Test CSV export
             csv_response = authenticated_session.get("/api/export/test_form_123/csv")
@@ -287,14 +287,14 @@ class TestExportAccuracy:
             assert json_data["responses"] == []
 
     def test_export_partial_responses_flagged(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test that partial responses are properly flagged in exports"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -318,7 +318,7 @@ class TestExportAccuracy:
                 },
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in mixed_responses
             ]
 
@@ -342,10 +342,10 @@ class TestExportAccuracy:
             assert partial_response["metadata"]["partial"] is True
 
     def test_export_demographics_inclusion(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test that demographics data is included in exports"""
-        with patch("app.db", mock_db):
+        with patch("app.db", mock_firestore_client):
             # Enable demographics in form
             form_with_demographics = sample_form.copy()
             form_with_demographics["demographics"] = {
@@ -354,10 +354,10 @@ class TestExportAccuracy:
                 "gender": {"enabled": True},
             }
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 form_with_demographics
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -373,7 +373,7 @@ class TestExportAccuracy:
                 }
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in responses_with_demographics
             ]
 
@@ -396,21 +396,21 @@ class TestExportAccuracy:
             assert json_data["responses"][0]["demographics"]["age"] == "25-30"
 
     def test_export_metadata_accuracy(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test export metadata accuracy and timestamps"""
-        with patch("app.db", mock_db), patch("app.datetime") as mock_datetime:
+        with patch("app.db", mock_firestore_client), patch("app.datetime") as mock_datetime:
 
             fixed_export_time = "2025-01-02T10:00:00Z"
             mock_datetime.now.return_value.isoformat.return_value = fixed_export_time
 
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
-            mock_db.collection.return_value.where.return_value.stream.return_value = []
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = []
 
             response = authenticated_session.get("/api/export/test_form_123/json")
             assert response.status_code == 200
@@ -424,14 +424,14 @@ class TestExportAccuracy:
             assert export_meta["format"] == "json"
 
     def test_export_large_dataset_performance(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test export performance with large datasets"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -448,7 +448,7 @@ class TestExportAccuracy:
                 for i in range(1000)
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda resp=resp: resp) for resp in large_responses
             ]
 
@@ -463,14 +463,14 @@ class TestExportAccuracy:
             assert (end_time - start_time) < 10.0
 
     def test_export_duplicate_detection(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test that duplicate responses are flagged in export"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
 
@@ -496,7 +496,7 @@ class TestExportAccuracy:
                 },
             ]
 
-            mock_db.collection.return_value.where.return_value.stream.return_value = [
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = [
                 Mock(to_dict=lambda: resp) for resp in duplicate_responses
             ]
 
@@ -510,17 +510,17 @@ class TestExportAccuracy:
             assert len(set(device_ids)) < len(device_ids)  # Duplicates present
 
     def test_export_file_naming_convention(
-        self, authenticated_session, mock_db, sample_form
+        self, authenticated_session, mock_firestore_client, sample_form
     ):
         """Test export file naming and content-disposition headers"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
+        with patch("app.db", mock_firestore_client):
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
                 sample_form
             )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
+            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
                 True
             )
-            mock_db.collection.return_value.where.return_value.stream.return_value = []
+            mock_firestore_client.collection.return_value.where.return_value.stream.return_value = []
 
             csv_response = authenticated_session.get("/api/export/test_form_123/csv")
             assert csv_response.status_code == 200
