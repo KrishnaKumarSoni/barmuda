@@ -4,8 +4,8 @@ Test configuration and fixtures for Bermuda test suite
 
 import json
 import os
-import tempfile
 import sys
+import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
