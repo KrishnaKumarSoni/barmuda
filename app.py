@@ -1710,6 +1710,7 @@ def update_form_status(form_id):
 def delete_form(form_id):
     """Delete a form and all its responses"""
     try:
+        from flask import session  # Explicit import to avoid F823 error
         # Verify form ownership
         form_doc = db.collection('forms').document(form_id).get()
         if not form_doc.exists:
