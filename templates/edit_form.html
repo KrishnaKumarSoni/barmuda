@@ -50,37 +50,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-bermuda-cream min-h-screen font-dm">
-    <!-- Navigation - Fixed Design -->
-    <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-8 bg-[#fef5e0]/90 backdrop-blur-sm">
-        <div class="bg-white rounded-[100px] border border-[#fff0cf] px-6 py-3">
-        <div class="flex items-center gap-[72px]">
-            <!-- Logo Section -->
-            <div class="flex items-center gap-3">
-                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
-                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
-                    Bermuda forms
-                </h1>
-            </div>
-            
-            <!-- Navigation Links -->
-            <div class="flex items-center gap-6 font-['Plus_Jakarta_Sans'] font-medium text-[14px] text-black tracking-[-0.14px]">
-                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
-                <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
-            </div>
-            
-            <!-- Sign Out -->
-            <div class="flex items-center">
-                <button onclick="signOut()" class="w-8 h-8 text-[#666] hover:text-[#cc5500] transition-colors">
-                    <i class="ph ph-sign-out text-2xl"></i>
-                </button>
-            </div>
-        </div>
-        </div>
-    </nav>
+    {% set nav_type = 'edit_form' %}
+    {% include 'partials/nav.html' %}
 
     <!-- Main Content -->
-    <div class="max-w-4xl mx-auto px-8 pt-24 pb-12">
+    <div class="max-w-4xl mx-auto px-8 pt-24 md:pt-28 pb-12">
         <!-- Go Back -->
         <div class="flex items-center gap-2 mb-8">
             <button onclick="goBack()" class="flex items-center gap-2 text-bermuda-light-gray hover:text-bermuda-orange transition-colors">
@@ -133,6 +107,13 @@
                     class="w-10 h-6"
                 >
                     <img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">
+                </button>
+            </div>
+            
+            <!-- Enable All Button -->
+            <div id="enableAllContainer" class="mb-4 hidden">
+                <button onclick="toggleAllDemographics()" id="enableAllBtn" class="bg-bermuda-orange text-white px-4 py-2 rounded-lg font-dm text-sm">
+                    Enable All
                 </button>
             </div>
             
@@ -470,6 +451,8 @@
                 
                 grid.appendChild(optionDiv);
             });
+            
+            updateEnableAllButton();
         }
 
         // Question manipulation functions
@@ -538,13 +521,16 @@
         // Demographics functions
         function toggleDemographics() {
             const grid = document.getElementById('demographicsGrid');
+            const enableAllContainer = document.getElementById('enableAllContainer');
             const toggle = document.getElementById('demographicsToggle');
             
             if (grid.classList.contains('hidden')) {
                 grid.classList.remove('hidden');
+                enableAllContainer.classList.remove('hidden');
                 toggle.innerHTML = '<img src="/static/d595dca8967d730147a1e3cdfbb85834e2cd745e.svg" alt="Toggle" class="w-full h-full">';
             } else {
                 grid.classList.add('hidden');
+                enableAllContainer.classList.add('hidden');
                 toggle.innerHTML = '<img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">';
             }
         }
@@ -556,6 +542,36 @@
             
             formData.demographics[option] = !formData.demographics[option];
             renderDemographics();
+            updateEnableAllButton();
+        }
+
+        function toggleAllDemographics() {
+            if (!formData.demographics) formData.demographics = {};
+            
+            const allEnabled = demographicsOptions.every(opt => 
+                formData.demographics[opt.toLowerCase()]
+            );
+            
+            demographicsOptions.forEach(opt => {
+                formData.demographics[opt.toLowerCase()] = !allEnabled;
+            });
+            
+            renderDemographics();
+            updateEnableAllButton();
+        }
+
+        function updateEnableAllButton() {
+            const btn = document.getElementById('enableAllBtn');
+            if (!formData.demographics) {
+                btn.textContent = 'Enable All';
+                return;
+            }
+            
+            const allEnabled = demographicsOptions.every(opt => 
+                formData.demographics[opt.toLowerCase()]
+            );
+            
+            btn.textContent = allEnabled ? 'Disable All' : 'Enable All';
         }
 
         // Form validation

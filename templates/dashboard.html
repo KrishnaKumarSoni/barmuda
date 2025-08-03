@@ -27,34 +27,8 @@
     
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen">
-        <!-- Navigation - Fixed Design -->
-        <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 md:pt-8 bg-[#fff5e0]/90 backdrop-blur-sm">
-            <div class="bg-white rounded-[100px] border border-[#fff0cf] px-4 md:px-6 py-3">
-                <div class="flex items-center gap-8 md:gap-[72px]">
-                    <!-- Logo Section -->
-                    <div class="flex items-center gap-3">
-                        <div class="bg-center bg-cover bg-no-repeat h-8 md:h-11 w-[24px] md:w-[30px]"
-                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                        <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg md:text-[24px] text-[#cc5500] tracking-[-0.24px]">
-                            Bermuda forms
-                        </h1>
-                    </div>
-                    
-                    <!-- Navigation Links -->
-                    <div class="flex items-center gap-4 md:gap-6 font-['Plus_Jakarta_Sans'] font-medium text-sm md:text-[14px] text-black tracking-[-0.14px]">
-                        <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
-                        <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
-                    </div>
-                    
-                    <!-- Sign Out -->
-                    <div class="flex items-center">
-                        <button onclick="signOut()" class="w-6 md:w-8 h-6 md:h-8 text-[#666] hover:text-[#cc5500] transition-colors">
-                            <i class="ph ph-sign-out text-xl md:text-2xl"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        {% set nav_type = 'dashboard' %}
+        {% include 'partials/nav.html' %}
 
         <!-- Main Content -->
         <div class="max-w-7xl mx-auto px-4 md:px-8 pt-20 md:pt-24 pb-8">

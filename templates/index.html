@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bermuda - Conversational Forms</title>
+    <title>Bermuda - Conversational Surveys</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,7 +45,7 @@
             <!-- Tags -->
             <div class="flex gap-2 flex-wrap justify-center">
                 <div class="border border-[#e3d1c3] rounded-[100px] px-4 md:px-[25px] py-2 md:py-2.5">
-                    <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">text to form</p>
+                    <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">text to survey</p>
                 </div>
                 <div class="border border-[#e3d1c3] rounded-[100px] px-4 md:px-[29px] py-2 md:py-2.5">
                     <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">chat to respond</p>
@@ -55,7 +55,7 @@
             <!-- Subtitle -->
             <div class="text-center max-w-2xl">
                 <p class="font-['DM_Sans'] text-base md:text-lg lg:text-[20px] text-[#1e1e1e] tracking-[-0.2px]">
-                    make forms using ai and let people respond by chatting naturally
+                    make surveys using ai and let people respond by chatting naturally
                 </p>
             </div>
             
@@ -64,13 +64,13 @@
                 <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-xl relative">
                     <textarea 
                         class="w-full h-32 md:h-40 p-4 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base md:text-[18px] text-black placeholder-[#9ca3af]"
-                        placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
+                        placeholder="describe what kind of survey you want to generate, what are the goals of the survey, what data you want to collect"
                         id="formDescription"
                         oninput="handleUnauthenticatedInput()"></textarea>
                     <button onclick="handleUnauthenticatedGenerate()" 
                             id="unauthGenerateBtn"
                             class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-4 md:px-6 py-2 md:py-3 text-white font-['DM_Sans'] font-medium text-sm md:text-base transition-opacity flex items-center gap-2">
-                        <span id="unauthButtonText">generate form</span>
+                        <span id="unauthButtonText">generate survey</span>
                         <div id="unauthSpinner" class="hidden">
                             <div class="flex space-x-1">
                                 <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
@@ -216,7 +216,7 @@
         <div class="max-w-6xl mx-auto px-4 md:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
-                    Traditional forms are broken
+                    Traditional surveys are broken
                 </h2>
                 <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto">
                     Most surveys get abandoned. Respondents rush through checkboxes. You get biased, incomplete data.
@@ -462,7 +462,7 @@
                 
                 <!-- FAQ 2 -->
                 <div class="bg-white rounded-xl border border-[#e5e7eb] p-6">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Is this really better than traditional forms?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Is this really better than traditional surveys?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280]">Yes. Conversational forms get 3x higher completion rates because they feel personal and engaging. Without visible multiple choice options, responses are more authentic and unbiased. You also get richer qualitative data that reveals the "why" behind answers.</p>
                 </div>
                 
@@ -494,7 +494,7 @@
                 Start getting better survey data today
             </h2>
             <p class="font-['DM_Sans'] text-base md:text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-                Join researchers, marketers, and HR teams who switched from boring forms to engaging conversations.
+                Join researchers, marketers, and HR teams who switched from boring surveys to engaging conversations.
             </p>
             
             <button onclick="signInWithGoogle()" 
@@ -601,7 +601,7 @@
             }
         }
         
-        // Handle generate form attempt for unauthenticated users
+        // Handle generate survey attempt for unauthenticated users
         async function handleUnauthenticatedGenerate() {
             const input = document.getElementById('formDescription');
             const text = input.value.trim();
@@ -644,7 +644,7 @@
                     break;
                 case 'idle':
                     btn.disabled = false;
-                    text.textContent = 'generate form';
+                    text.textContent = 'generate survey';
                     spinner.classList.add('hidden');
                     break;
             }
@@ -694,17 +694,17 @@
         
         // Template data
         const templates = {
-            'customer-feedback': `Create a customer feedback form to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
+            'customer-feedback': `Create a customer feedback survey to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
             
             'employee-survey': `Create an employee engagement and satisfaction survey for our company. I want to measure workplace satisfaction, engagement levels, work-life balance, management effectiveness, career development opportunities, company culture, and identify areas where we can improve employee experience and retention.`,
             
             'market-research': `Create a market research survey to understand customer needs, preferences, and market trends in our industry. I want to gather data about target demographics, purchasing behaviors, brand awareness, competitor analysis, price sensitivity, and unmet needs in the market to guide our business strategy.`,
             
-            'event-feedback': `Create an event feedback form to gather insights from attendees about their experience. I want to collect feedback on event organization, content quality, speaker performance, venue satisfaction, networking opportunities, and suggestions for future events to improve our event planning.`,
+            'event-feedback': `Create an event feedback survey to gather insights from attendees about their experience. I want to collect feedback on event organization, content quality, speaker performance, venue satisfaction, networking opportunities, and suggestions for future events to improve our event planning.`,
             
             'user-experience': `Create a user experience survey to evaluate how people interact with our website or application. I want to understand usability issues, navigation challenges, feature usefulness, design preferences, performance concerns, and overall user satisfaction to guide our product development.`,
             
-            'course-evaluation': `Create a course evaluation form for students to provide feedback on their learning experience. I want to assess course content quality, instructor effectiveness, learning materials, difficulty level, engagement, and suggestions for improvement to enhance our educational offerings.`,
+            'course-evaluation': `Create a course evaluation survey for students to provide feedback on their learning experience. I want to assess course content quality, instructor effectiveness, learning materials, difficulty level, engagement, and suggestions for improvement to enhance our educational offerings.`,
             
             'product-launch': `Create a product launch feedback survey to gather insights about our new product introduction. I want to understand initial impressions, purchase intent, feature appeal, pricing perception, marketing effectiveness, target audience fit, and early adopter feedback to optimize our launch strategy and future product development.`,
             
@@ -712,11 +712,11 @@
             
             'brand-awareness': `Create a brand awareness and perception study to understand how our brand is viewed in the market. I want to measure brand recognition, association strength, competitive positioning, brand attributes, purchase consideration, and overall brand sentiment to guide our marketing and branding strategies.`,
             
-            'exit-interview': `Create an exit interview form for departing employees to gather honest feedback about their experience. I want to understand reasons for leaving, management feedback, workplace culture assessment, career development opportunities, compensation satisfaction, and suggestions for improvement to enhance employee retention.`,
+            'exit-interview': `Create an exit interview survey for departing employees to gather honest feedback about their experience. I want to understand reasons for leaving, management feedback, workplace culture assessment, career development opportunities, compensation satisfaction, and suggestions for improvement to enhance employee retention.`,
             
             'website-feedback': `Create a website feedback survey to evaluate our online presence and user experience. I want to gather insights about site navigation, content usefulness, visual design, loading speed, mobile experience, feature functionality, and overall satisfaction to improve our website performance.`,
             
-            'training-evaluation': `Create a training evaluation form to assess the effectiveness of our educational programs. I want to measure content relevance, instructor quality, delivery methods, engagement levels, knowledge retention, practical applicability, and overall training satisfaction to improve our learning and development initiatives.`
+            'training-evaluation': `Create a training evaluation survey to assess the effectiveness of our educational programs. I want to measure content relevance, instructor quality, delivery methods, engagement levels, knowledge retention, practical applicability, and overall training satisfaction to improve our learning and development initiatives.`
         };
 
         // Use template function
@@ -742,7 +742,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Unauthenticated landing page loaded');
             // No automatic auth check to avoid redirect loops
-            // Users will sign in manually when they click generate form or sign in button
+            // Users will sign in manually when they click generate survey or sign in button
         });
     </script>
 </body>
