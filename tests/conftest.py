@@ -24,9 +24,12 @@ fake = Faker()
 def app():
     """Create application for testing"""
     # Mock Firebase before importing app
-    with patch("firebase_admin.initialize_app"), patch(
-        "firebase_admin.credentials.Certificate"
-    ), patch("firebase_admin.firestore.client"), patch("openai.OpenAI"):
+    with (
+        patch("firebase_admin.initialize_app"),
+        patch("firebase_admin.credentials.Certificate"),
+        patch("firebase_admin.firestore.client"),
+        patch("openai.OpenAI"),
+    ):
 
         from app import app as flask_app
 

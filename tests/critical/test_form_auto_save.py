@@ -382,9 +382,11 @@ class TestFormAutoSave:
 
     def test_auto_save_timestamp_accuracy(self, authenticated_session, mock_db):
         """Test that auto-save timestamps are accurate"""
-        with patch("app.db", mock_db), patch("app.openai_client") as mock_openai, patch(
-            "app.datetime"
-        ) as mock_datetime:
+        with (
+            patch("app.db", mock_db),
+            patch("app.openai_client") as mock_openai,
+            patch("app.datetime") as mock_datetime,
+        ):
 
             fixed_time = "2025-01-01T12:00:00Z"
             mock_datetime.now.return_value.isoformat.return_value = fixed_time

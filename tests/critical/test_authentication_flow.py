@@ -20,8 +20,9 @@ class TestAuthenticationFlow:
             "name": "Test User",
         }
 
-        with patch("firebase_admin.auth.verify_id_token") as mock_verify, patch(
-            "app.db", mock_db
+        with (
+            patch("firebase_admin.auth.verify_id_token") as mock_verify,
+            patch("app.db", mock_db),
         ):
 
             mock_verify.return_value = mock_user_data
@@ -63,8 +64,9 @@ class TestAuthenticationFlow:
             "name": "New User",
         }
 
-        with patch("firebase_admin.auth.verify_id_token") as mock_verify, patch(
-            "app.db", mock_db
+        with (
+            patch("firebase_admin.auth.verify_id_token") as mock_verify,
+            patch("app.db", mock_db),
         ):
 
             mock_verify.return_value = mock_user_data
@@ -98,8 +100,9 @@ class TestAuthenticationFlow:
             "created_at": "2024-01-01T00:00:00Z",
         }
 
-        with patch("firebase_admin.auth.verify_id_token") as mock_verify, patch(
-            "app.db", mock_db
+        with (
+            patch("firebase_admin.auth.verify_id_token") as mock_verify,
+            patch("app.db", mock_db),
         ):
 
             mock_verify.return_value = mock_user_data
@@ -121,8 +124,9 @@ class TestAuthenticationFlow:
         """Test that session is properly created after authentication"""
         mock_user_data = {"uid": "user_123", "email": "test@example.com"}
 
-        with patch("firebase_admin.auth.verify_id_token") as mock_verify, patch(
-            "app.db", mock_db
+        with (
+            patch("firebase_admin.auth.verify_id_token") as mock_verify,
+            patch("app.db", mock_db),
         ):
 
             mock_verify.return_value = mock_user_data
@@ -191,8 +195,9 @@ class TestAuthenticationFlow:
         """Test the token verification endpoint"""
         mock_user_data = {"uid": "user_123", "email": "test@example.com"}
 
-        with patch("firebase_admin.auth.verify_id_token") as mock_verify, patch(
-            "app.db", mock_db
+        with (
+            patch("firebase_admin.auth.verify_id_token") as mock_verify,
+            patch("app.db", mock_db),
         ):
 
             mock_verify.return_value = mock_user_data
@@ -253,8 +258,9 @@ class TestAuthenticationFlow:
         """Test that session persists across multiple requests"""
         mock_user_data = {"uid": "user_123", "email": "test@example.com"}
 
-        with patch("firebase_admin.auth.verify_id_token") as mock_verify, patch(
-            "app.db", mock_db
+        with (
+            patch("firebase_admin.auth.verify_id_token") as mock_verify,
+            patch("app.db", mock_db),
         ):
 
             mock_verify.return_value = mock_user_data

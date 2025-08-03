@@ -16,9 +16,10 @@ class TestChatAgentEdgeCases:
         self, client, mock_db, sample_chat_session, edge_case_messages
     ):
         """Test off-topic 'bananas' redirect handling (max 3 redirects)"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -71,9 +72,10 @@ class TestChatAgentEdgeCases:
         self, client, mock_db, sample_chat_session, edge_case_messages
     ):
         """Test explicit question skipping with [SKIP] tagging"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -109,9 +111,10 @@ class TestChatAgentEdgeCases:
         self, client, mock_db, sample_chat_session, edge_case_messages
     ):
         """Test parsing multiple answers in one response"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -147,9 +150,10 @@ class TestChatAgentEdgeCases:
         self, client, mock_db, sample_chat_session, edge_case_messages
     ):
         """Test that conflicting answers prioritize latest response"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -204,9 +208,10 @@ class TestChatAgentEdgeCases:
         self, client, mock_db, sample_chat_session, edge_case_messages
     ):
         """Test follow-up prompts for vague responses"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -239,9 +244,10 @@ class TestChatAgentEdgeCases:
 
     def test_no_fit_response_acceptance(self, client, mock_db, sample_chat_session):
         """Test that no-fit responses are accepted openly"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -273,9 +279,10 @@ class TestChatAgentEdgeCases:
 
     def test_premature_ending_request(self, client, mock_db, sample_chat_session):
         """Test handling of premature ending requests"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -305,9 +312,10 @@ class TestChatAgentEdgeCases:
 
     def test_invalid_input_type_handling(self, client, mock_db, sample_chat_session):
         """Test handling of invalid input types (e.g., non-number for number question)"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -341,9 +349,10 @@ class TestChatAgentEdgeCases:
 
     def test_session_timeout_partial_save(self, client, mock_db, sample_chat_session):
         """Test that session timeout triggers partial save"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -368,9 +377,10 @@ class TestChatAgentEdgeCases:
 
     def test_message_limit_enforcement(self, client, mock_db, sample_chat_session):
         """Test 30 message limit enforcement"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -407,9 +417,10 @@ class TestChatAgentEdgeCases:
         self, client, mock_db, sample_chat_session
     ):
         """Test multi-language response handling"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent
@@ -440,9 +451,10 @@ class TestChatAgentEdgeCases:
 
     def test_agent_tool_execution(self, client, mock_db, sample_chat_session):
         """Test that agent tools are properly executed"""
-        with patch("app.db", mock_db), patch(
-            "chat_agent.ChatAgent"
-        ) as mock_agent_class:
+        with (
+            patch("app.db", mock_db),
+            patch("chat_agent.ChatAgent") as mock_agent_class,
+        ):
 
             mock_agent = Mock()
             mock_agent_class.return_value = mock_agent

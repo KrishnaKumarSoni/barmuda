@@ -32,9 +32,10 @@ class TestDataExtractionAccuracy:
             },
         }
 
-        with patch("app.db", mock_db), patch(
-            "data_extraction.extract_responses"
-        ) as mock_extract:
+        with (
+            patch("app.db", mock_db),
+            patch("data_extraction.extract_responses") as mock_extract,
+        ):
 
             mock_extract.return_value = expected_extraction
 
@@ -78,9 +79,10 @@ class TestDataExtractionAccuracy:
             {"role": "assistant", "content": "Where are you from?"},
         ]
 
-        with patch("app.db", mock_db), patch(
-            "data_extraction.extract_responses"
-        ) as mock_extract:
+        with (
+            patch("app.db", mock_db),
+            patch("data_extraction.extract_responses") as mock_extract,
+        ):
 
             mock_extract.return_value = {
                 "0": {
@@ -407,9 +409,10 @@ class TestDataExtractionAccuracy:
 
     def test_extraction_metadata_accuracy(self, client, mock_db, sample_chat_session):
         """Test that extraction preserves important metadata"""
-        with patch("app.db", mock_db), patch(
-            "data_extraction.extract_responses"
-        ) as mock_extract:
+        with (
+            patch("app.db", mock_db),
+            patch("data_extraction.extract_responses") as mock_extract,
+        ):
 
             mock_extract.return_value = {
                 "responses": {"0": {"answer": "test"}},
