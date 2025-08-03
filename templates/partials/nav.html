@@ -34,20 +34,15 @@
                         <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base text-white whitespace-nowrap">generate new form</span>
                         <i class="ph ph-plus text-white text-sm md:text-base lg:text-lg"></i>
                     </a>
-                {% elif nav_type in ['responses', 'edit_form', 'dashboard', 'create_form', 'authenticated'] %}
-                    <!-- Generate New Form Button and Sign Out -->
-                    <div class="flex items-center gap-2 md:gap-3">
-                        <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-2 sm:px-3 md:px-4 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 lg:gap-2.5 hover:opacity-90 transition-opacity">
-                            <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">generate new form</span>
-                            <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">new form</span>
-                            <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
-                        </a>
-                        <button onclick="signOut()" class="w-6 md:w-8 h-6 md:h-8 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center">
-                            <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
-                        </button>
-                    </div>
+                {% elif nav_type == 'responses' %}
+                    <!-- Generate New Form Button -->
+                    <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-2 sm:px-3 md:px-4 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 lg:gap-2.5 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">generate new form</span>
+                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">new form</span>
+                        <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
+                    </a>
                 {% else %}
-                    <!-- Sign Out Button only (fallback) -->
+                    <!-- Sign Out Button -->
                     <button onclick="signOut()" class="w-6 md:w-8 h-6 md:h-8 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center">
                         <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
                     </button>
