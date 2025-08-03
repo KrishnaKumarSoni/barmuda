@@ -42,16 +42,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for form in forms %}
                 <!-- Survey Card -->
-                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[260px] relative hover:shadow-lg transition-all duration-300 {{ 'opacity-90' if not form.active else '' }}" data-form-id="{{ form.form_id }}">
-                    <!-- Survey Status Badge -->
-                    {% if not form.active %}
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">Draft</span>
-                    </div>
-                    {% endif %}
-                    
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[228px] relative hover:shadow-lg transition-all duration-300" data-form-id="{{ form.form_id }}">
                     <!-- Survey Title -->
-                    <div class="mb-4 {{ 'pr-16' if not form.active else '' }}">
+                    <div class="mb-4">
                         <h3 class="font-['DM_Sans'] font-semibold text-[20px] md:text-[24px] text-black tracking-[-0.24px] leading-tight line-clamp-2">
                             {{ form.title }}
                         </h3>
@@ -75,47 +68,26 @@
                         <div class="flex justify-between items-center">
                             <!-- Action Icons -->
                             <div class="flex gap-3">
-                                {% if form.active %}
-                                    <!-- Active Survey Actions - All Icons -->
-                                    <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit survey">
-                                        <i class="ph ph-pencil-line text-xl"></i>
-                                    </button>
-                                    <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete survey">
-                                        <i class="ph ph-trash text-xl"></i>
-                                    </button>
-                                    <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test survey">
-                                        <i class="ph ph-play text-xl"></i>
-                                    </button>
-                                    <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share survey">
-                                        <i class="ph ph-share text-xl"></i>
-                                    </button>
-                                    <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
-                                        <i class="ph ph-chart-bar text-xl"></i>
-                                    </button>
-                                {% else %}
-                                    <!-- Inactive Survey Actions - All Icons Plus Continue Button -->
-                                    <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit survey">
-                                        <i class="ph ph-pencil-line text-xl"></i>
-                                    </button>
-                                    <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete draft">
-                                        <i class="ph ph-trash text-xl"></i>
-                                    </button>
-                                    <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test survey">
-                                        <i class="ph ph-play text-xl"></i>
-                                    </button>
-                                    <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share survey">
-                                        <i class="ph ph-share text-xl"></i>
-                                    </button>
-                                    <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
-                                        <i class="ph ph-chart-bar text-xl"></i>
-                                    </button>
-                                {% endif %}
+                                <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit form">
+                                    <i class="ph ph-pencil-line text-xl"></i>
+                                </button>
+                                <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete form">
+                                    <i class="ph ph-trash text-xl"></i>
+                                </button>
+                                <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test form">
+                                    <i class="ph ph-play text-xl"></i>
+                                </button>
+                                <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
+                                    <i class="ph ph-share text-xl"></i>
+                                </button>
+                                <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
+                                    <i class="ph ph-chart-bar text-xl"></i>
+                                </button>
                             </div>
                             
-                            <!-- Status Toggle - For Active Surveys -->
-                            {% if form.active %}
-                            <div class="flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 {{ 'bg-[#fff5e0] border border-[#e4b65b]' if form.status == 'active' else 'bg-[#f8f8f8] border border-[#b8b8b8]' }}" onclick="toggleFormStatus('{{ form.form_id }}', '{{ form.status or 'active' }}')">
-                                {% if form.status == 'active' %}
+                            <!-- Status Toggle -->
+                            <div class="flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 {{ 'bg-[#fff5e0] border border-[#e4b65b]' if form.active else 'bg-[#f8f8f8] border border-[#b8b8b8]' }}" onclick="toggleFormStatus('{{ form.form_id }}', '{{ 'active' if form.active else 'inactive' }}')">
+                                {% if form.active %}
                                     <!-- Active State: "on" text left, orange circle right -->
                                     <span class="font-['DM_Sans'] font-medium text-[14px] text-[#e4b65b] tracking-[-0.14px]">on</span>
                                     <div class="w-4 h-4 bg-[#e4b65b] rounded-full"></div>
@@ -125,7 +97,6 @@
                                     <span class="font-['DM_Sans'] font-medium text-[14px] text-[#b8b8b8] tracking-[-0.14px]">off</span>
                                 {% endif %}
                             </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
