@@ -5,17 +5,41 @@ Test configuration and fixtures for Bermuda test suite
 import json
 import os
 import tempfile
+import sys
 from unittest.mock import Mock, patch
 
 import pytest
 from faker import Faker
 from flask import Flask
 
-# Set test environment
+# Set test environment BEFORE any imports
 os.environ["TESTING"] = "true"
 os.environ["FLASK_SECRET_KEY"] = "test-secret-key"
 os.environ["OPENAI_API_KEY"] = "test-openai-key"
 os.environ["FIREBASE_PROJECT_ID"] = "test-project"
+
+# Apply global Firebase mocks BEFORE app import
+firebase_mock_patcher = patch("firebase_admin.initialize_app")
+firestore_mock_patcher = patch("firebase_admin.firestore.client")
+credentials_mock_patcher = patch("firebase_admin.credentials.Certificate")
+openai_mock_patcher = patch("openai.OpenAI")
+
+# Start the global mocks
+firebase_mock_patcher.start()
+credentials_mock_patcher.start()
+
+# Mock firestore client to return our mock
+mock_firestore_instance = Mock()
+firestore_mock_patcher.start()
+firestore_mock_patcher.return_value = mock_firestore_instance
+
+# Mock OpenAI
+mock_openai_instance = Mock()
+mock_openai_instance.chat.completions.create.return_value = Mock(
+    choices=[Mock(message=Mock(content='{"test": "response"}'))]
+)
+openai_mock_patcher.start()
+openai_mock_patcher.return_value = mock_openai_instance
 
 fake = Faker()
 
@@ -23,36 +47,14 @@ fake = Faker()
 @pytest.fixture(scope="session")
 def app():
     """Create application for testing"""
-    # Set up test environment before importing app
-    os.environ["TESTING"] = "true"
-    os.environ["FLASK_SECRET_KEY"] = "test-secret-key"
-    os.environ["OPENAI_API_KEY"] = "test-openai-key"
-    os.environ["FIREBASE_PROJECT_ID"] = "test-project"
+    # Import app after global mocks are applied
+    from app import app as flask_app
 
-    # Mock only external service calls, not the entire SDKs
-    with (
-        patch("firebase_admin.initialize_app") as mock_init,
-        patch("firebase_admin.credentials.Certificate") as mock_cert,
-        patch("openai.OpenAI") as mock_openai_class,
-    ):
-        # Configure mocks to return reasonable defaults
-        mock_init.return_value = None
-        mock_cert.return_value = Mock()
+    flask_app.config["TESTING"] = True
+    flask_app.config["WTF_CSRF_ENABLED"] = False
+    flask_app.config["SECRET_KEY"] = "test-secret-key"
 
-        # Create a mock OpenAI client that returns predictable responses
-        mock_openai = Mock()
-        mock_openai.chat.completions.create.return_value = Mock(
-            choices=[Mock(message=Mock(content='{"test": "response"}'))]
-        )
-        mock_openai_class.return_value = mock_openai
-
-        from app import app as flask_app
-
-        flask_app.config["TESTING"] = True
-        flask_app.config["WTF_CSRF_ENABLED"] = False
-        flask_app.config["SECRET_KEY"] = "test-secret-key"
-
-        return flask_app
+    return flask_app
 
 
 @pytest.fixture
@@ -122,6 +124,15 @@ def mock_firestore_client(mock_firestore_data):
             return MockCollection(self.data_store, collection_name)
 
     return MockFirestore(mock_firestore_data)
+
+
+# Cleanup function for global mocks
+def pytest_sessionfinish(session, exitstatus):
+    """Clean up global mocks after test session"""
+    firebase_mock_patcher.stop()
+    firestore_mock_patcher.stop()
+    credentials_mock_patcher.stop()
+    openai_mock_patcher.stop()
 
 
 @pytest.fixture
