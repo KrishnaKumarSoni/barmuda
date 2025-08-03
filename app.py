@@ -1387,18 +1387,18 @@ def get_chat_status(session_id):
     """Get chat session status"""
     try:
         from chat_agent_v2 import load_session
-        session = load_session(session_id)
+        chat_session = load_session(session_id)
         
-        total_questions = len([q for q in session.form_data.get('questions', []) if q.get('enabled', True)])
-        answered_questions = len([r for r in session.responses.values() if r.get('value') != '[SKIP]'])
+        total_questions = len([q for q in chat_session.form_data.get('questions', []) if q.get('enabled', True)])
+        answered_questions = len([r for r in chat_session.responses.values() if r.get('value') != '[SKIP]'])
         
         # Debug logging
         print(f"Progress Debug - Session: {session_id}")
         print(f"  Total questions: {total_questions}")
-        print(f"  Responses count: {len(session.responses)}")
+        print(f"  Responses count: {len(chat_session.responses)}")
         print(f"  Answered questions: {answered_questions}")
-        print(f"  Current question index: {session.current_question_index}")
-        print(f"  Session responses: {session.responses}")
+        print(f"  Current question index: {chat_session.current_question_index}")
+        print(f"  Session responses: {chat_session.responses}")
         
         progress_percentage = int((answered_questions / max(total_questions, 1)) * 100)
         print(f"  Calculated progress: {progress_percentage}%")
@@ -1406,14 +1406,14 @@ def get_chat_status(session_id):
         return jsonify({
             'session_id': session_id,
             'progress': {
-                'current_question': session.current_question_index,
+                'current_question': chat_session.current_question_index,
                 'total_questions': total_questions,
                 'answered_questions': answered_questions,
                 'percentage': progress_percentage,
-                'responses_debug': session.responses  # Debug info
+                'responses_debug': chat_session.responses  # Debug info
             },
-            'metadata': session.metadata,
-            'ended': session.metadata.get('ended', False)
+            'metadata': chat_session.metadata,
+            'ended': chat_session.metadata.get('ended', False)
         })
         
     except Exception as e:
