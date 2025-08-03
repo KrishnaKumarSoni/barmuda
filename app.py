@@ -1692,9 +1692,10 @@ def update_form_status(form_id):
         if form_data.get('creator_id') != session.get('user_id'):
             return jsonify({'error': 'Unauthorized'}), 403
         
-        # Update status
+        # Update active status (convert string to boolean)
+        is_active = new_status == 'active'
         db.collection('forms').document(form_id).update({
-            'status': new_status,
+            'active': is_active,
             'updated_at': datetime.now().isoformat()
         })
         
