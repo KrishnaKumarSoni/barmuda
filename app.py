@@ -1171,6 +1171,13 @@ def form_response_page(form_id):
                                  error_message="This form doesn't exist or has been removed."), 404
         
         form_data = form_doc.to_dict()
+        
+        # Check if form is active - CRITICAL: Only active forms can receive responses
+        if not form_data.get('active', False):
+            return render_template('error.html',
+                                 error_title="Survey Not Available", 
+                                 error_message="This survey is currently paused and not accepting responses."), 403
+        
         return render_template('chat.html', 
                              form_id=form_id,
                              form_title=form_data.get('title', 'Survey'),
@@ -1193,6 +1200,22 @@ def start_chat_session():
         
         if not form_id:
             return jsonify({'error': 'form_id is required'}), 400
+        
+        # CRITICAL: Verify form exists and is active before allowing responses
+        try:
+            form_doc = db.collection('forms').document(form_id).get()
+            if not form_doc.exists:
+                return jsonify({'error': 'Form not found'}), 404
+            
+            form_data = form_doc.to_dict()
+            if not form_data.get('active', False):
+                return jsonify({
+                    'error': 'Survey not available',
+                    'message': 'This survey is currently paused and not accepting responses.'
+                }), 403
+        except Exception as e:
+            logger.error(f"Error validating form {form_id}: {str(e)}")
+            return jsonify({'error': 'Error validating form'}), 500
         
         # Check for existing session by device_id + form_id
         existing_session = None

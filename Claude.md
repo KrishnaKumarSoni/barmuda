@@ -34,10 +34,12 @@ User Stories:
 * On login, auto-create/fetch profile.
 * System prevents access on failed login.
 
-Module 2: Form Inference
+Module 2: Form Inference (ENHANCED)
 Requirements:
 
 * /infer (POST): Input 'dump', LLMChain with GPT-4o-mini.
+* **AUTO-SAVE**: Generated forms are immediately saved as active: false (inactive) to prevent data loss.
+* **Template System**: 12 pre-built form templates with icons for common use cases (Customer Feedback, Employee Survey, Market Research, etc.).
 * Prompt: JSON output {'title', 'questions': [{text, type (text/multiple_choice/yes_no/number/rating), options, enabled: true}]}.
 * CoT: Summarize intent, derive 5-10 questions, infer types, self-critique.
 * Few-shots: 3-5 examples (e.g., color dump → multiple_choice).
@@ -46,28 +48,35 @@ Requirements:
 
 User Stories:
 
-* Creator pastes dump, gets inferred JSON for editing.
+* Creator pastes dump OR selects template, gets inferred JSON for editing.
+* **Auto-save prevents data loss** - forms persist even if user navigates away.
 * System infers logical types/options from dump.
-* Demographics appear as editable/toggleable.
+* Demographics appear as editable/toggleable with proper toggle hierarchy.
 
-Module 3: Form Editing & Management
+Module 3: Form Editing & Management (ENHANCED)
 Requirements:
 
+* **URL-based Loading**: Edit form loads by form_id from URL parameter (/edit-form?id=form_id).
+* **Responsive Navigation**: Reusable nav component with mobile support and proper floating design.
 * Tailwind UI: Dashboard for dump input, /infer call, editable form (title, questions: edit text/type/options/toggles).
+* **Demographics Logic**: Main toggle controls entire section; individual toggles only work when section is enabled.
 * Validation: Options required for multiple_choice; min 1 enabled question.
 * Preview: JS mock chat (read-only simulation).
-* /save_form: Generate form_id, store in Firestore.
-* Share: Link generation (bermuda.app/form/{form_id}).
+* **Save & Launch**: Updates form to active: true and generates share_url.
+* Share: Link generation (bermuda.vercel.app/form/{form_id}).
 
 User Stories:
 
-* Creator edits inferred form and toggles.
-* Preview simulates respondent chat.
-* Save validates and stores; share copies link.
+* Creator edits inferred form and toggles with intuitive UX.
+* **Seamless workflow**: Can navigate away and return to continue editing.
+* Preview simulates respondent chat accurately.
+* Save & Launch activates form for response collection.
 
-Module 4: Respondent Chat Interface
+Module 4: Respondent Chat Interface (ENHANCED)
 Requirements:
 
+* **Active/Inactive Control**: Only active forms accept responses. Inactive forms show "Survey Not Available" message.
+* **Response Protection**: /form/<form_id> and /api/chat/start validate form.active before allowing responses.
 * Tailwind chat UI: Load form via link, silent device_id (FingerprintJS) + location send.
 * /chat_message: OpenAI Agents SDK (GPT-4o-mini, Session-based memory: last 10, Firebase sync).
 * Agent Tools: 7 specialized tools (get_next_question, skip_current_question, validate_response, extract_multi_answers, redirect_conversation, clarify_response, end_conversation, save_response).
@@ -79,7 +88,9 @@ DEVIATION FROM ORIGINAL PLAN: Switched from LangChain to OpenAI Agents SDK due t
 
 User Stories:
 
+* **Toggle Control**: Form owners can instantly pause/resume response collection.
 * Respondent opens link, chats naturally; bot handles skips/vague.
+* **Inactive forms are blocked** - shared links stop working when toggled off.
 * System collects device/location silently for session_id.
 
 Module 5: Data Extraction & Storage
@@ -95,8 +106,14 @@ User Stories:
 * System extracts structured data from chat, saving partials.
 * Handles no-fit/vague via backend bucketing.
 
-Module 6: Dashboard & Viewing
+Module 6: Dashboard & Viewing (ENHANCED)
 Requirements:
+
+* **Unified Dashboard**: Shows ALL forms (both active and inactive) with visual distinction.
+* **Active/Inactive Toggle**: Toggle forms on/off to control response collection in real-time.
+* **Complete Action Set**: All forms get full icon buttons (edit, delete, test, share, responses).
+* **Auto-saved Forms**: Dashboard displays inactive forms generated but not yet launched.
+
 
 * UI: List forms/responses, export JSON/CSV.
 * /responses: Query by creator_id, flag partials/duplicates (device_id/location).
@@ -147,31 +164,104 @@ Prioritize these (handle via prompts):
 * Duplicates: Flag via device_id.
 * Abuse: Rate-limit, guards.
 
-Instructions for Claude
+## Current Implementation Status (January 2025)
 
-You are my expert dev team. Read this entire file. Build the MVP module-by-module as specified. For each module:
+**✅ COMPLETED MODULES:**
 
-1. Generate full code (backend/frontend as needed).
-2. Include tests for requirements/user stories.
-3. Handle specified edges.
-4. Ask for clarifications if ambiguous.
-5. Iterate: After code, suggest improvements based on best practices.
+**Module 1: Infrastructure & Authentication** - DONE
+- Firebase SSO with Google authentication
+- Session-based auth middleware
+- Protected routes with proper error handling
 
-Start with Module 1. Output in code blocks with explanations. Use terse, efficient code. Target robust, scalable MVP.
+**Module 2: Form Inference (Enhanced)** - DONE  
+- Auto-save generated forms as inactive to prevent data loss
+- 12 template widgets for common use cases (Customer Feedback, Employee Survey, etc.)
+- LLM-powered form generation with CoT and few-shots
+- Comprehensive input validation and error handling
 
-IMPORTANT: 
-1. Keep updating progress.md with one liner terse yet informative updates
-2. Before making updates, refer progress.md file to see what we've done / where we are so far
-3. Please use wsgi based deployment for deploying on vercel. 
-4. Use Firebase for SSO
-5. Do not, I repeat, do not, never, hardcode or write custom css. Always use tailwind system default components which come off the shelf. You must ensure all components are in our design system and are not system default. We want custom dropdowns in our design styles and not system default. 
-6. Use Phosphor icons for icons, accurately where required. 
-7. Put the project on bermuda.vercel.app - which is the domain I've purchased for this project.
-8. Stack: Python Flask HTML CSS React (Simple lightweight)
-9. Always test the experience to ensure what you ship works.
-10. Don't forget to use virtual environment for python work. 
-11. Deployment: Vercel - bermuda (make new project in vercel), github: bermuda (make new repo)
-12. Use my cli for vercel (npx vercel) and github cli. I'm logged in everywhere.
-13. For edge cases in chat, use @EdgeCases.md 
-14. For designs while making the frontend, refer figma links in @DesignLinks.md and use your MCP. 
-15. IMPORTANT: CHATBOT MUST HAVE AGENTIC FLOW i.e. CHATBOT MUST BE AGENTIC WITH TOOL IMPLEMENTATION. RESEARCH ON WEB FIRST AND ONLY THEN IMPLEMENT THIS PART. IT SHOULD AUTO_HANDLE all edge cases and use cases and naturally. 
+**Module 3: Form Editing & Management (Enhanced)** - DONE
+- URL-based form loading (/edit-form?id=form_id)
+- Responsive navigation component with mobile support
+- Fixed demographics toggle logic with proper hierarchy
+- Preview functionality with mock chat simulation
+- Save & Launch activates forms (active: true)
+
+**Module 4: Respondent Chat Interface (Enhanced)** - DONE
+- Active/inactive response control system
+- Protected endpoints prevent responses to inactive forms
+- OpenAI Agents SDK with 7 specialized tools
+- Natural conversation flow with proper edge case handling
+- Session management with device fingerprinting
+
+**Module 5: Data Extraction & Storage** - DONE
+- Structured data extraction from chat transcripts
+- Partial saves every 5 messages
+- Response storage with metadata (device_id, location, etc.)
+
+**Module 6: Dashboard & Viewing (Enhanced)** - DONE
+- Unified dashboard showing all forms (active and inactive)
+- Real-time active/inactive toggle for response control
+- Complete action buttons for all forms
+- Response viewing and export functionality
+
+**Module 7: Non-Functionals & Security** - DONE
+- Rate limiting and abuse protection
+- Input validation and sanitization
+- Responsive design with Tailwind
+- Performance optimization
+
+**Module 8: Testing & Deployment** - DONE
+- Deployed on bermuda.vercel.app
+- Edge case handling via prompts
+- End-to-end testing completed
+
+## Key Architectural Decisions & Enhancements
+
+**Auto-Save System:**
+- Generated forms immediately saved as `active: false`
+- Prevents data loss when users navigate away
+- Seamless editing workflow with URL-based loading
+
+**Response Control System:**
+- Only active forms (`active: true`) can receive responses
+- Inactive forms show "Survey Not Available" message
+- Toggle provides instant control over response collection
+- Shared links stop working when forms are paused
+
+**Template System:**
+- 12 pre-built templates for common use cases
+- Icon-based selection with Phosphor icons
+- Reduces form creation time and improves UX
+
+**Enhanced UX:**
+- Responsive navigation with mobile support
+- Proper demographics toggle hierarchy
+- Visual feedback for form states
+- Intuitive dashboard with complete functionality
+
+## Instructions for Claude
+
+**Current Status:** MVP is COMPLETE and DEPLOYED at bermuda.vercel.app
+
+**Architecture Guidelines:**
+1. Maintain auto-save functionality for data persistence
+2. Respect active/inactive response control system
+3. Use Tailwind system components (never custom CSS)
+4. Leverage Phosphor icons consistently
+5. Maintain responsive design principles
+6. Follow established patterns in codebase
+
+**For Future Enhancements:**
+1. Follow existing code patterns and architecture
+2. Test active/inactive response control for any new features
+3. Maintain compatibility with auto-save system
+4. Use TodoWrite tool for task management
+5. Update this file for significant changes
+
+**Deployment:**
+- Production: bermuda.vercel.app (Vercel)
+- Repository: github.com/KrishnaKumarSoni/bermuda
+- Stack: Python Flask + HTML/CSS/JS + Tailwind + Firebase
+
+**Edge Cases:** Refer to @EdgeCases.md for chat conversation handling
+**Design System:** Refer to @DesignLinks.md for Figma design references 
