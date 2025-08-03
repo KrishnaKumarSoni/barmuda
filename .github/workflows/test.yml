@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -63,7 +63,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -107,7 +107,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       
       - name: Set up Node.js for Firebase emulator
         uses: actions/setup-node@v3
@@ -155,7 +155,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       
       - name: Install dependencies
         run: |
@@ -179,7 +179,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       
       - name: Install dependencies
         run: |
