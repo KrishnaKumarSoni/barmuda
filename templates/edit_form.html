@@ -431,6 +431,15 @@
         // Render demographics
         function renderDemographics() {
             const grid = document.getElementById('demographicsGrid');
+            const enableAllContainer = document.getElementById('enableAllContainer');
+            
+            // Show/hide enable all button based on section visibility
+            if (grid.classList.contains('hidden')) {
+                enableAllContainer.classList.add('hidden');
+                return; // Don't render items when hidden
+            }
+            
+            enableAllContainer.classList.remove('hidden');
             grid.innerHTML = '';
             
             demographicsOptions.forEach(option => {
@@ -521,18 +530,25 @@
         // Demographics functions
         function toggleDemographics() {
             const grid = document.getElementById('demographicsGrid');
-            const enableAllContainer = document.getElementById('enableAllContainer');
             const toggle = document.getElementById('demographicsToggle');
             
             if (grid.classList.contains('hidden')) {
+                // Show demographics section
                 grid.classList.remove('hidden');
-                enableAllContainer.classList.remove('hidden');
                 toggle.innerHTML = '<img src="/static/d595dca8967d730147a1e3cdfbb85834e2cd745e.svg" alt="Toggle" class="w-full h-full">';
             } else {
+                // Hide demographics section and disable all demographics
                 grid.classList.add('hidden');
-                enableAllContainer.classList.add('hidden');
                 toggle.innerHTML = '<img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">';
+                
+                // Disable all demographics when hiding section
+                if (!formData.demographics) formData.demographics = {};
+                demographicsOptions.forEach(opt => {
+                    formData.demographics[opt.toLowerCase()] = false;
+                });
             }
+            
+            renderDemographics();
         }
 
         function toggleDemographic(option) {

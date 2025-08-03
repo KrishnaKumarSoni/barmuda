@@ -44,19 +44,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
-<body class="bg-[#fff5e0] relative h-screen overflow-hidden font-['DM_Sans']">
+<body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
     <!-- Fixed Background Image for entire page -->
     <div class="fixed inset-0 bg-center bg-cover bg-no-repeat mix-blend-darken opacity-[0.45] z-30 pointer-events-none" 
          style="background-image: url('/static/assets/6ed3024a2fff91aed8a00c64f89e14a3b85a5d96.png');">
     </div>
 
     <!-- Main Container -->
-    <div class="relative z-10 h-full flex flex-col">
+    <div class="relative z-10 min-h-screen flex flex-col">
         {% set nav_type = 'create_form' %}
         {% include 'partials/nav.html' %}
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-6 md:space-y-8 lg:space-y-10 pt-24 md:pt-28 pb-12 md:pb-16 min-h-screen overflow-y-auto">
+        <div class="flex-1 flex flex-col items-center px-4 md:px-8 space-y-6 md:space-y-8 lg:space-y-10 pt-24 md:pt-28 pb-8 md:pb-12">
             <!-- Main Heading -->
             <div class="text-center">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#1e1e1e] text-center max-w-2xl leading-tight tracking-tight">
@@ -244,7 +244,7 @@
         </div>
         
         <!-- Bottom Description -->
-        <div class="flex-shrink-0 text-center px-4 md:px-8 pb-4 md:pb-8">
+        <div class="text-center px-4 md:px-8 py-8 md:py-12 lg:py-16">
             <div class="max-w-4xl mx-auto">
                 <p class="font-['DM_Sans'] text-sm md:text-base lg:text-lg xl:text-xl text-black leading-relaxed">
                     Transform boring surveys into engaging conversations that people actually want to complete. 
