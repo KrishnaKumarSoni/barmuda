@@ -265,3 +265,5 @@ Prioritize these (handle via prompts):
 
 **Edge Cases:** Refer to @EdgeCases.md for chat conversation handling
 **Design System:** Refer to @DesignLinks.md for Figma design references 
+
+* Memorise this please as a backlog item
