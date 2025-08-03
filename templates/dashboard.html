@@ -76,9 +76,12 @@
                             <!-- Action Icons -->
                             <div class="flex gap-3">
                                 {% if form.active %}
-                                    <!-- Active Survey Actions -->
+                                    <!-- Active Survey Actions - All Icons -->
                                     <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit survey">
                                         <i class="ph ph-pencil-line text-xl"></i>
+                                    </button>
+                                    <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete survey">
+                                        <i class="ph ph-trash text-xl"></i>
                                     </button>
                                     <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test survey">
                                         <i class="ph ph-play text-xl"></i>
@@ -89,16 +92,22 @@
                                     <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
                                         <i class="ph ph-chart-bar text-xl"></i>
                                     </button>
-                                    <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete survey">
-                                        <i class="ph ph-trash text-xl"></i>
-                                    </button>
                                 {% else %}
-                                    <!-- Inactive Survey Actions -->
-                                    <button onclick="editForm('{{ form.form_id }}')" class="px-3 py-1.5 bg-[#cc5500] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium" title="Continue editing">
-                                        Continue Editing
+                                    <!-- Inactive Survey Actions - All Icons Plus Continue Button -->
+                                    <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit survey">
+                                        <i class="ph ph-pencil-line text-xl"></i>
                                     </button>
                                     <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete draft">
                                         <i class="ph ph-trash text-xl"></i>
+                                    </button>
+                                    <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test survey">
+                                        <i class="ph ph-play text-xl"></i>
+                                    </button>
+                                    <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share survey">
+                                        <i class="ph ph-share text-xl"></i>
+                                    </button>
+                                    <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
+                                        <i class="ph ph-chart-bar text-xl"></i>
                                     </button>
                                 {% endif %}
                             </div>
