@@ -1,0 +1,111 @@
+<!-- Responsive Navigation Component -->
+<nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-4">
+    <div class="bg-white rounded-full border border-[#fff0cf] px-3 sm:px-4 md:px-6 py-2.5 md:py-3 shadow-sm max-w-full">
+        <div class="flex items-center justify-between gap-2 sm:gap-4 md:gap-8 lg:gap-12">
+            <!-- Logo Section -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="bg-center bg-cover bg-no-repeat h-6 sm:h-7 md:h-9 lg:h-11 w-[18px] sm:w-[21px] md:w-[27px] lg:w-[30px]"
+                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-sm sm:text-base md:text-lg lg:text-[24px] text-[#cc5500] tracking-[-0.24px] whitespace-nowrap">
+                    Bermuda forms
+                </h1>
+            </div>
+            
+            <!-- Navigation Links (authenticated only) -->
+            {% if nav_type in ['authenticated', 'dashboard', 'edit_form', 'create_form', 'responses'] %}
+            <div class="hidden sm:flex items-center gap-2 md:gap-4 lg:gap-6 font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm lg:text-[14px] text-black tracking-[-0.14px] flex-shrink-0">
+                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">dashboard</a>
+                <a href="/" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">home</a>
+            </div>
+            {% endif %}
+            
+            <!-- Action Section -->
+            <div class="flex items-center flex-shrink-0">
+                {% if nav_type == 'unauthenticated' %}
+                    <!-- Sign In Button -->
+                    <button onclick="signInWithGoogle()" 
+                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-2 sm:px-3 md:px-4 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
+                        <i class="ph ph-sign-in text-white text-sm md:text-lg lg:text-xl"></i>
+                    </button>
+                {% elif nav_type == 'chat' %}
+                    <!-- Generate New Form Button -->
+                    <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-2 sm:px-3 md:px-4 py-1.5 md:py-2 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base text-white whitespace-nowrap">generate new form</span>
+                        <i class="ph ph-plus text-white text-sm md:text-base lg:text-lg"></i>
+                    </a>
+                {% elif nav_type in ['responses', 'edit_form', 'dashboard', 'create_form', 'authenticated'] %}
+                    <!-- Generate New Form Button and Sign Out -->
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-2 sm:px-3 md:px-4 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 lg:gap-2.5 hover:opacity-90 transition-opacity">
+                            <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">generate new form</span>
+                            <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">new form</span>
+                            <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
+                        </a>
+                        <button onclick="signOut()" class="w-6 md:w-8 h-6 md:h-8 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center">
+                            <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
+                        </button>
+                    </div>
+                {% else %}
+                    <!-- Sign Out Button only (fallback) -->
+                    <button onclick="signOut()" class="w-6 md:w-8 h-6 md:h-8 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center">
+                        <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Menu Overlay (for navigation links on small screens) -->
+{% if nav_type in ['authenticated', 'dashboard', 'edit_form', 'create_form', 'responses'] %}
+<div id="mobile-menu" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden sm:hidden">
+    <div class="fixed top-16 left-4 right-4 bg-white rounded-2xl border border-[#fff0cf] p-4 shadow-lg">
+        <div class="flex flex-col gap-3">
+            <a href="/dashboard" class="py-2 px-3 text-center text-[#cc5500] font-['Plus_Jakarta_Sans'] font-medium hover:bg-[#fff5e0] rounded-lg transition-colors">
+                Dashboard
+            </a>
+            <a href="/" class="py-2 px-3 text-center text-[#cc5500] font-['Plus_Jakarta_Sans'] font-medium hover:bg-[#fff5e0] rounded-lg transition-colors">
+                Home
+            </a>
+            <div class="border-t border-gray-200 my-2"></div>
+            <button onclick="signOut()" class="py-2 px-3 text-center text-red-600 font-['Plus_Jakarta_Sans'] font-medium hover:bg-red-50 rounded-lg transition-colors">
+                Sign Out
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Menu Toggle (only show on authenticated pages on small screens) -->
+<button id="mobile-menu-toggle" class="fixed top-5 right-5 z-50 w-8 h-8 bg-white rounded-full border border-[#fff0cf] shadow-sm flex items-center justify-center sm:hidden">
+    <i class="ph ph-list text-[#cc5500] text-lg"></i>
+</button>
+
+<script>
+// Mobile menu toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuToggle && mobileMenu) {
+        mobileMenuToggle.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close menu when clicking outside
+        mobileMenu.addEventListener('click', function(e) {
+            if (e.target === mobileMenu) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // Close menu when clicking menu items
+        mobileMenu.querySelectorAll('a, button').forEach(item => {
+            item.addEventListener('click', function() {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    }
+});
+</script>
+{% endif %}
