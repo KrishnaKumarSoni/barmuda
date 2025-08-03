@@ -28,7 +28,7 @@ def app():
     os.environ["FLASK_SECRET_KEY"] = "test-secret-key"
     os.environ["OPENAI_API_KEY"] = "test-openai-key"
     os.environ["FIREBASE_PROJECT_ID"] = "test-project"
-    
+
     # Mock only external service calls, not the entire SDKs
     with (
         patch("firebase_admin.initialize_app") as mock_init,
@@ -38,7 +38,7 @@ def app():
         # Configure mocks to return reasonable defaults
         mock_init.return_value = None
         mock_cert.return_value = Mock()
-        
+
         # Create a mock OpenAI client that returns predictable responses
         mock_openai = Mock()
         mock_openai.chat.completions.create.return_value = Mock(
@@ -51,7 +51,7 @@ def app():
         flask_app.config["TESTING"] = True
         flask_app.config["WTF_CSRF_ENABLED"] = False
         flask_app.config["SECRET_KEY"] = "test-secret-key"
-        
+
         return flask_app
 
 
@@ -75,51 +75,52 @@ def mock_firestore_data():
 @pytest.fixture
 def mock_firestore_client(mock_firestore_data):
     """Mock Firestore client that uses in-memory data"""
+
     class MockDocument:
         def __init__(self, data_store, collection_name, doc_id):
             self.data_store = data_store
             self.collection_name = collection_name
             self.doc_id = doc_id
-        
+
         def get(self):
             doc_data = self.data_store[self.collection_name].get(self.doc_id)
             result = Mock()
             result.exists = doc_data is not None
             result.to_dict.return_value = doc_data
             return result
-        
+
         def set(self, data):
             self.data_store[self.collection_name][self.doc_id] = data
-        
+
         def update(self, data):
             if self.doc_id in self.data_store[self.collection_name]:
                 self.data_store[self.collection_name][self.doc_id].update(data)
-        
+
         def delete(self):
             if self.doc_id in self.data_store[self.collection_name]:
                 del self.data_store[self.collection_name][self.doc_id]
-    
+
     class MockCollection:
         def __init__(self, data_store, collection_name):
             self.data_store = data_store
             self.collection_name = collection_name
-        
+
         def document(self, doc_id):
             return MockDocument(self.data_store, self.collection_name, doc_id)
-        
+
         def where(self, field, op, value):
             # Simple implementation for basic queries
             result = Mock()
             result.stream.return_value = []
             return result
-    
+
     class MockFirestore:
         def __init__(self, data_store):
             self.data_store = data_store
-        
+
         def collection(self, collection_name):
             return MockCollection(self.data_store, collection_name)
-    
+
     return MockFirestore(mock_firestore_data)
 
 
