@@ -178,11 +178,9 @@ function createCustomLegend(containerId, labels, data, colors) {
                 : label;
             
             legendHtml += `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 md:w-4 md:h-4 rounded flex-shrink-0" style="background-color: ${color}"></div>
-                        <span class="font-['DM_Sans'] text-[#1e1e1e] text-xs md:text-sm">${displayLabel}</span>
-                    </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 md:w-4 md:h-4 rounded flex-shrink-0" style="background-color: ${color}"></div>
+                    <span class="font-['DM_Sans'] text-[#1e1e1e] text-xs md:text-sm flex-1">${displayLabel}</span>
                     <span class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-xs md:text-sm">${percentage}%</span>
                 </div>
             `;
