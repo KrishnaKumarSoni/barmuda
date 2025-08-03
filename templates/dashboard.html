@@ -112,7 +112,7 @@
                                 {% endif %}
                             </div>
                             
-                            <!-- Status Toggle - Only for Active Surveys -->
+                            <!-- Status Toggle - For Active Surveys -->
                             {% if form.active %}
                             <div class="flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 {{ 'bg-[#fff5e0] border border-[#e4b65b]' if form.status == 'active' else 'bg-[#f8f8f8] border border-[#b8b8b8]' }}" onclick="toggleFormStatus('{{ form.form_id }}', '{{ form.status or 'active' }}')">
                                 {% if form.status == 'active' %}
