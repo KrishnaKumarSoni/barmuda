@@ -8,8 +8,7 @@ from functools import wraps
 import firebase_admin
 from dotenv import load_dotenv
 from firebase_admin import auth, credentials, firestore
-from flask import (Flask, jsonify, redirect, render_template, request, session,
-                   url_for)
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_cors import CORS
 from openai import OpenAI
 
