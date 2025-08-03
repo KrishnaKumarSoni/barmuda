@@ -21,38 +21,11 @@
     <script src="/static/js/wordcloud-config.js"></script>
 </head>
 <body class="bg-[#fef5e0] min-h-screen">
-    <!-- Navigation - Fixed Design -->
-    <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-8">
-        <div class="bg-white rounded-[100px] border border-[#fff0cf] px-6 py-3 shadow-sm">
-        <div class="flex items-center gap-[72px]">
-            <!-- Logo Section -->
-            <div class="flex items-center gap-3">
-                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
-                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
-                    Bermuda forms
-                </h1>
-            </div>
-            
-            <!-- Navigation Links -->
-            <div class="flex items-center gap-6 font-['Plus_Jakarta_Sans'] font-medium text-[14px] text-black tracking-[-0.14px]">
-                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors">dashboard</a>
-                <a href="/" class="hover:text-[#cc5500] transition-colors">home</a>
-            </div>
-            
-            <!-- Action Button -->
-            <div class="flex items-center">
-                <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-                    <span class="font-['DM_Sans'] text-[18px] text-white">generate new form</span>
-                    <i class="ph ph-plus text-white text-xl"></i>
-                </a>
-            </div>
-        </div>
-        </div>
-    </nav>
+    {% set nav_type = 'responses' %}
+    {% include 'partials/nav.html' %}
 
     <!-- Go Back -->
-    <div class="max-w-6xl mx-auto pt-24 px-4 flex items-center">
+    <div class="max-w-6xl mx-auto pt-20 md:pt-24 px-4 flex items-center">
         <div class="flex items-center text-[#797878] cursor-pointer hover:text-[#cc5500] transition-colors" onclick="window.history.back()">
             <i class="ph ph-caret-left text-xl mr-2"></i>
             <span class="font-['Plus_Jakarta_Sans'] font-bold text-[16px] tracking-[-0.16px]">go back</span>
@@ -255,7 +228,7 @@
             
             questions.forEach((question, index) => {
                 const questionCard = document.createElement('div');
-                questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-4 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition-shadow';
+                questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-4 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition-shadow overflow-visible';
                 
                 const responses = data.responses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
                 const responseCount = responses.length;
@@ -276,8 +249,8 @@
                 // Create visualization container based on question type
                 if (question.type === 'text') {
                     summaryHtml += `
-                        <div class="bg-[#fef9ee] rounded-xl p-4 md:p-6 flex items-center justify-center min-h-[180px] md:min-h-[240px] overflow-visible">
-                            <div id="wordcloud-${index}" class="w-full max-w-[300px] md:max-w-[400px] h-[150px] md:h-[200px]"></div>
+                        <div class="bg-[#fef9ee] rounded-xl p-6 md:p-8 flex items-center justify-center min-h-[220px] md:min-h-[280px] overflow-visible">
+                            <div id="wordcloud-${index}" class="w-full h-[180px] md:h-[220px]"></div>
                         </div>
                     `;
                 } else {
@@ -361,7 +334,7 @@
             
             let wordsHtml = '';
             topWords.forEach((item, index) => {
-                const size = Math.max(16, Math.min(36, (item.count / maxCount) * 28 + 16));
+                const size = Math.max(14, Math.min(28, (item.count / maxCount) * 20 + 14));
                 const color = colors[index % colors.length];
                 const fontWeight = item.count > maxCount * 0.7 ? '700' : item.count > maxCount * 0.4 ? '600' : '500';
                 
@@ -369,11 +342,11 @@
                     <span style="
                         font-size: ${size}px; 
                         color: ${color}; 
-                        margin: 4px 8px;
+                        margin: 2px 4px;
                         font-family: 'DM Sans';
                         font-weight: ${fontWeight};
                         display: inline-block;
-                        line-height: 1.2;
+                        line-height: 1.1;
                         white-space: nowrap;
                     ">${item.word}</span>
                 `;
