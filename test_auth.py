@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for Bermuda MVP Module 1: Infrastructure & Authentication
+Test script for Barmuda MVP Module 1: Infrastructure & Authentication
 Tests all authentication endpoints and user flows.
 """
 
@@ -159,7 +159,7 @@ def test_home_page():
 
 def run_all_tests():
     """Run all authentication tests"""
-    print("🚀 Starting Bermuda MVP Module 1 Authentication Tests")
+    print("🚀 Starting Barmuda MVP Module 1 Authentication Tests")
     print("=" * 60)
 
     tests = [

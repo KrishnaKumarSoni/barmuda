@@ -1,6 +1,6 @@
-Bermuda MVP: Conversational Form Builder
+Barmuda MVP: Conversational Form Builder
 Project Overview
-Bermuda is a conversational alternative to Google Forms. Creators paste unstructured text "dumps" to infer forms via LLM (GPT-4o-mini). They edit/toggle elements and share links. Respondents chat with a natural, empathetic bot that collects data human-like. Backend extracts unstructured chats into structured responses. Focus on MVP: Core creation, chatting, dashboard. Leverage LLMs for robustness (prompts handle 90%+ edges). Anonymity for respondents; silent device/location collection for anti-abuse.
+Barmuda is a conversational alternative to Google Forms. Creators paste unstructured text "dumps" to infer forms via LLM (GPT-4o-mini). They edit/toggle elements and share links. Respondents chat with a natural, empathetic bot that collects data human-like. Backend extracts unstructured chats into structured responses. Focus on MVP: Core creation, chatting, dashboard. Leverage LLMs for robustness (prompts handle 90%+ edges). Anonymity for respondents; silent device/location collection for anti-abuse.
 Key Goals:
 
 * Maximize LLM use for inference, chatting, extraction (CoT, few-shots, self-critique).

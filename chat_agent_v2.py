@@ -1,5 +1,5 @@
 """
-Bermuda Chat Agent - Agentic Chatbot for Form Collection (v2)
+Barmuda Chat Agent - Agentic Chatbot for Form Collection (v2)
 Uses OpenAI Agents SDK with standalone function tools
 """
 

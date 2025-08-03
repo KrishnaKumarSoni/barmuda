@@ -1,5 +1,5 @@
 """
-Test configuration and fixtures for Bermuda test suite
+Test configuration and fixtures for Barmuda test suite
 """
 
 import json

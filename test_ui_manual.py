@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Manual UI Testing for Bermuda MVP using requests
+Manual UI Testing for Barmuda MVP using requests
 Tests UI structure and Firebase auth integration
 """
 
@@ -14,7 +14,7 @@ import requests
 BASE_URL = "https://bermuda-kappa.vercel.app"
 
 
-class BermudaManualUITester:
+class BarmudaManualUITester:
     def __init__(self):
         self.base_url = BASE_URL
         self.session = requests.Session()
@@ -40,7 +40,7 @@ class BermudaManualUITester:
 
             # Check for key UI elements
             checks = {
-                "Title": "Bermuda" in html,
+                "Title": "Barmuda" in html,
                 "Tailwind CSS": "tailwindcss.com" in html,
                 "Firebase SDK": "firebase" in html.lower(),
                 "Responsive Meta": 'name="viewport"' in html,
@@ -48,7 +48,7 @@ class BermudaManualUITester:
                     x in html for x in ["hero", "text-4xl", "text-5xl"]
                 ),
                 "CTA Button": any(x in html for x in ["Get Started", "Sign", "Login"]),
-                "Footer": "2025" in html and "Bermuda" in html,
+                "Footer": "2025" in html and "Barmuda" in html,
             }
 
             passed = sum(checks.values())
@@ -79,7 +79,7 @@ class BermudaManualUITester:
                 "API Key": "apiKey" in html,
                 "Auth Domain": "authDomain" in html,
                 "Project ID": "projectId" in html,
-                "Bermuda Project": "bermuda-01" in html,
+                "Barmuda Project": "bermuda-01" in html,
             }
 
             passed = sum(firebase_config.values())
@@ -151,7 +151,7 @@ class BermudaManualUITester:
                 error_elements = {
                     "404 Title": "not found" in html.lower(),
                     "Error Message": any(x in html for x in ["Form not found", "404"]),
-                    "Bermuda Branding": "Bermuda" in html,
+                    "Barmuda Branding": "Barmuda" in html,
                     "Styled Error": "text-" in html,  # Tailwind classes
                 }
 
@@ -406,7 +406,7 @@ class BermudaManualUITester:
 
     def run_all_tests(self):
         """Run comprehensive UI structure analysis"""
-        print(f"\n🎨 Starting Bermuda MVP UI Structure Analysis")
+        print(f"\n🎨 Starting Barmuda MVP UI Structure Analysis")
         print(f"🌐 Production URL: {self.base_url}")
         print(f"📋 Testing UI components and Figma compliance")
         print(f"⏰ Started: {datetime.now()}")
@@ -425,5 +425,5 @@ class BermudaManualUITester:
 
 
 if __name__ == "__main__":
-    tester = BermudaManualUITester()
+    tester = BarmudaManualUITester()
     tester.run_all_tests()

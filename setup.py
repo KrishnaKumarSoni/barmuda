@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup and initialization script for Bermuda MVP
+Setup and initialization script for Barmuda MVP
 Helps configure Firebase, environment variables, and project setup.
 """
 
@@ -134,7 +134,7 @@ def create_directory_structure():
 
 def run_setup():
     """Run the complete setup process"""
-    print("🚀 Setting up Bermuda MVP - Module 1")
+    print("🚀 Setting up Barmuda MVP - Module 1")
     print("=" * 50)
 
     checks = [

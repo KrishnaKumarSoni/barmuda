@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-UI Functionality Testing for Bermuda MVP
+UI Functionality Testing for Barmuda MVP
 Tests actual form creation UI and chat UI with login
 """
 
@@ -21,7 +21,7 @@ TEST_EMAIL = "bhavesh.nakliwala@gmail.com"
 TEST_PASSWORD = "123#test"
 
 
-class BermudaUITester:
+class BarmudaUITester:
     def __init__(self):
         self.base_url = BASE_URL
         self.test_results = []
@@ -63,7 +63,7 @@ class BermudaUITester:
             self.driver.get(self.base_url)
 
             # Check if page loads
-            page_loaded = "Bermuda" in self.driver.title
+            page_loaded = "Barmuda" in self.driver.title
 
             # Check for key elements
             hero_section = self.driver.find_elements(By.CLASS_NAME, "text-4xl")
@@ -211,8 +211,8 @@ class BermudaUITester:
 
             # Check for Figma-specific design elements
             design_elements = {
-                "Bermuda Branding": self.driver.find_elements(
-                    By.XPATH, "//*[contains(text(), 'Bermuda')]"
+                "Barmuda Branding": self.driver.find_elements(
+                    By.XPATH, "//*[contains(text(), 'Barmuda')]"
                 ),
                 "Orange Color Scheme": self.driver.find_elements(
                     By.XPATH, "//*[contains(@class, 'orange')]"
@@ -383,7 +383,7 @@ class BermudaUITester:
 
     def run_all_tests(self):
         """Run comprehensive UI testing"""
-        print(f"\n🎨 Starting Bermuda MVP UI Testing")
+        print(f"\n🎨 Starting Barmuda MVP UI Testing")
         print(f"🌐 Production URL: {self.base_url}")
         print(f"👤 Test User: {TEST_EMAIL}")
         print(f"⏰ Started: {datetime.now()}")
@@ -413,7 +413,7 @@ if __name__ == "__main__":
     try:
         from selenium import webdriver
 
-        tester = BermudaUITester()
+        tester = BarmudaUITester()
         tester.run_all_tests()
     except ImportError:
         print("❌ Selenium not installed. Installing...")

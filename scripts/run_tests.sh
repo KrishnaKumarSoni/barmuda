@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Bermuda Test Runner Script
+# Barmuda Test Runner Script
 # Usage: ./scripts/run_tests.sh [critical|important|all|coverage]
 
 set -e  # Exit on any error
 
-echo "🧪 Bermuda Test Suite Runner"
+echo "🧪 Barmuda Test Suite Runner"
 echo "=============================="
 
 # Colors for output

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Module 2 implements the core form inference functionality for Bermuda MVP. It uses GPT-4o-mini to convert unstructured text "dumps" into structured JSON forms with appropriate question types and options.
+Module 2 implements the core form inference functionality for Barmuda MVP. It uses GPT-4o-mini to convert unstructured text "dumps" into structured JSON forms with appropriate question types and options.
 
 ## Key Features
 

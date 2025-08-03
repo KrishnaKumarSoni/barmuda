@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive chat edge case testing for Bermuda MVP
+Comprehensive chat edge case testing for Barmuda MVP
 Tests EdgeCases.md scenarios on production deployment
 """
 
@@ -412,7 +412,7 @@ class ChatEdgeCaseTester:
 
     def run_all_tests(self):
         """Run comprehensive edge case testing"""
-        print(f"\n🎯 Starting Bermuda MVP Edge Case Testing")
+        print(f"\n🎯 Starting Barmuda MVP Edge Case Testing")
         print(f"🌐 Production URL: {self.base_url}")
         print(f"📋 Testing EdgeCases.md scenarios")
         print(f"⏰ Started: {datetime.now()}")

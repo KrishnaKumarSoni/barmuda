@@ -1,4 +1,4 @@
-# Bermuda MVP - Final Build Plan
+# Barmuda MVP - Final Build Plan
 
 ## Current Status
 - ✅ Module 1: Infrastructure & Authentication (Complete)
@@ -161,7 +161,7 @@ pip install langchain langchain-openai langgraph firebase-admin fingerprintjs-pr
 
 ## Final Deliverable
 
-A fully functional Bermuda MVP where:
+A fully functional Barmuda MVP where:
 - Creators paste text → get editable forms → share links
 - Respondents chat naturally → data collected conversationally
 - System extracts structured data → creators export responses

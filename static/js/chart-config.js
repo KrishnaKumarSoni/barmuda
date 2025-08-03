@@ -1,9 +1,9 @@
 /**
- * Chart.js Configuration for Bermuda Forms Responses
+ * Chart.js Configuration for Barmuda Forms Responses
  * Matches Figma design specifications
  */
 
-// Bermuda Design System Colors - Updated to match Figma
+// Barmuda Design System Colors - Updated to match Figma
 const BERMUDA_COLORS = {
     primary: ['#1e90ff', '#32cd32', '#ff6347', '#ffa500', '#9370db', '#20b2aa'],
     yesNo: ['#32cd32', '#333333'], // Green for Yes, Dark for No

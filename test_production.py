@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive production testing script for Bermuda MVP
+Comprehensive production testing script for Barmuda MVP
 Tests all edge cases from EdgeCases.md on deployed system
 """
 
@@ -15,7 +15,7 @@ import requests
 BASE_URL = "https://bermuda-kappa.vercel.app"
 
 
-class BermudaProductionTester:
+class BarmudaProductionTester:
     def __init__(self):
         self.base_url = BASE_URL
         self.session = requests.Session()
@@ -39,7 +39,7 @@ class BermudaProductionTester:
         """Test homepage loads correctly"""
         try:
             response = self.session.get(f"{self.base_url}/")
-            success = response.status_code == 200 and "Bermuda" in response.text
+            success = response.status_code == 200 and "Barmuda" in response.text
             self.log_test("Homepage Load", success, f"Status: {response.status_code}")
             return success
         except Exception as e:
@@ -283,7 +283,7 @@ class BermudaProductionTester:
 
     def run_all_tests(self):
         """Run comprehensive production test suite"""
-        print(f"\n🚀 Starting Bermuda MVP Production Tests")
+        print(f"\n🚀 Starting Barmuda MVP Production Tests")
         print(f"🌐 Testing URL: {self.base_url}")
         print(f"⏰ Started: {datetime.now()}")
         print("=" * 60)
@@ -362,5 +362,5 @@ class BermudaProductionTester:
 
 
 if __name__ == "__main__":
-    tester = BermudaProductionTester()
+    tester = BarmudaProductionTester()
     tester.run_all_tests()

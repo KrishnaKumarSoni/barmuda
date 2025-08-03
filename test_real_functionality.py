@@ -424,7 +424,7 @@ class RealFunctionalityTester:
 
     def run_all_tests(self):
         """Run comprehensive functionality testing"""
-        print(f"\n🚀 Starting Bermuda MVP Real Functionality Testing")
+        print(f"\n🚀 Starting Barmuda MVP Real Functionality Testing")
         print(f"🌐 Production URL: {self.base_url}")
         print(f"👤 Ready for login: bhavesh.nakliwala@gmail.com")
         print(f"📋 Testing complete form creation and chat workflow")

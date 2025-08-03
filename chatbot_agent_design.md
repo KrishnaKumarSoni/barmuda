@@ -1,7 +1,7 @@
-# Bermuda Agentic Chatbot Design
+# Barmuda Agentic Chatbot Design
 
 ## Overview
-The Bermuda chatbot is an agentic system powered by OpenAI Agents SDK and GPT-4o-mini that conducts natural, empathetic conversations to collect form responses. It uses tools to handle edge cases, maintain conversation flow, and extract structured data from unstructured chat.
+The Barmuda chatbot is an agentic system powered by OpenAI Agents SDK and GPT-4o-mini that conducts natural, empathetic conversations to collect form responses. It uses tools to handle edge cases, maintain conversation flow, and extract structured data from unstructured chat.
 
 ## Core Architecture
 

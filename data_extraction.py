@@ -1,5 +1,5 @@
 """
-Bermuda Data Extraction Chain
+Barmuda Data Extraction Chain
 LLM-powered extraction of structured responses from chat conversations
 """
 

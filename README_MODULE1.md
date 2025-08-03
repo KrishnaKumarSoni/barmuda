@@ -1,7 +1,7 @@
-# Bermuda MVP - Module 1: Infrastructure & Authentication
+# Barmuda MVP - Module 1: Infrastructure & Authentication
 
 ## Overview
-Module 1 implements the core infrastructure and authentication system for Bermuda, a conversational form builder. This module provides secure Google SSO authentication, Firebase integration, and the foundation for all subsequent modules.
+Module 1 implements the core infrastructure and authentication system for Barmuda, a conversational form builder. This module provides secure Google SSO authentication, Firebase integration, and the foundation for all subsequent modules.
 
 ## ✅ Features Implemented
 
