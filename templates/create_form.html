@@ -56,7 +56,7 @@
         {% include 'partials/nav.html' %}
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-4 md:space-y-6 pt-24 md:pt-28">
+        <div class="flex-1 flex flex-col justify-center items-center px-4 md:px-8 space-y-6 md:space-y-8 lg:space-y-10 pt-24 md:pt-28 pb-12 md:pb-16 min-h-screen overflow-y-auto">
             <!-- Main Heading -->
             <div class="text-center">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#1e1e1e] text-center max-w-2xl leading-tight tracking-tight">
@@ -73,37 +73,34 @@
             
             <!-- Form Input Card -->
             <div class="w-full max-w-3xl relative">
-                <div class="bg-[#fffcf4] rounded-xl border border-[#fb9a9a] p-4 md:p-6 transition-colors" id="inputCard">
+                <div class="bg-[#fffcf4] rounded-xl border border-[#fb9a9a] relative transition-colors" id="inputCard">
                     <textarea 
                         id="formDump"
                         placeholder="describe what kind of form you want to generate, what are the goals of the survey, what data you want to collect"
-                        class="w-full h-32 md:h-36 lg:h-40 bg-transparent resize-none outline-none font-['DM_Sans'] text-base md:text-lg text-black placeholder-[#9ca3af] leading-relaxed transition-colors"
+                        class="w-full h-32 md:h-36 lg:h-40 p-4 pr-40 bg-transparent resize-none outline-none font-['DM_Sans'] text-base md:text-lg text-black placeholder-[#9ca3af] leading-relaxed transition-colors"
                         oninput="validateInput()"
                     ></textarea>
                     
+                    <!-- Generate Button (Inside the box) -->
+                    <button 
+                        id="generateBtn"
+                        onclick="generateForm()"
+                        class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['DM_Sans'] font-medium text-sm md:text-base px-4 md:px-6 py-2 md:py-3 rounded-full disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 min-w-[120px] justify-center"
+                        disabled
+                    >
+                        <span id="buttonText">generate form</span>
+                        <div id="buttonSpinner" class="hidden">
+                            <div class="flex space-x-1">
+                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                            </div>
+                        </div>
+                    </button>
                 </div>
                 
                 <!-- Validation Message (Outside the box) -->
                 <div id="validationMessage" class="hidden mt-2 text-sm text-red-600 font-['DM_Sans']"></div>
-                
-                <!-- Generate Button -->
-                <div class="flex justify-end mt-6 md:mt-8">
-                        <button 
-                            id="generateBtn"
-                            onclick="generateForm()"
-                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['DM_Sans'] font-medium text-sm md:text-base px-6 md:px-8 py-2.5 md:py-3 rounded-full disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 min-w-[140px] justify-center"
-                            disabled
-                        >
-                            <span id="buttonText">generate form</span>
-                            <div id="buttonSpinner" class="hidden">
-                                <div class="flex space-x-1">
-                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
-                                </div>
-                            </div>
-                        </button>
-                    </div>
             </div>
             
             <!-- Error State -->
@@ -121,7 +118,7 @@
             </div>
             
             <!-- Form Templates -->
-            <div class="w-full max-w-4xl mt-16 md:mt-20 lg:mt-24 mb-12">
+            <div class="w-full max-w-4xl">
                 <div class="flex flex-wrap gap-2 md:gap-3 justify-center">
                     <!-- Customer Feedback Template -->
                     <div class="bg-transparent border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#DAB568] hover:text-white transition-all cursor-pointer group" onclick="useTemplate('customer-feedback')">
