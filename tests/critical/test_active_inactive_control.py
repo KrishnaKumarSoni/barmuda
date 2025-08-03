@@ -97,7 +97,9 @@ class TestActiveInactiveControl:
         with patch("app.db", mock_firestore_client):
             # Mock the update operation
             mock_doc = Mock()
-            mock_firestore_client.collection.return_value.document.return_value = mock_doc
+            mock_firestore_client.collection.return_value.document.return_value = (
+                mock_doc
+            )
             mock_doc.get.return_value.to_dict.return_value = sample_form
             mock_doc.get.return_value.exists = True
             mock_doc.update.return_value = None
@@ -112,7 +114,9 @@ class TestActiveInactiveControl:
             # Verify update was called with correct data
             mock_doc.update.assert_called_with({"active": True})
 
-    def test_inactive_form_blocks_chat_messages(self, client, mock_firestore_client, sample_form):
+    def test_inactive_form_blocks_chat_messages(
+        self, client, mock_firestore_client, sample_form
+    ):
         """Test that inactive forms block chat message processing"""
         sample_form["active"] = False
 
@@ -143,7 +147,9 @@ class TestActiveInactiveControl:
             # Should fail because form is inactive
             assert response.status_code in [400, 403]
 
-    def test_form_api_respects_active_status(self, client, mock_firestore_client, sample_form):
+    def test_form_api_respects_active_status(
+        self, client, mock_firestore_client, sample_form
+    ):
         """Test that form API only returns active forms for public access"""
         sample_form["active"] = False
 
@@ -186,7 +192,9 @@ class TestActiveInactiveControl:
         with patch("app.db", mock_firestore_client):
             # Mock the query for user's forms
             mock_query = Mock()
-            mock_firestore_client.collection.return_value.where.return_value = mock_query
+            mock_firestore_client.collection.return_value.where.return_value = (
+                mock_query
+            )
             mock_query.stream.return_value = [
                 Mock(to_dict=lambda: form, id=form["id"]) for form in forms
             ]
