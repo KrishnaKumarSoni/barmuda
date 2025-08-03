@@ -3,10 +3,11 @@
 Test script for the chat agent functionality
 """
 
+import json
 import os
 import sys
-import json
 from datetime import datetime
+
 from dotenv import load_dotenv
 
 # Load environment variables

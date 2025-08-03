@@ -2,9 +2,10 @@
 Test data fixtures and factories for consistent test data generation
 """
 
+from datetime import datetime
+
 import factory
 from faker import Faker
-from datetime import datetime
 
 fake = Faker()
 

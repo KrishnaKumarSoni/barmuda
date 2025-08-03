@@ -1,15 +1,17 @@
-import os
 import json
+import logging
+import os
 import re
 from datetime import datetime
 from functools import wraps
-from flask import Flask, request, jsonify, session, render_template, redirect, url_for
-from flask_cors import CORS
+
 import firebase_admin
-from firebase_admin import credentials, firestore, auth
 from dotenv import load_dotenv
+from firebase_admin import auth, credentials, firestore
+from flask import (Flask, jsonify, redirect, render_template, request, session,
+                   url_for)
+from flask_cors import CORS
 from openai import OpenAI
-import logging
 
 # Load environment variables
 load_dotenv()
@@ -55,6 +57,7 @@ def inject_user():
 @app.template_filter("tojsonfilter")
 def to_json_filter(obj):
     import json
+
     from markupsafe import Markup
 
     return Markup(json.dumps(obj))
@@ -1369,9 +1372,10 @@ def internal_error(error):
 # MODULE 4: CHAT INTERFACE ROUTES
 # ================================
 
-from chat_agent_v2 import get_chat_agent
 import hashlib
 import time
+
+from chat_agent_v2 import get_chat_agent
 
 
 @app.route("/form/<form_id>")

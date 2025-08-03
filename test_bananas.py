@@ -1,5 +1,6 @@
-import requests
 import json
+
+import requests
 
 # Test off-topic "bananas" redirect
 session_id = "session_20250802_222406_c9664884"

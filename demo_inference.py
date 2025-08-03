@@ -4,10 +4,11 @@ Demo script for Module 2: Form Inference
 Shows the form inference capabilities with real examples
 """
 
+import json
 import os
 import sys
-import json
 from datetime import datetime
+
 from dotenv import load_dotenv
 
 # Load environment variables

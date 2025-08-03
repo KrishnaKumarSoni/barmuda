@@ -3,11 +3,12 @@ IMPORTANT: Export Functionality Accuracy Tests
 Tests CSV/JSON export accuracy and data integrity
 """
 
-import pytest
-from unittest.mock import Mock, patch
-import json
 import csv
 import io
+import json
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestExportAccuracy:

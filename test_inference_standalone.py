@@ -4,10 +4,11 @@ Standalone test suite for Module 2: Form Inference functionality
 Tests the inference functions directly without requiring a running server
 """
 
+import json
 import os
 import sys
-import json
 from datetime import datetime
+
 from dotenv import load_dotenv
 
 # Load environment variables

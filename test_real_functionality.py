@@ -4,10 +4,11 @@ Real functionality testing with user credentials
 Tests actual form creation and chat functionality
 """
 
-import requests
 import json
 import time
 from datetime import datetime
+
+import requests
 
 BASE_URL = "https://bermuda-kappa.vercel.app"
 

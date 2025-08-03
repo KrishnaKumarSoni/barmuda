@@ -5,12 +5,13 @@ LLM-powered extraction of structured responses from chat conversations
 
 import json
 import os
-from typing import Dict, List, Any
 from datetime import datetime
+from typing import Any, Dict, List
+
 import firebase_admin
-from firebase_admin import firestore
 import openai
 from dotenv import load_dotenv
+from firebase_admin import firestore
 
 load_dotenv()
 

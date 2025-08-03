@@ -4,11 +4,12 @@ Comprehensive production testing script for Bermuda MVP
 Tests all edge cases from EdgeCases.md on deployed system
 """
 
-import requests
 import json
-import time
 import os
+import time
 from datetime import datetime
+
+import requests
 
 # Production URL
 BASE_URL = "https://bermuda-kappa.vercel.app"

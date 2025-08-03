@@ -5,6 +5,7 @@ Extract responses from chat sessions that have data but weren't processed
 
 import firebase_admin
 from firebase_admin import credentials, firestore
+
 from data_extraction import extract_chat_responses
 
 # Initialize Firebase

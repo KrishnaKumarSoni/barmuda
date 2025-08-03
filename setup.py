@@ -4,8 +4,8 @@ Setup and initialization script for Bermuda MVP
 Helps configure Firebase, environment variables, and project setup.
 """
 
-import os
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path

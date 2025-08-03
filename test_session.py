@@ -1,5 +1,6 @@
-import requests
 import json
+
+import requests
 
 # Test session resumption
 device_id = "fallback-1754153221962-xp3zft72b"

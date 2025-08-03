@@ -6,6 +6,7 @@ Demonstrates the complete form inference workflow
 
 import json
 from datetime import datetime
+
 from dotenv import load_dotenv
 
 load_dotenv()

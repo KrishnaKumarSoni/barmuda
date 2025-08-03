@@ -3,9 +3,10 @@ CRITICAL: Authentication Flow Tests
 Tests the security foundation of the application
 """
 
-import pytest
-from unittest.mock import Mock, patch
 import json
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestAuthenticationFlow:

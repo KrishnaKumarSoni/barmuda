@@ -5,14 +5,15 @@ Uses OpenAI Agents SDK with standalone function tools
 
 import json
 import os
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import firebase_admin
-from firebase_admin import firestore, db
-from agents import Agent, Runner, function_tool
 import openai
+from agents import Agent, Runner, function_tool
 from dotenv import load_dotenv
+from firebase_admin import db, firestore
 
 # Load environment variables and clean API key
 load_dotenv()

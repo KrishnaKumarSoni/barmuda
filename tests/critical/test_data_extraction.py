@@ -3,9 +3,10 @@ CRITICAL: Data Extraction Accuracy Tests
 Tests data integrity through accurate extraction from chat transcripts
 """
 
-import pytest
-from unittest.mock import Mock, patch
 import json
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestDataExtractionAccuracy:

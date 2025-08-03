@@ -1,5 +1,6 @@
-import requests
 import json
+
+import requests
 
 # Create a new session
 device_id = "test-device-ended-session"

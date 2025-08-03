@@ -4,11 +4,12 @@ Comprehensive chat edge case testing for Bermuda MVP
 Tests EdgeCases.md scenarios on production deployment
 """
 
-import requests
 import json
 import time
 import uuid
 from datetime import datetime
+
+import requests
 
 BASE_URL = "https://bermuda-kappa.vercel.app"
 

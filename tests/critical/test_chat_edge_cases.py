@@ -3,9 +3,10 @@ CRITICAL: Chat Agent Edge Cases Tests
 Tests the user experience quality through edge case handling
 """
 
-import pytest
-from unittest.mock import Mock, patch, call
 import json
+from unittest.mock import Mock, call, patch
+
+import pytest
 
 
 class TestChatAgentEdgeCases:

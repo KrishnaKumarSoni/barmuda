@@ -5,13 +5,14 @@ Uses OpenAI Agents SDK for lightweight, production-ready agent implementation
 
 import json
 import os
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import firebase_admin
-from firebase_admin import firestore, db
-from agents import Agent, Runner, function_tool
 import openai
+from agents import Agent, Runner, function_tool
+from firebase_admin import db, firestore
 
 # Initialize Firebase if not already done
 if not firebase_admin._apps:

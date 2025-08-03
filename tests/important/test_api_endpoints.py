@@ -3,9 +3,10 @@ IMPORTANT: API Endpoint Validation Tests
 Tests all 19 API endpoints with positive and negative test cases
 """
 
-import pytest
-from unittest.mock import Mock, patch
 import json
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestAPIEndpointValidation:

@@ -2,13 +2,14 @@
 Test configuration and fixtures for Bermuda test suite
 """
 
-import os
-import pytest
-import tempfile
 import json
+import os
+import tempfile
 from unittest.mock import Mock, patch
-from flask import Flask
+
+import pytest
 from faker import Faker
+from flask import Flask
 
 # Set test environment
 os.environ["TESTING"] = "true"

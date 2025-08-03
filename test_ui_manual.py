@@ -4,11 +4,12 @@ Manual UI Testing for Bermuda MVP using requests
 Tests UI structure and Firebase auth integration
 """
 
-import requests
 import json
 import re
 from datetime import datetime
 from urllib.parse import urljoin
+
+import requests
 
 BASE_URL = "https://bermuda-kappa.vercel.app"
 

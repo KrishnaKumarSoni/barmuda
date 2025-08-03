@@ -4,10 +4,11 @@ Test script for Bermuda MVP Module 1: Infrastructure & Authentication
 Tests all authentication endpoints and user flows.
 """
 
-import requests
 import json
 import time
 from datetime import datetime
+
+import requests
 
 BASE_URL = "http://localhost:5000"
 

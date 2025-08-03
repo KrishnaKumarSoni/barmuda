@@ -4,12 +4,13 @@ Test suite for Module 2: Form Inference functionality
 Tests the /api/infer endpoint and LLM integration
 """
 
+import json
 import os
 import sys
-import json
-import requests
 import time
 from datetime import datetime
+
+import requests
 from dotenv import load_dotenv
 
 # Load environment variables

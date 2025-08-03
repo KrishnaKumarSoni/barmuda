@@ -4,16 +4,17 @@ UI Functionality Testing for Bermuda MVP
 Tests actual form creation UI and chat UI with login
 """
 
-import requests
 import json
+import os
 import time
 from datetime import datetime
+
+import requests
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-import os
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "https://bermuda-kappa.vercel.app"
 TEST_EMAIL = "bhavesh.nakliwala@gmail.com"

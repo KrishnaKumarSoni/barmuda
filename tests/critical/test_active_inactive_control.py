@@ -3,9 +3,10 @@ CRITICAL: Active/Inactive Response Control Tests
 Tests the core business logic that controls when forms can accept responses
 """
 
-import pytest
-from unittest.mock import Mock, patch
 import json
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestActiveInactiveControl:

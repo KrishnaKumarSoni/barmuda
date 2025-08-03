@@ -3,11 +3,12 @@
 Generate test responses for form aggregation testing
 """
 
+import json
+import random
+from datetime import datetime, timedelta
+
 import firebase_admin
 from firebase_admin import credentials, firestore
-from datetime import datetime, timedelta
-import random
-import json
 
 # Initialize Firebase
 if not firebase_admin._apps:

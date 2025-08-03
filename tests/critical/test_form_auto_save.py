@@ -3,9 +3,10 @@ CRITICAL: Form Auto-Save Tests
 Tests data loss prevention through automatic form saving
 """
 
-import pytest
-from unittest.mock import Mock, patch
 import json
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestFormAutoSave:
