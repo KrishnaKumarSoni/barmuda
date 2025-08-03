@@ -763,15 +763,59 @@ def infer_form():
         
         if inferred_form:
             logger.info(f"Successfully inferred form: {inferred_form['title']}")
-            return jsonify({
-                'success': True,
-                'form': inferred_form,
-                'metadata': {
-                    'input_length': len(input_text),
-                    'questions_count': len(inferred_form['questions']),
-                    'created_at': datetime.utcnow().isoformat()
+            
+            # Auto-save the generated survey as inactive
+            try:
+                user_id = request.user['uid']
+                now = datetime.utcnow()
+                
+                # Create inactive survey document
+                survey_data = {
+                    'title': inferred_form['title'],
+                    'questions': inferred_form['questions'],
+                    'demographics': inferred_form.get('demographics', {}),
+                    'creator_id': user_id,
+                    'active': False,  # Key field - survey is inactive
+                    'created_at': now,
+                    'last_modified': now,
+                    'original_input': input_text,
+                    'response_count': 0,
+                    'share_url': None  # Will be set when activated
                 }
-            }), 200
+                
+                # Save to Firebase
+                doc_ref = db.collection('forms').add(survey_data)
+                form_id = doc_ref[1].id
+                
+                logger.info(f"Auto-saved inactive survey {form_id} for user {user_id}")
+                
+                return jsonify({
+                    'success': True,
+                    'form': inferred_form,
+                    'form_id': form_id,  # Return the Firebase ID
+                    'metadata': {
+                        'input_length': len(input_text),
+                        'questions_count': len(inferred_form['questions']),
+                        'created_at': now.isoformat(),
+                        'auto_saved': True
+                    }
+                }), 200
+                
+            except Exception as save_error:
+                logger.error(f"Failed to auto-save survey: {str(save_error)}")
+                # Still return the form data even if save fails
+                return jsonify({
+                    'success': True,
+                    'form': inferred_form,
+                    'form_id': None,
+                    'metadata': {
+                        'input_length': len(input_text),
+                        'questions_count': len(inferred_form['questions']),
+                        'created_at': datetime.utcnow().isoformat(),
+                        'auto_saved': False,
+                        'save_error': str(save_error)
+                    }
+                }), 200
         else:
             logger.error(f"Form inference failed: {error}")
             return jsonify({
@@ -990,8 +1034,15 @@ def update_form(form_id):
             'title': form_data['title'],
             'questions': form_data['questions'],
             'demographics': form_data.get('demographics', {}),
+            'active': form_data.get('active', existing_form.get('active', False)),  # Handle activation
+            'last_modified': datetime.utcnow(),
             'updated_at': datetime.utcnow().isoformat()
         }
+        
+        # If activating for the first time, generate share URL
+        if form_data.get('active') and not existing_form.get('active'):
+            update_document['share_url'] = f"https://bermuda.vercel.app/form/{form_id}"
+            logger.info(f"Activating survey {form_id} - generated share URL")
         
         logger.info(f"Updating form '{form_data['title']}' (ID: {form_id}) for user {user_id}")
         
@@ -1000,8 +1051,9 @@ def update_form(form_id):
         
         logger.info(f"Form updated successfully: {form_id}")
         
-        # Generate share URL
-        share_url = f"bermuda.vercel.app/form/{form_id}"
+        # Get final share URL (either existing or newly generated)
+        updated_doc = form_ref.get().to_dict()
+        share_url = updated_doc.get('share_url', f"https://bermuda.vercel.app/form/{form_id}")
         
         return jsonify({
             'success': True,

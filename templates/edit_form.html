@@ -250,8 +250,19 @@
             'Home city', 'Gender', 'Height'
         ];
 
-        // Initialize form data from session storage or load existing form
+        // Initialize form data from URL parameter, session storage, or existing form
         function initializeForm() {
+            // Check for form ID in URL parameters first
+            const urlParams = new URLSearchParams(window.location.search);
+            const formIdFromUrl = urlParams.get('id');
+            
+            if (formIdFromUrl) {
+                // Load form by ID from URL parameter (new inactive survey)
+                loadExistingForm(formIdFromUrl);
+                return;
+            }
+            
+            // Fallback to existing logic for backwards compatibility
             const storedForm = sessionStorage.getItem('generatedForm');
             const editFormId = sessionStorage.getItem('editFormId');
             
@@ -259,9 +270,11 @@
                 // Load existing form for editing
                 loadExistingForm(editFormId);
             } else if (storedForm) {
-                // Load newly generated form
+                // Load newly generated form (fallback)
                 formData = JSON.parse(storedForm);
                 populateForm();
+                // Clear session storage since we're using it
+                sessionStorage.removeItem('generatedForm');
             } else {
                 // Redirect back if no form data
                 window.location.href = '/create-form';
@@ -279,13 +292,22 @@
                     savedFormId = formId; // Set saved form ID for updates
                     populateForm();
                     
-                    // Update save button text for existing forms
+                    // Update save button text based on form status
                     const saveBtn = document.querySelector('button[onclick="saveForm()"]');
                     if (saveBtn) {
-                        saveBtn.innerHTML = `
-                            Update Form
-                            <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
-                        `;
+                        if (data.form.active) {
+                            // Already active form - update button
+                            saveBtn.innerHTML = `
+                                Update Survey
+                                <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+                            `;
+                        } else {
+                            // Inactive form - keep original "Save & Launch" button
+                            saveBtn.innerHTML = `
+                                Save & Launch
+                                <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+                            `;
+                        }
                     }
                 } else {
                     alert('Failed to load form: ' + data.error);
@@ -640,16 +662,27 @@
                 let response;
                 
                 if (savedFormId) {
-                    // Update existing form
+                    // Update existing form and activate it
+                    const updatedFormData = {
+                        ...formData,
+                        active: true,  // Activate the survey
+                        last_modified: new Date().toISOString()
+                    };
+                    
                     response = await authenticatedFetch(`/api/update_form/${savedFormId}`, {
                         method: 'PUT',
-                        body: JSON.stringify({ form: formData })
+                        body: JSON.stringify({ form: updatedFormData })
                     });
                 } else {
-                    // Create new form
+                    // Create new form (should rarely happen now)
+                    const newFormData = {
+                        ...formData,
+                        active: true  // Activate immediately
+                    };
+                    
                     response = await authenticatedFetch('/api/save_form', {
                         method: 'POST',
-                        body: JSON.stringify({ form: formData })
+                        body: JSON.stringify({ form: newFormData })
                     });
                 }
                 

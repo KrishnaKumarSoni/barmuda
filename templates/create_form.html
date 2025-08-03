@@ -473,14 +473,17 @@
                 if (data.success) {
                     setButtonState('redirecting');
                     
-                    // Store the form data in sessionStorage
-                    sessionStorage.setItem('generatedForm', JSON.stringify(data.form));
-                    
                     // Small delay before redirect
                     await new Promise(resolve => setTimeout(resolve, 500));
                     
-                    // Redirect to edit form page
-                    window.location.href = '/edit-form';
+                    // Redirect to edit form page with form_id
+                    if (data.form_id) {
+                        window.location.href = `/edit-form?id=${data.form_id}`;
+                    } else {
+                        // Fallback to sessionStorage if auto-save failed
+                        sessionStorage.setItem('generatedForm', JSON.stringify(data.form));
+                        window.location.href = '/edit-form';
+                    }
                 } else {
                     setButtonState('error');
                     showError(data.error || 'Failed to generate form');
