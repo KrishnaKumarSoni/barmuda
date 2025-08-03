@@ -12,19 +12,13 @@ import pytest
 class TestActiveInactiveControl:
     """Test active/inactive form response control system"""
 
-    def test_inactive_form_blocks_chat_start(self, client, mock_db, sample_form):
+    def test_inactive_form_blocks_chat_start(self, client, mock_firestore_client, mock_firestore_data, sample_form):
         """Test that inactive forms prevent chat session creation"""
-        # Ensure form is inactive
+        # Setup: Add inactive form to mock database
         sample_form["active"] = False
+        mock_firestore_data["forms"]["test_form_123"] = sample_form
 
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
-                sample_form
-            )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
-                True
-            )
-
+        with patch("app.db", mock_firestore_client):
             response = client.post(
                 "/api/chat/start",
                 json={"form_id": "test_form_123", "device_id": "device_123"},
@@ -34,19 +28,12 @@ class TestActiveInactiveControl:
             data = json.loads(response.data)
             assert "not available" in data["error"].lower()
 
-    def test_active_form_allows_chat_start(self, client, mock_db, sample_active_form):
+    def test_active_form_allows_chat_start(self, client, mock_firestore_client, mock_firestore_data, sample_active_form):
         """Test that active forms allow chat session creation"""
-        with patch("app.db", mock_db):
-            mock_db.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
-                sample_active_form
-            )
-            mock_db.collection.return_value.document.return_value.get.return_value.exists = (
-                True
-            )
-            mock_db.collection.return_value.document.return_value.set.return_value = (
-                None
-            )
+        # Setup: Add active form to mock database
+        mock_firestore_data["forms"]["test_form_123"] = sample_active_form
 
+        with patch("app.db", mock_firestore_client):
             response = client.post(
                 "/api/chat/start",
                 json={"form_id": "test_form_123", "device_id": "device_123"},
