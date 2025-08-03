@@ -1,0 +1,251 @@
+name: Bermuda Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID_TEST }}
+  FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY_TEST }}
+  FIREBASE_PRIVATE_KEY_ID: ${{ secrets.FIREBASE_PRIVATE_KEY_ID_TEST }}
+  FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL_TEST }}
+  FIREBASE_CLIENT_ID: ${{ secrets.FIREBASE_CLIENT_ID_TEST }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+  FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY_TEST }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Lint with flake8
+        run: |
+          # Stop build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Treat all other issues as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+      
+      - name: Check code formatting with black
+        run: black --check --diff .
+      
+      - name: Check import sorting with isort
+        run: isort --check-only --diff .
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run critical tests
+        run: |
+          pytest tests/critical/ -v --cov=. --cov-report=xml --cov-report=term-missing
+        env:
+          TESTING: true
+      
+      - name: Run important tests
+        run: |
+          pytest tests/important/ -v --cov=. --cov-append --cov-report=xml
+        env:
+          TESTING: true
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Set up Node.js for Firebase emulator
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Start Firebase emulators
+        run: |
+          firebase emulators:start --only firestore &
+          sleep 10  # Wait for emulators to start
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8080
+      
+      - name: Run integration tests
+        run: |
+          pytest tests/critical/test_authentication_flow.py::TestAuthenticationFlow::test_google_auth_with_valid_token -v
+          pytest tests/critical/test_active_inactive_control.py::TestActiveInactiveControl::test_status_toggle_changes_form_availability -v
+        env:
+          TESTING: true
+          FIRESTORE_EMULATOR_HOST: localhost:8080
+
+  security-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+          pip install -r requirements.txt
+      
+      - name: Run security scan with bandit
+        run: bandit -r . -x tests/
+      
+      - name: Check dependencies for vulnerabilities
+        run: safety check
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run performance tests
+        run: |
+          pytest tests/important/test_database_reliability.py::TestDatabaseReliability::test_firestore_query_performance -v
+          pytest tests/important/test_export_accuracy.py::TestExportAccuracy::test_export_large_dataset_performance -v
+        env:
+          TESTING: true
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, security-tests]
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Vercel (Staging)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: '--prod'
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+      
+      - name: Run smoke tests on staging
+        run: |
+          sleep 30  # Wait for deployment
+          pytest tests/critical/test_active_inactive_control.py::TestActiveInactiveControl::test_inactive_form_page_shows_unavailable_message -v
+        env:
+          TESTING: true
+          BASE_URL: ${{ steps.deploy.outputs.preview-url }}
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, security-tests, performance-tests]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: '--prod'
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+      
+      - name: Run production smoke tests
+        run: |
+          sleep 60  # Wait for production deployment
+          pytest tests/critical/test_active_inactive_control.py::TestActiveInactiveControl::test_active_form_allows_chat_start -v
+        env:
+          TESTING: true
+          BASE_URL: https://bermuda.vercel.app
+      
+      - name: Notify deployment success
+        if: success()
+        run: echo "✅ Production deployment successful!"
+      
+      - name: Notify deployment failure
+        if: failure()
+        run: echo "❌ Production deployment failed!"
