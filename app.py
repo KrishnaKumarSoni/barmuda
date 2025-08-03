@@ -692,8 +692,13 @@ def validate_form_generation_input(input_text):
     has_form_keywords = any(keyword in text.lower() for keyword in form_keywords)
     has_non_form_keywords = any(keyword in text.lower() for keyword in non_form_keywords)
     
+    # Reject if it has non-form keywords without form keywords
     if has_non_form_keywords and not has_form_keywords:
         return False, "This doesn't seem to be about creating a form. Please describe your survey goals and what data you want to collect."
+    
+    # Reject if it doesn't have any form keywords at all (more strict validation)
+    if not has_form_keywords:
+        return False, "Please describe what kind of form or survey you want to create, what data you want to collect, or what questions you want to ask."
     
     # Inappropriate content detection (basic)
     inappropriate_patterns = [
