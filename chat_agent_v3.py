@@ -513,15 +513,38 @@ You: "How about the management—how's that going?"
         """Process a user message and return agent response"""
         try:
             session = load_session(session_id)
+            
+            # Check if form is still active
+            form_doc = firestore_db.collection("forms").document(session.form_id).get()
+            if not form_doc.exists:
+                return {
+                    "success": False,
+                    "response": "Sorry, this survey is no longer available.",
+                    "error": "form_not_found"
+                }
+            
+            form_data = form_doc.to_dict()
+            if not form_data.get("active", False):
+                return {
+                    "success": False,
+                    "response": "Sorry, this survey is currently unavailable.",
+                    "error": "form_inactive"
+                }
 
             # Check for conversation break (more than 2 minutes since last message)
             now = datetime.now()
             recap_needed = False
             if session.chat_history:
-                last_msg_time = datetime.fromisoformat(session.chat_history[-1]["timestamp"])
-                time_gap = now - last_msg_time
-                if time_gap.total_seconds() > 120:  # 2 minutes
-                    recap_needed = True
+                try:
+                    timestamp = session.chat_history[-1]["timestamp"]
+                    if isinstance(timestamp, str):
+                        last_msg_time = datetime.fromisoformat(timestamp)
+                        time_gap = now - last_msg_time
+                        if time_gap.total_seconds() > 120:  # 2 minutes
+                            recap_needed = True
+                except (ValueError, KeyError):
+                    # Skip recap if timestamp parsing fails
+                    pass
 
             # Add user message to history
             session.chat_history.append(

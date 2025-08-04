@@ -112,37 +112,39 @@ class TestActiveInactiveControl:
             # Test passes if we get 200 status - the actual database update is mocked
 
     def test_inactive_form_blocks_chat_messages(
-        self, client, mock_firestore_client, sample_form
+        self, client, mock_firestore_client, mock_firestore_data, sample_form
     ):
         """Test that inactive forms block chat message processing"""
         sample_form["active"] = False
+        
+        # Add inactive form to mock data
+        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        
+        # Add a mock session with proper data types
+        mock_session = {
+            "session_id": "session_123", 
+            "form_id": "test_form_123",
+            "form_data": dict(sample_form),  # Ensure it's a proper dict
+            "responses": {},
+            "current_question_index": 0,  # Ensure it's an int
+            "chat_history": [],
+            "metadata": {},
+            "status": "active",
+            "device_id": "device_123",
+        }
+        mock_firestore_data["chat_sessions"]["session_123"] = mock_session
 
-        with patch("app.db", mock_firestore_client):
-            # Mock form lookup
-            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
-                sample_form
-            )
-            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
-                True
-            )
-
-            # Mock session lookup to return a session
-            mock_session = {
-                "form_id": "test_form_123",
-                "status": "active",
-                "device_id": "device_123",
-            }
-            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
-                mock_session
-            )
-
+        with patch("app.db", mock_firestore_client), patch("chat_agent_v3.firestore_db", mock_firestore_client):
             response = client.post(
                 "/api/chat/message",
                 json={"session_id": "session_123", "message": "Hello"},
             )
 
             # Should fail because form is inactive
-            assert response.status_code in [400, 403]
+            assert response.status_code == 200  # Will return 200 but with error message
+            data = response.get_json()
+            assert data["success"] is False
+            assert "unavailable" in data["response"].lower()
 
     def test_form_api_respects_active_status(
         self, client, mock_firestore_client, sample_form
@@ -168,7 +170,7 @@ class TestActiveInactiveControl:
                     assert "not available" in data["error"].lower()
 
     def test_dashboard_shows_all_forms_regardless_of_status(
-        self, authenticated_session, mock_firestore_client
+        self, authenticated_session, mock_firestore_client, mock_firestore_data
     ):
         """Test that dashboard shows both active and inactive forms"""
         forms = [
@@ -187,14 +189,12 @@ class TestActiveInactiveControl:
         ]
 
         with patch("app.db", mock_firestore_client):
-            # Mock the query for user's forms
-            mock_query = Mock()
-            mock_firestore_client.collection.return_value.where.return_value = (
-                mock_query
-            )
-            mock_query.stream.return_value = [
-                Mock(to_dict=lambda: form, id=form["id"]) for form in forms
-            ]
+            # Add forms to mock data store
+            for form in forms:
+                mock_firestore_data["forms"][form["id"]] = form
+                
+            # Mock the responses collection for counting
+            mock_firestore_data["responses"] = {}
 
             response = authenticated_session.get("/dashboard")
 

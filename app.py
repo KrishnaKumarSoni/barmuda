@@ -1661,7 +1661,22 @@ def process_chat_message():
         return jsonify(response_data)
 
     except Exception as e:
-        print(f"Error processing chat message: {str(e)}")
+        # Enhanced error logging for debugging
+        import traceback
+        error_details = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+            "request_data": data if 'data' in locals() else None,
+            "message": data.get('message') if 'data' in locals() and data else None
+        }
+        print(f"🚨 CHAT MESSAGE ERROR: {error_details}")
+        
+        # Also log to file for debugging
+        with open('/tmp/flask_errors.log', 'a') as f:
+            from datetime import datetime
+            f.write(f"{datetime.now()}: {error_details}\n")
+        
         return (
             jsonify(
                 {
@@ -2152,6 +2167,58 @@ def delete_form(form_id):
     except Exception as e:
         logger.error(f"Error deleting form: {str(e)}")
         return jsonify({"error": "Failed to delete form"}), 500
+
+
+
+@app.route("/api/test/extraction/<session_id>")
+def test_extraction_endpoint(session_id):
+    """Test endpoint to check extraction data for a session"""
+    try:
+        # Check chat_responses collection first
+        response_doc = db.collection("chat_responses").document(session_id).get()
+        
+        if response_doc.exists:
+            response_data = response_doc.to_dict()
+            form_data = response_data.get("form_data", {})
+            
+            return jsonify({
+                "session_id": session_id,
+                "form_title": form_data.get("title", "Unknown Form"),
+                "responses": response_data.get("responses", {}),
+                "chat_history": response_data.get("chat_history", []),
+                "metadata": response_data.get("metadata", {}),
+                "extraction_found": True
+            })
+        
+        # If not in chat_responses, check chat_sessions
+        session_doc = db.collection("chat_sessions").document(session_id).get()
+        
+        if session_doc.exists:
+            session_data = session_doc.to_dict()
+            form_data = session_data.get("form_data", {})
+            
+            return jsonify({
+                "session_id": session_id,
+                "form_title": form_data.get("title", "Unknown Form"),
+                "responses": session_data.get("responses", {}),
+                "chat_history": session_data.get("chat_history", []),
+                "metadata": session_data.get("metadata", {}),
+                "extraction_found": True,
+                "note": "Found in chat_sessions (may not be ended yet)"
+            })
+        
+        return jsonify({
+            "error": "Session not found",
+            "session_id": session_id,
+            "extraction_found": False
+        }), 404
+        
+    except Exception as e:
+        return jsonify({
+            "error": f"Failed to retrieve extraction data: {str(e)}",
+            "session_id": session_id,
+            "extraction_found": False
+        }), 500
 
 
 if __name__ == "__main__":

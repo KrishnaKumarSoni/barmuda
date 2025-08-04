@@ -18,7 +18,7 @@ class TestFormAutoSave:
             "title": "Customer Feedback Survey",
             "description": "Tell us about your experience",
             "questions": [
-                {"text": "How satisfied are you?", "type": "rating", "enabled": True}
+                {"text": "How satisfied are you?", "type": "rating", "enabled": True, "options": ["1", "2", "3", "4", "5"]}
             ],
             "demographics": {"enabled": False},
         }

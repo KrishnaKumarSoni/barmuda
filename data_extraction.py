@@ -19,9 +19,12 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Firebase should already be initialized by app.py
-# Just get the client
-
-firestore_db = firestore.client()
+# Get the client safely
+try:
+    firestore_db = firestore.client()
+except Exception as e:
+    print(f"Warning: Could not get Firestore client immediately: {e}")
+    firestore_db = None
 
 
 class DataExtractionChain:
@@ -245,6 +248,11 @@ OUTPUT FORMAT (JSON):
 def extract_chat_responses(session_id: str) -> Dict[str, Any]:
     """Main function to extract responses from a chat session"""
     try:
+        # Get Firestore client (handle case where it wasn't available at import)
+        global firestore_db
+        if firestore_db is None:
+            firestore_db = firestore.client()
+            
         # Load session data from Firestore
         session_doc = (
             firestore_db.collection("chat_sessions").document(session_id).get()

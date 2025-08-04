@@ -85,19 +85,24 @@ def mock_firestore_client(mock_firestore_data):
             doc_data = data_store[collection_name].get(doc_id)
             result = Mock()
             result.exists = doc_data is not None
-            result.to_dict = Mock(return_value=doc_data)
+            result.to_dict = Mock(return_value=doc_data if doc_data else {})
             return result
         
         def mock_set(data):
             data_store[collection_name][doc_id] = data
+            return Mock()  # Return mock for chaining
         
         def mock_update(data):
             if doc_id in data_store[collection_name]:
                 data_store[collection_name][doc_id].update(data)
+            else:
+                data_store[collection_name][doc_id] = data
+            return Mock()  # Return mock for chaining
         
         def mock_delete():
             if doc_id in data_store[collection_name]:
                 del data_store[collection_name][doc_id]
+            return Mock()  # Return mock for chaining
         
         mock_doc.get = Mock(side_effect=mock_get)
         mock_doc.set = Mock(side_effect=mock_set)
@@ -132,7 +137,7 @@ def mock_firestore_client(mock_firestore_data):
             import uuid
             doc_id = str(uuid.uuid4())
             data_store[collection_name][doc_id] = data
-            return None, doc_id
+            return (None, doc_id)  # Return tuple as expected
         
         mock_collection.document = Mock(side_effect=mock_document)
         mock_collection.where = Mock(side_effect=mock_where)

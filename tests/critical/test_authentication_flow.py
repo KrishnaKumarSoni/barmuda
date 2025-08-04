@@ -56,7 +56,7 @@ class TestAuthenticationFlow:
             data = json.loads(response.data)
             assert "error" in data
 
-    def test_google_auth_creates_new_user_profile(self, client, mock_firestore_client):
+    def test_google_auth_creates_new_user_profile(self, client, mock_firestore_client, mock_firestore_data):
         """Test that new users get profiles created"""
         mock_user_data = {
             "uid": "new_user_123",
@@ -70,26 +70,17 @@ class TestAuthenticationFlow:
         ):
 
             mock_verify.return_value = mock_user_data
-            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
-                False
-            )
-            mock_firestore_client.collection.return_value.document.return_value.set.return_value = (
-                None
-            )
 
             response = client.post("/auth/google", json={"idToken": "valid_token"})
 
             assert response.status_code == 200
-
-            # Verify profile creation
-            mock_firestore_client.collection.return_value.document.return_value.set.assert_called_once()
-            call_args = (
-                mock_firestore_client.collection.return_value.document.return_value.set.call_args[0][
-                    0
-                ]
-            )
-            assert call_args["email"] == "newuser@example.com"
-            assert "created_at" in call_args
+            
+            # Verify user was created in our mock data store
+            assert "new_user_123" in mock_firestore_data["users"]
+            user_data = mock_firestore_data["users"]["new_user_123"]
+            assert user_data["email"] == "newuser@example.com"
+            assert user_data["name"] == "New User"
+            assert "created_at" in user_data
 
     def test_google_auth_retrieves_existing_user(self, client, mock_firestore_client):
         """Test that existing users are retrieved, not recreated"""
@@ -207,7 +198,7 @@ class TestAuthenticationFlow:
             assert response.status_code == 200
             data = json.loads(response.data)
             assert data["valid"] is True
-            assert data["user"]["uid"] == "user_123"
+            assert data["user"]["user_id"] == "user_123"
 
     def test_invalid_token_verification(self, client):
         """Test verification with invalid token"""
@@ -228,26 +219,23 @@ class TestAuthenticationFlow:
         data = json.loads(response.data)
         assert "error" in data
 
-    def test_user_profile_api_endpoint(self, authenticated_session, mock_firestore_client):
+    def test_user_profile_api_endpoint(self, authenticated_session, mock_firestore_client, mock_firestore_data):
         """Test the user profile API endpoint"""
         profile_data = {
             "email": "test@example.com",
             "created_at": "2024-01-01T00:00:00Z",
         }
+        
+        # Add user data to mock store
+        mock_firestore_data["users"]["test_user_123"] = profile_data
 
         with patch("app.db", mock_firestore_client):
-            mock_firestore_client.collection.return_value.document.return_value.get.return_value.exists = (
-                True
-            )
-            mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
-                profile_data
-            )
-
             response = authenticated_session.get("/api/user/profile")
 
             assert response.status_code == 200
             data = json.loads(response.data)
-            assert data["email"] == "test@example.com"
+            assert data["success"] is True
+            assert data["profile"]["email"] == "test@example.com"
 
     def test_unauthenticated_profile_access(self, client):
         """Test that unauthenticated users cannot access profile"""
