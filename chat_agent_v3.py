@@ -30,12 +30,33 @@ if original_key != clean_key:
 
 # Initialize Firebase if not already done
 if not firebase_admin._apps:
-    cred = firebase_admin.credentials.Certificate(
-        "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
-    )
-    firebase_admin.initialize_app(
-        cred, {"databaseURL": "https://barmuda-in-default-rtdb.firebaseio.com/"}
-    )
+    # For production (Vercel), use environment variables
+    # For local development, fall back to service account file
+    if os.environ.get("VERCEL") and os.environ.get("FIREBASE_PRIVATE_KEY"):
+        # Production environment - use environment variables
+        firebase_config = {
+            "type": "service_account",
+            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
+            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+            "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace(
+                "\\n", "\n"
+            ),
+            "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+            "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
+            "universe_domain": "googleapis.com",
+        }
+        cred = firebase_admin.credentials.Certificate(firebase_config)
+        firebase_admin.initialize_app(cred)
+    else:
+        # Local development - use service account file
+        cred = firebase_admin.credentials.Certificate(
+            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
+        )
+        firebase_admin.initialize_app(cred)
 
 firestore_db = firestore.client()
 
