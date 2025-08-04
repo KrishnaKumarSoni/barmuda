@@ -395,11 +395,41 @@
                                     id="dropdown-options-${index}" 
                                     class="hidden absolute top-full left-0 right-0 bg-white border border-bermuda-border rounded-lg mt-1 shadow-lg z-10"
                                 >
-                                    <div onclick="selectQuestionType(${index}, 'text')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Text response</div>
-                                    <div onclick="selectQuestionType(${index}, 'multiple_choice')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Multiple Choice Question</div>
-                                    <div onclick="selectQuestionType(${index}, 'yes_no')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Yes / No</div>
-                                    <div onclick="selectQuestionType(${index}, 'number')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Number</div>
-                                    <div onclick="selectQuestionType(${index}, 'rating')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text border-b-0">Rating</div>
+                                    <div onclick="selectQuestionType(${index}, 'text')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                        <i class="ph ph-text-aa text-bermuda-orange text-lg"></i>
+                                        <div>
+                                            <div>Text response</div>
+                                            <div class="text-xs text-bermuda-light-gray">Open-ended written answers</div>
+                                        </div>
+                                    </div>
+                                    <div onclick="selectQuestionType(${index}, 'multiple_choice')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                        <i class="ph ph-list-bullets text-bermuda-orange text-lg"></i>
+                                        <div>
+                                            <div>Multiple Choice Question</div>
+                                            <div class="text-xs text-bermuda-light-gray">Select from predefined options</div>
+                                        </div>
+                                    </div>
+                                    <div onclick="selectQuestionType(${index}, 'yes_no')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                        <i class="ph ph-check-circle text-bermuda-orange text-lg"></i>
+                                        <div>
+                                            <div>Yes / No</div>
+                                            <div class="text-xs text-bermuda-light-gray">Simple binary choice</div>
+                                        </div>
+                                    </div>
+                                    <div onclick="selectQuestionType(${index}, 'number')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                        <i class="ph ph-hash text-bermuda-orange text-lg"></i>
+                                        <div>
+                                            <div>Number</div>
+                                            <div class="text-xs text-bermuda-light-gray">Numeric values only</div>
+                                        </div>
+                                    </div>
+                                    <div onclick="selectQuestionType(${index}, 'rating')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text border-b-0 flex items-center gap-3">
+                                        <i class="ph ph-star text-bermuda-orange text-lg"></i>
+                                        <div>
+                                            <div>Rating</div>
+                                            <div class="text-xs text-bermuda-light-gray">Scale-based evaluation</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -521,13 +551,13 @@
         // Custom dropdown functions
         function getQuestionTypeLabel(type) {
             const labels = {
-                'text': 'Text response',
-                'multiple_choice': 'Multiple Choice Question',
-                'yes_no': 'Yes / No',
-                'number': 'Number',
-                'rating': 'Rating'
+                'text': '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response',
+                'multiple_choice': '<i class="ph ph-list-bullets text-bermuda-orange text-base mr-2"></i>Multiple Choice Question',
+                'yes_no': '<i class="ph ph-check-circle text-bermuda-orange text-base mr-2"></i>Yes / No',
+                'number': '<i class="ph ph-hash text-bermuda-orange text-base mr-2"></i>Number',
+                'rating': '<i class="ph ph-star text-bermuda-orange text-base mr-2"></i>Rating'
             };
-            return labels[type] || 'Text response';
+            return labels[type] || '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response';
         }
         
         function toggleDropdown(index) {
@@ -550,8 +580,8 @@
         }
         
         function selectQuestionType(index, type) {
-            // Update the display
-            document.getElementById(`dropdown-selected-${index}`).textContent = getQuestionTypeLabel(type);
+            // Update the display with HTML (to show icons)
+            document.getElementById(`dropdown-selected-${index}`).innerHTML = getQuestionTypeLabel(type);
             
             // Close dropdown
             document.getElementById(`dropdown-options-${index}`).classList.add('hidden');
