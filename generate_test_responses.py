@@ -206,4 +206,4 @@ if __name__ == "__main__":
     print("🚀 Generating test responses for form aggregation...")
     generate_responses()
     print("✅ Test responses generated successfully!")
-    print(f"📊 View responses at: https://bermuda-kappa.vercel.app/responses/{FORM_ID}")
+    print(f"📊 View responses at: https://barmuda-kappa.vercel.app/responses/{FORM_ID}")

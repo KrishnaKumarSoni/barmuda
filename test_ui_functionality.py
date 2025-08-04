@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-BASE_URL = "https://bermuda-kappa.vercel.app"
+BASE_URL = "https://barmuda-kappa.vercel.app"
 TEST_EMAIL = "bhavesh.nakliwala@gmail.com"
 TEST_PASSWORD = "123#test"
 

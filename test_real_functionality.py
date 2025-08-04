@@ -10,7 +10,7 @@ from datetime import datetime
 
 import requests
 
-BASE_URL = "https://bermuda-kappa.vercel.app"
+BASE_URL = "https://barmuda-kappa.vercel.app"
 
 
 class RealFunctionalityTester:

@@ -14,7 +14,7 @@
 - **Tech Stack**: Flask + Firebase + GPT-4o-mini + Tailwind + Vercel  
 - **Budget Target**: <$50/month operational cost
 - **Performance**: <2s response times, 90%+ LLM accuracy
-- **Domain**: bermuda.vercel.app
+- **Domain**: barmuda.vercel.app
 
 ### Agent Team Ready
 - **fullstack-developer**: Primary Flask/React development (80% work)

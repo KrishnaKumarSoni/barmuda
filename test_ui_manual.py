@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 
 import requests
 
-BASE_URL = "https://bermuda-kappa.vercel.app"
+BASE_URL = "https://barmuda-kappa.vercel.app"
 
 
 class BarmudaManualUITester:

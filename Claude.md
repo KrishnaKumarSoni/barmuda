@@ -63,7 +63,7 @@ Requirements:
 * Validation: Options required for multiple_choice; min 1 enabled question.
 * Preview: JS mock chat (read-only simulation).
 * **Save & Launch**: Updates form to active: true and generates share_url.
-* Share: Link generation (bermuda.vercel.app/form/{form_id}).
+* Share: Link generation (barmuda.vercel.app/form/{form_id}).
 
 User Stories:
 
@@ -211,7 +211,7 @@ Prioritize these (handle via prompts):
 - Performance optimization
 
 **Module 8: Testing & Deployment** - DONE
-- Deployed on bermuda.vercel.app
+- Deployed on barmuda.vercel.app
 - Edge case handling via prompts
 - End-to-end testing completed
 
@@ -241,7 +241,7 @@ Prioritize these (handle via prompts):
 
 ## Instructions for Claude
 
-**Current Status:** MVP is COMPLETE and DEPLOYED at bermuda.vercel.app
+**Current Status:** MVP is COMPLETE and DEPLOYED at barmuda.vercel.app
 
 **Architecture Guidelines:**
 1. Maintain auto-save functionality for data persistence
@@ -259,7 +259,7 @@ Prioritize these (handle via prompts):
 5. Update this file for significant changes
 
 **Deployment:**
-- Production: bermuda.vercel.app (Vercel)
+- Production: barmuda.vercel.app (Vercel)
 - Repository: github.com/KrishnaKumarSoni/bermuda
 - Stack: Python Flask + HTML/CSS/JS + Tailwind + Firebase
 

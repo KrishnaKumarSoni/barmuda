@@ -1118,7 +1118,7 @@ def save_form():
         logger.info(f"Form saved successfully with ID: {form_id}")
 
         # Generate share URL
-        share_url = f"bermuda.vercel.app/form/{form_id}"
+        share_url = f"barmuda.vercel.app/form/{form_id}"
 
         return (
             jsonify(
@@ -1233,7 +1233,7 @@ def update_form(form_id):
 
         # If activating for the first time, generate share URL
         if form_data.get("active") and not existing_form.get("active"):
-            update_document["share_url"] = f"https://bermuda.vercel.app/form/{form_id}"
+            update_document["share_url"] = f"https://barmuda.vercel.app/form/{form_id}"
             logger.info(f"Activating survey {form_id} - generated share URL")
 
         logger.info(
@@ -1248,7 +1248,7 @@ def update_form(form_id):
         # Get final share URL (either existing or newly generated)
         updated_doc = form_ref.get().to_dict()
         share_url = updated_doc.get(
-            "share_url", f"https://bermuda.vercel.app/form/{form_id}"
+            "share_url", f"https://barmuda.vercel.app/form/{form_id}"
         )
 
         return (

@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 
 # Production URL
-BASE_URL = "https://bermuda-kappa.vercel.app"
+BASE_URL = "https://barmuda-kappa.vercel.app"
 
 
 class BarmudaProductionTester:

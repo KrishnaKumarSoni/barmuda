@@ -104,7 +104,7 @@ pip install langchain langchain-openai langgraph firebase-admin fingerprintjs-pr
 - GitHub repository
 
 #### 5.3 Final Deployment
-- Deploy to bermuda.vercel.app
+- Deploy to barmuda.vercel.app
 - Verify all features
 - Performance testing
 
@@ -140,7 +140,7 @@ pip install langchain langchain-openai langgraph firebase-admin fingerprintjs-pr
 1. **Milestone 1**: Working chat agent responding to forms
 2. **Milestone 2**: Data extraction producing structured JSON
 3. **Milestone 3**: Complete dashboard with exports
-4. **Milestone 4**: Deployed to bermuda.vercel.app
+4. **Milestone 4**: Deployed to barmuda.vercel.app
 
 ## Success Criteria
 
@@ -148,7 +148,7 @@ pip install langchain langchain-openai langgraph firebase-admin fingerprintjs-pr
 - [ ] All edge cases handled gracefully
 - [ ] Data extracted accurately to Firestore
 - [ ] Creator can view/export responses
-- [ ] Deployed and accessible at bermuda.vercel.app
+- [ ] Deployed and accessible at barmuda.vercel.app
 - [ ] Performance <2s response times
 - [ ] Handles 50+ concurrent users
 
@@ -165,6 +165,6 @@ A fully functional Barmuda MVP where:
 - Creators paste text → get editable forms → share links
 - Respondents chat naturally → data collected conversationally
 - System extracts structured data → creators export responses
-- Deployed at bermuda.vercel.app with <$50/month operational cost
+- Deployed at barmuda.vercel.app with <$50/month operational cost
 
 Ready to execute this plan and deliver a working MVP!
