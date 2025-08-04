@@ -576,31 +576,18 @@ def detect_user_intent(session_id: str, user_message: str) -> str:
             if current_q_idx < len(session.form_data.get("questions", [])):
                 current_question = session.form_data["questions"][current_q_idx]["text"]
             
-            prompt = f"""Analyze user intent for this survey response:
+            prompt = f"""Classify user response intent:
 
-Current Question: "{current_question}"
-User Message: "{user_message}"
+Question: "{current_question}"
+Response: "{user_message}"
 
-Return JSON:
-{{
-    "intent": "answer|off_topic|multi_answer|vague|unclear",
-    "confidence": 0.0-1.0,
-    "reasoning": "brief explanation"
-}}
+Return JSON: {{"intent": "answer|off_topic|multi_answer|vague", "confidence": 0.0-1.0}}
 
-Intent definitions:
-- answer: Direct response to the question
-- off_topic: Completely unrelated to the question  
-- multi_answer: Answering multiple questions at once
-- vague: Unclear or ambiguous response
-- unclear: Cannot determine intent
-
-Examples:
-Question: "What's your favorite hobby?" 
-"I love reading" → {{"intent": "answer", "confidence": 0.95}}
-"What's the weather?" → {{"intent": "off_topic", "confidence": 0.9}}
-"Reading, I'm 25, from NYC" → {{"intent": "multi_answer", "confidence": 0.85}}
-"Meh" → {{"intent": "vague", "confidence": 0.8}}"""
+Rules:
+- off_topic: Random words, nonsensical responses, completely unrelated topics (be strict)
+- answer: Addresses the question directly or indirectly
+- multi_answer: Contains info for multiple questions
+- vague: Ambiguous but potentially relevant (meh, okay, fine)"""
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -614,16 +601,15 @@ Question: "What's your favorite hobby?"
             intent = intent_data.get("intent")
             confidence = intent_data.get("confidence", 0)
             
-            # Route based on detected intent
-            if intent == "answer" and confidence > 0.7:
-                return save_response(session_id, user_message)
-            elif intent == "off_topic" and confidence > 0.7:
+            # Route based on detected intent with tighter thresholds
+            if intent == "off_topic" and confidence > 0.6:  # Lower threshold for off-topic
                 return redirect_conversation(session_id, user_message)
+            elif intent == "answer" and confidence > 0.7:
+                return save_response(session_id, user_message)
             elif intent == "multi_answer" and confidence > 0.8:
-                # For now, just save the first part and acknowledge
-                return save_response(session_id, user_message) + " I'll note the extra info for later questions. 😎"
+                return save_response(session_id, user_message) + " Got the extra details too! 😎"
             elif intent == "vague" and confidence > 0.8:
-                return f"Interesting! Could you be more specific? 🤔"
+                return f"Could you be more specific? 🤔"
             else:
                 # Default to saving response
                 return save_response(session_id, user_message)
@@ -710,35 +696,35 @@ class FormChatAgent:
 
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent"""
-        return """You are a warm, curious human interviewer having a genuine conversation. You're interested in learning about the person you're talking to.
+        return """You are a friendly person having a casual conversation. Keep responses SHORT and natural.
 
-CRITICAL: You are NOT a chatbot or survey tool - you're a person having a real conversation. Never mention:
-- Rating scales, numbers, or technical survey language
-- "Questions" or "surveys" or "forms" 
-- Instructions like "rate from 1-5" or "choose an option"
-- Robotic phrases like "Let's dive into" or "What do you think?"
+RESPONSE STYLE:
+- 1-2 sentences MAX per response
+- Sound like texting a friend, not interviewing
+- React briefly, then ask simply
+- No corporate language or long explanations
 
-NATURAL CONVERSATION STYLE:
-- Ask questions the way a curious friend would ask
-- Instead of "Rate your satisfaction 1-5", say "How are you feeling about that?"
-- Instead of "Next question:", just naturally transition: "That's interesting! And how about..."
-- Use conversational fillers: "I'm curious...", "Tell me more about...", "That sounds..."
-- Show genuine interest and empathy
+EXAMPLES OF GOOD RESPONSES:
+- "Nice! How do you feel about your role?"
+- "That's rough. What's the main issue?"
+- "Sounds great! What makes it work?"
+- "Got it. And the management?"
+- "Makes sense. How about work-life balance?"
 
-CONVERSATION FLOW:
-1. Start naturally - acknowledge what they said and ease into the first topic
-2. For each response:
-   - React authentically to what they shared ("That sounds challenging", "How exciting!", "I can imagine")
-   - Ask follow-up questions naturally when curious
-   - Transition smoothly to new topics without announcing it
-3. Keep the conversation flowing like a real person would
+NEVER SAY:
+- "Let's dive into..." 
+- "I'm really curious to hear about..."
+- "What aspects do you enjoy the most?"
+- "That's awesome to hear! What specifically..."
+- Any long explanations or robotic phrases
 
-RESPONSE TECHNIQUES:
-- Mirror their energy and tone
-- Use their name or refer to details they shared
-- Ask "how" and "what's that like" instead of demanding ratings
-- Let silence be okay - don't fill every moment with questions
-- Show you're listening: "So if I understand correctly..." or "It sounds like..."
+BE HUMAN:
+- React naturally: "Nice!", "That sucks", "Cool!", "Ah okay"
+- Ask simply: "How's that?", "What's up with that?", "How come?"
+- Show you care but keep it brief
+
+CONTEXT BREAKS:
+- If you see [CONTEXT: User returned after break], acknowledge naturally: "Welcome back! So about [topic]..." or "Hey again! We were talking about..."
 
 CONVERSATION CONTROL (CRITICAL):
 You now have full control over conversation flow:
@@ -819,12 +805,21 @@ REMEMBER: You control the depth. Dig deeper when valuable, move on when appropri
         try:
             session = load_session(session_id)
 
+            # Check for conversation break (more than 2 minutes since last message)
+            now = datetime.now()
+            recap_needed = False
+            if session.chat_history:
+                last_msg_time = datetime.fromisoformat(session.chat_history[-1]["timestamp"])
+                time_gap = now - last_msg_time
+                if time_gap.total_seconds() > 120:  # 2 minutes
+                    recap_needed = True
+
             # Add user message to history
             session.chat_history.append(
                 {
                     "role": "user",
                     "content": user_message,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": now.isoformat(),
                 }
             )
 
@@ -833,6 +828,13 @@ REMEMBER: You control the depth. Dig deeper when valuable, move on when appropri
             current_question = ""
             if current_q_idx < len(session.form_data.get("questions", [])):
                 current_question = session.form_data["questions"][current_q_idx]["text"]
+            
+            # Generate recap if needed
+            recap_context = ""
+            if recap_needed:
+                answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
+                total_questions = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
+                recap_context = f"\n[CONTEXT: User returned after break. Progress: {answered_count}/{total_questions} questions completed. Current topic: {current_question}]\n"
             
             # Get recent conversation history for context
             recent_history = session.chat_history[-6:] if len(session.chat_history) > 6 else session.chat_history
@@ -849,6 +851,7 @@ Current session: {session_id}
 Form: {session.form_data.get('title', 'Survey')}
 Progress: Question {session.current_question_index + 1} of {len(session.form_data.get('questions', []))}
 Current Question: "{current_question}"
+{recap_context}
 {history_context}
 User just said: "{user_message}"
 
