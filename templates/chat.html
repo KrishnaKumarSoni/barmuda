@@ -6,6 +6,10 @@
     <title>{{ form_title }} - Barmuda Forms</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -119,34 +123,34 @@
 
     <!-- Chat Completion Overlay -->
     <div id="completion-overlay" class="hidden fixed inset-0 completion-overlay flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl border border-[#fce9c1] p-6 md:p-8 mx-4 max-w-sm w-full text-center shadow-xl">
-            <!-- Form Title -->
-            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg md:text-xl tracking-[-0.2px] mb-4">
-                {{ form_title }}
-            </h2>
-            
-            <!-- Progress Bar (Complete) -->
-            <div class="mb-6">
-                <div class="bg-[#ffddc5] h-2.5 rounded-full border border-[#fdefd1]">
-                    <div class="bg-[#cc5500] h-2.5 rounded-full border border-[#fdefd1] w-full transition-all duration-500"></div>
+        <div class="bg-white rounded-2xl border border-[#fce9c1] p-6 md:p-8 mx-4 max-w-md w-full text-center shadow-xl">
+            <!-- Success Icon -->
+            <div class="mb-4">
+                <div class="w-16 h-16 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ph ph-check text-white text-2xl"></i>
                 </div>
             </div>
             
             <!-- Completion Message -->
             <div class="mb-6">
-                <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-2">form complete</p>
-                <p class="font-['DM_Sans'] text-[#1e1e1e] text-base leading-relaxed">
-                    thank you for completing this form.<br>
-                    we have received your response.
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-xl md:text-2xl tracking-[-0.2px] mb-3">
+                    Thanks for the chat! 😊
+                </h2>
+                <p class="font-['DM_Sans'] text-[#6b7280] text-base leading-relaxed">
+                    Your responses have been shared and will help make a real difference.
                 </p>
             </div>
             
-            <!-- Action Button -->
-            <div>
-                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-5 py-2.5 text-white font-['DM_Sans'] text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2">
-                    <span>generate new form</span>
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-full px-6 py-3 text-white font-['DM_Sans'] font-medium text-sm hover:opacity-90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                     <i class="ph ph-plus text-white text-base"></i>
+                    <span>Create Your Own</span>
                 </a>
+                <button onclick="closeChat()" class="bg-white border-2 border-[#fce9c1] rounded-full px-6 py-3 text-[#cc5500] font-['DM_Sans'] font-medium text-sm hover:bg-[#fef5e0] transition-all duration-200 inline-flex items-center justify-center gap-2">
+                    <i class="ph ph-x text-[#cc5500] text-base"></i>
+                    <span>Close</span>
+                </button>
             </div>
         </div>
     </div>
@@ -513,6 +517,16 @@
             const completionProgressBar = overlay.querySelector('.bg-\\[\\#cc5500\\]');
             if (completionProgressBar) {
                 completionProgressBar.style.width = '100%';
+            }
+        }
+
+        // Close chat completion screen
+        function closeChat() {
+            // Simply close the current tab/window
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.close();
             }
         }
 
