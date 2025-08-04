@@ -62,6 +62,12 @@ def to_json_filter(obj):
     return Markup(json.dumps(obj))
 
 
+# Favicon route
+@app.route('/favicon.ico')
+def favicon():
+    return redirect(url_for('static', filename='assets/logo.webp'))
+
+
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
     # For production (Vercel), use environment variables
