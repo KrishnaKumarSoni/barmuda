@@ -145,26 +145,37 @@
         
         <!-- Launch Success Modal -->
         <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-lg p-6 md:p-8 text-center max-w-md w-full mx-4">
+            <div class="bg-white rounded-lg p-6 text-center max-w-lg w-full mx-4">
                 <!-- Success Message -->
-                <div class="mb-6">
-                    <h3 class="font-jakarta font-bold text-2xl text-bermuda-text mb-2">Form Created Successfully!</h3>
-                    <p class="font-dm text-bermuda-gray">Your form is ready to collect responses.</p>
+                <div class="mb-4">
+                    <h3 class="font-jakarta font-bold text-xl text-bermuda-text mb-2">Survey Ready to Share</h3>
+                    <p class="font-dm text-bermuda-gray text-sm">Your custom share image is ready</p>
+                </div>
+                
+                <!-- Share Image -->
+                <div class="mb-4">
+                    <canvas id="shareGraphicCanvas" class="mx-auto rounded-lg border border-bermuda-border shadow-sm" width="320" height="200" style="max-width: 100%; height: auto;"></canvas>
                 </div>
                 
                 <!-- Action Buttons -->
-                <div class="flex gap-4">
+                <div class="flex gap-3">
+                    <button 
+                        onclick="copyShareImage()"
+                        class="flex-1 bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm"
+                    >
+                        Copy Image
+                    </button>
                     <button 
                         onclick="copyShareLink()"
-                        class="flex-1 bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-dm"
+                        class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm text-sm"
                     >
                         Copy Link
                     </button>
                     <button 
-                        onclick="goToDashboard()"
-                        class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm"
+                        onclick="downloadShareImage()"
+                        class="flex-1 bg-bermuda-gray text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm"
                     >
-                        Dashboard
+                        Download
                     </button>
                 </div>
             </div>
@@ -770,7 +781,8 @@
                     savedFormId = data.form_id;
                     loadingState.classList.add('hidden');
                     
-                    console.log('Form saved successfully, showing modal');
+                    // Generate share image and show modal
+                    generateShareImage();
                     document.getElementById('successModal').classList.remove('hidden');
                     
                     // Clear session storage after successful save
@@ -810,6 +822,114 @@
             }
         }
 
+        // Generate sleek share image
+        function generateShareImage() {
+            const canvas = document.getElementById('shareGraphicCanvas');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            // High-DPI setup
+            canvas.width = 320 * dpr;
+            canvas.height = 200 * dpr;
+            ctx.scale(dpr, dpr);
+            
+            // Clear and create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 320, 200);
+            gradient.addColorStop(0, '#cc5500');
+            gradient.addColorStop(1, '#d12b2e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 320, 200);
+            
+            // Content area
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.roundRect(20, 30, 280, 140, 8);
+            ctx.fill();
+            
+            // Barmuda branding
+            ctx.fillStyle = '#cc5500';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Barmuda', 160, 55);
+            
+            // Form title (elegant, no question count)
+            ctx.fillStyle = '#1e1e1e';
+            ctx.font = 'bold 16px Arial';
+            const title = formData.title || 'Survey';
+            const maxWidth = 240;
+            const words = title.split(' ');
+            let line = '';
+            let y = 85;
+            
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    ctx.fillText(line, 160, y);
+                    line = words[n] + ' ';
+                    y += 20;
+                    if (y > 125) break; // Max 2 lines
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, 160, y);
+            
+            // Elegant call to action
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText('Share your thoughts', 160, 140);
+            
+            // Domain
+            ctx.fillStyle = '#999';
+            ctx.font = '12px Arial';
+            ctx.fillText('barmuda.in', 160, 160);
+        }
+
+        // Canvas rounded rectangle helper
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.beginPath();
+            this.moveTo(x+r, y);
+            this.arcTo(x+w, y, x+w, y+h, r);
+            this.arcTo(x+w, y+h, x, y+h, r);
+            this.arcTo(x, y+h, x, y, r);
+            this.arcTo(x, y, x+w, y, r);
+            this.closePath();
+            return this;
+        }
+
+        // Copy share image to clipboard
+        async function copyShareImage() {
+            try {
+                const canvas = document.getElementById('shareGraphicCanvas');
+                canvas.toBlob(async (blob) => {
+                    try {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        alert('Image copied to clipboard!');
+                    } catch (err) {
+                        alert('Copy failed. Try download instead.');
+                    }
+                }, 'image/png');
+            } catch (error) {
+                alert('Copy not supported. Try download instead.');
+            }
+        }
+
+        // Download share image
+        function downloadShareImage() {
+            const canvas = document.getElementById('shareGraphicCanvas');
+            const link = document.createElement('a');
+            const title = formData.title || 'Survey';
+            const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            
+            link.download = `${filename}_share.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            alert('Image downloaded!');
+        }
 
         // Preview functionality
         function showPreview() {
