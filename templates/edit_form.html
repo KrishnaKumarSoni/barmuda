@@ -769,12 +769,15 @@
                 if (data.success) {
                     savedFormId = data.form_id;
                     loadingState.classList.add('hidden');
+                    
+                    console.log('Form saved successfully, showing modal');
                     document.getElementById('successModal').classList.remove('hidden');
                     
                     // Clear session storage after successful save
                     sessionStorage.removeItem('generatedForm');
                     sessionStorage.removeItem('editFormId');
                 } else {
+                    console.error('Save failed:', data.error);
                     alert('Failed to save form: ' + (data.error || 'Unknown error'));
                 }
                 
