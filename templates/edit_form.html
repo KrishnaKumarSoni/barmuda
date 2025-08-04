@@ -157,24 +157,41 @@
                 </div>
                 
                 <!-- Action Buttons -->
-                <div class="flex gap-3">
-                    <button 
-                        onclick="copyShareImage()"
-                        class="flex-1 bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm"
-                    >
-                        Copy Image
-                    </button>
+                <div class="space-y-3">
+                    <!-- Primary CTA -->
                     <button 
                         onclick="copyShareLink()"
-                        class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm text-sm"
+                        class="w-full bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-3 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm font-medium flex items-center justify-center gap-2"
                     >
+                        <i class="ph ph-link text-white"></i>
                         Copy Link
                     </button>
+                    
+                    <!-- Secondary CTAs -->
+                    <div class="flex gap-3">
+                        <button 
+                            onclick="copyShareImage()"
+                            class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm text-sm flex items-center justify-center gap-2"
+                        >
+                            <i class="ph ph-image text-current"></i>
+                            Copy Image
+                        </button>
+                        <button 
+                            onclick="downloadShareImage()"
+                            class="flex-1 border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
+                        >
+                            <i class="ph ph-download-simple text-current"></i>
+                            Download
+                        </button>
+                    </div>
+                    
+                    <!-- Navigation -->
                     <button 
-                        onclick="downloadShareImage()"
-                        class="flex-1 bg-bermuda-gray text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm"
+                        onclick="goToDashboard()"
+                        class="w-full border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                     >
-                        Download
+                        <i class="ph ph-house text-current"></i>
+                        Go to Dashboard
                     </button>
                 </div>
             </div>
@@ -872,34 +889,35 @@
             ctx.textAlign = 'right';
             ctx.fillText('B', 295, 45);
             
-            // Form title with proper typography
+            // Form title with proper typography and spacing
             ctx.fillStyle = '#1e1e1e';
-            ctx.font = 'bold 22px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.font = 'bold 20px "Plus Jakarta Sans", Arial, sans-serif';
             ctx.textAlign = 'center';
             const title = formData.title || 'Survey';
             const maxWidth = 250;
             const words = title.split(' ');
             let line = '';
-            let y = 90;
+            let y = 85;
+            const lineHeight = 26; // Better line spacing
             
             for (let n = 0; n < words.length; n++) {
                 const testLine = line + words[n] + ' ';
                 const metrics = ctx.measureText(testLine);
                 if (metrics.width > maxWidth && n > 0) {
-                    ctx.fillText(line, 160, y);
+                    ctx.fillText(line.trim(), 160, y);
                     line = words[n] + ' ';
-                    y += 28;
-                    if (y > 120) break; // Max 2 lines
+                    y += lineHeight;
+                    if (y > 115) break; // Max 2 lines with better spacing
                 } else {
                     line = testLine;
                 }
             }
-            ctx.fillText(line, 160, y);
+            ctx.fillText(line.trim(), 160, y);
             
-            // Attractive call to action with accent color
+            // Attractive call to action with accent color and proper spacing
             ctx.fillStyle = '#cc5500';
-            ctx.font = '16px "DM Sans", Arial, sans-serif';
-            ctx.fillText('Share your voice', 160, y + 35);
+            ctx.font = '15px "DM Sans", Arial, sans-serif';
+            ctx.fillText('Quick 2-minute chat', 160, y + 32);
             
             // Subtle domain branding
             ctx.fillStyle = '#999';
@@ -910,7 +928,7 @@
             ctx.fillStyle = 'rgba(204, 85, 0, 0.2)';
             for (let i = 0; i < 3; i++) {
                 ctx.beginPath();
-                ctx.arc(130 + (i * 20), y + 50, 2, 0, 2 * Math.PI);
+                ctx.arc(130 + (i * 20), y + 45, 2, 0, 2 * Math.PI);
                 ctx.fill();
             }
         }
