@@ -8,7 +8,7 @@ from functools import wraps
 import firebase_admin
 from dotenv import load_dotenv
 from firebase_admin import auth, credentials, firestore
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
 
@@ -62,10 +62,14 @@ def to_json_filter(obj):
     return Markup(json.dumps(obj))
 
 
-# Favicon route
+# Favicon route - serve ICO file
 @app.route('/favicon.ico')
 def favicon():
-    return redirect(url_for('static', filename='assets/logo.webp'))
+    return send_from_directory(
+        os.path.join(app.root_path, 'static/assets'),
+        'favicon.ico',
+        mimetype='image/x-icon'
+    )
 
 
 # Initialize Firebase Admin SDK
@@ -1380,7 +1384,7 @@ def internal_error(error):
 import hashlib
 import time
 
-from chat_agent_v2 import get_chat_agent
+from chat_agent_v3 import get_chat_agent
 
 
 @app.route("/form/<form_id>")
