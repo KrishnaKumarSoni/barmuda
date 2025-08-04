@@ -149,7 +149,6 @@
                 <!-- Success Message -->
                 <div class="mb-4">
                     <h3 class="font-jakarta font-bold text-xl text-bermuda-text mb-2">Survey Ready to Share</h3>
-                    <p class="font-dm text-bermuda-gray text-sm">Your custom share image is ready</p>
                 </div>
                 
                 <!-- Share Image -->
@@ -822,7 +821,7 @@
             }
         }
 
-        // Generate sleek share image
+        // Generate fancy, attractive share image
         function generateShareImage() {
             const canvas = document.getElementById('shareGraphicCanvas');
             const ctx = canvas.getContext('2d');
@@ -833,32 +832,55 @@
             canvas.height = 200 * dpr;
             ctx.scale(dpr, dpr);
             
-            // Clear and create gradient background
+            // Fancy gradient background with multiple stops
             const gradient = ctx.createLinearGradient(0, 0, 320, 200);
             gradient.addColorStop(0, '#cc5500');
-            gradient.addColorStop(1, '#d12b2e');
+            gradient.addColorStop(0.5, '#d12b2e');
+            gradient.addColorStop(1, '#b8441f');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 320, 200);
             
-            // Content area
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-            ctx.roundRect(20, 30, 280, 140, 8);
+            // Add subtle pattern overlay for texture
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            for (let i = 0; i < 320; i += 15) {
+                for (let j = 0; j < 200; j += 15) {
+                    if ((i + j) % 30 === 0) {
+                        ctx.fillRect(i, j, 1, 1);
+                    }
+                }
+            }
+            
+            // Elegant content card with shadow effect
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 2;
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
+            ctx.roundRect(15, 25, 290, 150, 12);
             ctx.fill();
             
-            // Barmuda branding
-            ctx.fillStyle = '#cc5500';
-            ctx.font = 'bold 18px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Barmuda', 160, 55);
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
             
-            // Form title (elegant, no question count)
+            // Logo placeholder in top right (small B icon for now)
+            ctx.fillStyle = '#cc5500';
+            ctx.font = 'bold 12px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText('B', 295, 45);
+            
+            // Form title with proper typography
             ctx.fillStyle = '#1e1e1e';
-            ctx.font = 'bold 16px Arial';
+            ctx.font = 'bold 22px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.textAlign = 'center';
             const title = formData.title || 'Survey';
-            const maxWidth = 240;
+            const maxWidth = 250;
             const words = title.split(' ');
             let line = '';
-            let y = 85;
+            let y = 90;
             
             for (let n = 0; n < words.length; n++) {
                 const testLine = line + words[n] + ' ';
@@ -866,23 +888,31 @@
                 if (metrics.width > maxWidth && n > 0) {
                     ctx.fillText(line, 160, y);
                     line = words[n] + ' ';
-                    y += 20;
-                    if (y > 125) break; // Max 2 lines
+                    y += 28;
+                    if (y > 120) break; // Max 2 lines
                 } else {
                     line = testLine;
                 }
             }
             ctx.fillText(line, 160, y);
             
-            // Elegant call to action
-            ctx.fillStyle = '#666';
-            ctx.font = '14px Arial';
-            ctx.fillText('Share your thoughts', 160, 140);
+            // Attractive call to action with accent color
+            ctx.fillStyle = '#cc5500';
+            ctx.font = '16px "DM Sans", Arial, sans-serif';
+            ctx.fillText('Share your voice', 160, y + 35);
             
-            // Domain
+            // Subtle domain branding
             ctx.fillStyle = '#999';
-            ctx.font = '12px Arial';
-            ctx.fillText('barmuda.in', 160, 160);
+            ctx.font = '11px "DM Sans", Arial, sans-serif';
+            ctx.fillText('barmuda.in', 160, 165);
+            
+            // Add decorative element - small dots for visual interest
+            ctx.fillStyle = 'rgba(204, 85, 0, 0.2)';
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(130 + (i * 20), y + 50, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            }
         }
 
         // Canvas rounded rectangle helper
