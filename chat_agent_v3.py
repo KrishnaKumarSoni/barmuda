@@ -28,11 +28,12 @@ if original_key != clean_key:
     )
     os.environ["OPENAI_API_KEY"] = clean_key
 
-# Initialize Firebase if not already done
+# Firebase should already be initialized by app.py when used via Flask
+# For standalone usage, initialize if needed
 if not firebase_admin._apps:
     # For production (Vercel), use environment variables
     # For local development, fall back to service account file
-    if os.environ.get("VERCEL") and os.environ.get("FIREBASE_PRIVATE_KEY"):
+    if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
         # Production environment - use environment variables
         firebase_config = {
             "type": "service_account",

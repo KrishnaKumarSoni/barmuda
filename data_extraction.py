@@ -18,12 +18,8 @@ load_dotenv()
 # Initialize OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Initialize Firebase
-if not firebase_admin._apps:
-    cred = firebase_admin.credentials.Certificate(
-        "bermuda-01-firebase-adminsdk-fbsvc-660474f630.json"
-    )
-    firebase_admin.initialize_app(cred)
+# Firebase should already be initialized by app.py
+# Just get the client
 
 firestore_db = firestore.client()
 
