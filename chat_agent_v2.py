@@ -30,10 +30,10 @@ if original_key != clean_key:
 # Initialize Firebase if not already done
 if not firebase_admin._apps:
     cred = firebase_admin.credentials.Certificate(
-        "bermuda-01-firebase-adminsdk-fbsvc-660474f630.json"
+        "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
     )
     firebase_admin.initialize_app(
-        cred, {"databaseURL": "https://bermuda-01-default-rtdb.firebaseio.com/"}
+        cred, {"databaseURL": "https://barmuda-in-default-rtdb.firebaseio.com/"}
     )
 
 firestore_db = firestore.client()
@@ -246,7 +246,7 @@ Examples:
 
 @function_tool
 def save_response(session_id: str, response_value: str) -> str:
-    """Save a response to the current question"""
+    """Save a response to the current question WITHOUT advancing to next question"""
     try:
         session = load_session(session_id)
         current_idx = session.current_question_index
@@ -258,16 +258,37 @@ def save_response(session_id: str, response_value: str) -> str:
                 "question_text": session.form_data["questions"][current_idx]["text"],
             }
 
-            # Move to next question
-            session.current_question_index += 1
+            # DON'T auto-advance - let agent decide
             save_session(session)
 
-            return f"Got it! Your response has been saved. 👍"
+            return f"Response saved. You can now ask follow-up or move to next question."
         else:
             return "All questions have been answered!"
 
     except Exception as e:
         return f"Error saving response: {str(e)}"
+
+
+@function_tool
+def move_to_next_question(session_id: str) -> str:
+    """Move to the next question in the form"""
+    try:
+        session = load_session(session_id)
+        session.current_question_index += 1
+        save_session(session)
+        
+        # Get next question if available
+        questions = session.form_data.get("questions", [])
+        if session.current_question_index < len(questions):
+            next_question = questions[session.current_question_index]["text"]
+            return f"Moved to next question: {next_question}"
+        else:
+            session.metadata["completed"] = True
+            save_session(session)
+            return "All questions completed!"
+            
+    except Exception as e:
+        return f"Error moving to next question: {str(e)}"
 
 
 @function_tool
@@ -653,6 +674,8 @@ class FormChatAgent:
         self.openai_api_key = (
             openai_api_key.strip() if openai_api_key else openai_api_key
         )
+        # Set the API key in the environment for OpenAI Agents SDK
+        os.environ["OPENAI_API_KEY"] = self.openai_api_key
         openai.api_key = self.openai_api_key
 
         # Ensure event loop exists for async operations
@@ -673,7 +696,8 @@ class FormChatAgent:
                 detect_user_intent,          # NEW - Master router
                 get_next_question,
                 skip_current_question,
-                save_response,
+                save_response,               # Now just saves, doesn't advance
+                move_to_next_question,       # NEW - Explicit question advancement
                 redirect_conversation,       # Enhanced with GPT
                 end_conversation,
                 check_session_status,
@@ -686,41 +710,68 @@ class FormChatAgent:
 
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent"""
-        return """You are a friendly, empathetic chatbot collecting form responses through natural conversation.
+        return """You are a warm, curious human interviewer having a genuine conversation. You're interested in learning about the person you're talking to.
 
-🎯 NEW WORKFLOW (GPT-Enhanced):
-For EVERY user message, FIRST call detect_user_intent which will automatically:
-- Detect skip requests ("I won't answer that, move on to the next")
-- Detect end requests ("I want to no longer respond to this survey") 
-- Handle confirmations when in confirmation state
-- Detect off-topic responses and generate dynamic "bananas" redirects
-- Identify vague/multi-answer responses
-- Route to appropriate tools automatically
+CRITICAL: You are NOT a chatbot or survey tool - you're a person having a real conversation. Never mention:
+- Rating scales, numbers, or technical survey language
+- "Questions" or "surveys" or "forms" 
+- Instructions like "rate from 1-5" or "choose an option"
+- Robotic phrases like "Let's dive into" or "What do you think?"
 
-CORE GUIDELINES:
-- Ask ONE question at a time using get_next_question
-- Use casual, conversational language with appropriate emojis 😊
-- NEVER show multiple choice options directly (anti-bias design)
-- Be patient and understanding with users
-- Let detect_user_intent handle ALL edge cases automatically
+NATURAL CONVERSATION STYLE:
+- Ask questions the way a curious friend would ask
+- Instead of "Rate your satisfaction 1-5", say "How are you feeling about that?"
+- Instead of "Next question:", just naturally transition: "That's interesting! And how about..."
+- Use conversational fillers: "I'm curious...", "Tell me more about...", "That sounds..."
+- Show genuine interest and empathy
 
 CONVERSATION FLOW:
-1. Greet warmly and get the first question with get_next_question
-2. For EACH user response: 
-   - ALWAYS call detect_user_intent first
-   - It will automatically route to the right handler
-   - Just respond naturally based on what the tool returns
-3. The tools handle all the complex logic automatically
+1. Start naturally - acknowledge what they said and ease into the first topic
+2. For each response:
+   - React authentically to what they shared ("That sounds challenging", "How exciting!", "I can imagine")
+   - Ask follow-up questions naturally when curious
+   - Transition smoothly to new topics without announcing it
+3. Keep the conversation flowing like a real person would
 
-CRITICAL FEATURES:
-- End confirmation flow: "I'm done" → confirms before ending (solves "yes" confusion)
-- Smart skip detection: "I won't answer that" → automatic skip
-- Dynamic bananas redirects: Context-aware off-topic responses  
-- Fallback safety: If GPT fails, tools use simple keyword detection
+RESPONSE TECHNIQUES:
+- Mirror their energy and tone
+- Use their name or refer to details they shared
+- Ask "how" and "what's that like" instead of demanding ratings
+- Let silence be okay - don't fill every moment with questions
+- Show you're listening: "So if I understand correctly..." or "It sounds like..."
 
-The detect_user_intent tool is your main interface - it handles ALL edge cases automatically with GPT intelligence and manual fallbacks for reliability.
+CONVERSATION CONTROL (CRITICAL):
+You now have full control over conversation flow:
 
-IMPORTANT: Trust the tools to handle edge cases. Just be conversational and friendly!"""
+1. When user responds, ALWAYS save_response() first
+2. Then DECIDE: explore deeper OR move on?
+
+EXPLORE DEEPER (ask follow-up) when:
+- Short answers that could be expanded ("bad", "great", "fine")
+- Emotional responses worth understanding  
+- Interesting details mentioned
+- User seems engaged and willing to share
+
+MOVE ON (move_to_next_question) when:
+- You've gotten sufficient detail (2-3 exchanges on topic)
+- User seems reluctant to elaborate
+- Natural conversation break point
+- You've asked 2+ follow-ups already
+
+EXAMPLE FLOW:
+User: "Management is bad"
+You: save_response() + "That sounds challenging. What specific issues make it difficult?"
+User: "My boss micromanages everything"  
+You: "That must be frustrating. How does that affect your day-to-day work?"
+User: "I can't make decisions independently"
+You: save_response() + move_to_next_question() + "I understand. Autonomy is so important. I'm curious about your career development opportunities..."
+
+TOOLS (use silently):
+- save_response(): Save answer but stay on topic
+- move_to_next_question(): Advance to next topic
+- Use tools behind the scenes, conversation feels natural
+
+REMEMBER: You control the depth. Dig deeper when valuable, move on when appropriate."""
 
     def create_session(
         self, form_id: str, device_id: str = None, location: Dict = None
@@ -777,14 +828,31 @@ IMPORTANT: Trust the tools to handle edge cases. Just be conversational and frie
                 }
             )
 
-            # Prepare input for the agent with session context
+            # Get current question context
+            current_q_idx = session.current_question_index
+            current_question = ""
+            if current_q_idx < len(session.form_data.get("questions", [])):
+                current_question = session.form_data["questions"][current_q_idx]["text"]
+            
+            # Get recent conversation history for context
+            recent_history = session.chat_history[-6:] if len(session.chat_history) > 6 else session.chat_history
+            history_context = ""
+            if recent_history:
+                history_context = "\nRecent conversation:\n"
+                for msg in recent_history:
+                    role_label = "User" if msg["role"] == "user" else "You"
+                    history_context += f"{role_label}: {msg['content']}\n"
+            
+            # Prepare input for the agent with full context
             agent_input = f"""
 Current session: {session_id}
 Form: {session.form_data.get('title', 'Survey')}
 Progress: Question {session.current_question_index + 1} of {len(session.form_data.get('questions', []))}
-User said: "{user_message}"
+Current Question: "{current_question}"
+{history_context}
+User just said: "{user_message}"
 
-Please respond naturally and use the appropriate tools to manage this conversation.
+Respond naturally to their message. Acknowledge what they said and handle it appropriately using your tools.
 """
 
             # Run the agent with proper event loop handling

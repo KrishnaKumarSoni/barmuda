@@ -222,12 +222,12 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "{{ config.FIREBASE_API_KEY or 'your-api-key' }}",
-            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN or 'bermuda-01.firebaseapp.com' }}",
-            projectId: "{{ config.FIREBASE_PROJECT_ID or 'bermuda-01' }}",
-            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET or 'bermuda-01.appspot.com' }}",
-            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID or 'your-sender-id' }}",
-            appId: "{{ config.FIREBASE_APP_ID or 'your-app-id' }}"
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
         };
 
         // Initialize Firebase
@@ -382,17 +382,26 @@
                     <!-- Question Type -->
                     <div>
                         <label class="font-jakarta font-bold text-lg text-bermuda-gray tracking-tight mb-2 block">question type</label>
-                        <div class="bg-white rounded-lg border border-bermuda-border p-4">
-                            <select 
-                                onchange="updateQuestionType(${index}, this.value)"
-                                class="w-full font-dm text-base text-bermuda-text bg-transparent outline-none appearance-none"
-                            >
-                                <option value="text" ${question.type === 'text' ? 'selected' : ''}>Text response</option>
-                                <option value="multiple_choice" ${question.type === 'multiple_choice' ? 'selected' : ''}>Multiple Choice Question</option>
-                                <option value="yes_no" ${question.type === 'yes_no' ? 'selected' : ''}>Yes / No</option>
-                                <option value="number" ${question.type === 'number' ? 'selected' : ''}>Number</option>
-                                <option value="rating" ${question.type === 'rating' ? 'selected' : ''}>Rating</option>
-                            </select>
+                        <div class="bg-white rounded-lg border border-bermuda-border p-4 relative">
+                            <div class="custom-dropdown" id="dropdown-${index}">
+                                <button 
+                                    onclick="toggleDropdown(${index})"
+                                    class="w-full flex items-center justify-between font-dm text-base text-bermuda-text bg-transparent outline-none"
+                                >
+                                    <span id="dropdown-selected-${index}">${getQuestionTypeLabel(question.type)}</span>
+                                    <i class="ph ph-caret-down text-bermuda-gray transition-transform" id="dropdown-arrow-${index}"></i>
+                                </button>
+                                <div 
+                                    id="dropdown-options-${index}" 
+                                    class="hidden absolute top-full left-0 right-0 bg-white border border-bermuda-border rounded-lg mt-1 shadow-lg z-10"
+                                >
+                                    <div onclick="selectQuestionType(${index}, 'text')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Text response</div>
+                                    <div onclick="selectQuestionType(${index}, 'multiple_choice')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Multiple Choice Question</div>
+                                    <div onclick="selectQuestionType(${index}, 'yes_no')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Yes / No</div>
+                                    <div onclick="selectQuestionType(${index}, 'number')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text">Number</div>
+                                    <div onclick="selectQuestionType(${index}, 'rating')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text border-b-0">Rating</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -469,8 +478,8 @@
                         onclick="${demographicsEnabled ? `toggleDemographic('${option.toLowerCase()}')` : 'return false'}"
                         class="w-10 h-6 ${!demographicsEnabled ? 'cursor-not-allowed' : ''}"
                     >
-                        <img src="/static/${isEnabled ? 'd595dca8967d730147a1e3cdfbb85834e2cd745e.svg' : '580dd424adfe44c75327028a910bf28d17eb6a01.svg'}" 
-                             alt="Toggle" class="w-full h-full ${isEnabled ? '' : 'transform rotate-180'}">
+                        <img src="/static/${isEnabled ? 'd595dca8967d730147a1e3cdfbb85834e2cd745e.svg' : '77ab3bbe188a70a08cc0303b9233495ca14571bd.svg'}" 
+                             alt="Toggle" class="w-full h-full">
                     </button>
                 `;
                 
@@ -508,6 +517,61 @@
                 renderQuestions();
             }
         }
+        
+        // Custom dropdown functions
+        function getQuestionTypeLabel(type) {
+            const labels = {
+                'text': 'Text response',
+                'multiple_choice': 'Multiple Choice Question',
+                'yes_no': 'Yes / No',
+                'number': 'Number',
+                'rating': 'Rating'
+            };
+            return labels[type] || 'Text response';
+        }
+        
+        function toggleDropdown(index) {
+            const optionsDiv = document.getElementById(`dropdown-options-${index}`);
+            const arrow = document.getElementById(`dropdown-arrow-${index}`);
+            
+            // Close all other dropdowns first
+            document.querySelectorAll('[id^="dropdown-options-"]').forEach(dropdown => {
+                if (dropdown.id !== `dropdown-options-${index}`) {
+                    dropdown.classList.add('hidden');
+                    const arrowId = dropdown.id.replace('dropdown-options-', 'dropdown-arrow-');
+                    const otherArrow = document.getElementById(arrowId);
+                    if (otherArrow) otherArrow.classList.remove('rotate-180');
+                }
+            });
+            
+            // Toggle current dropdown
+            optionsDiv.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+        
+        function selectQuestionType(index, type) {
+            // Update the display
+            document.getElementById(`dropdown-selected-${index}`).textContent = getQuestionTypeLabel(type);
+            
+            // Close dropdown
+            document.getElementById(`dropdown-options-${index}`).classList.add('hidden');
+            document.getElementById(`dropdown-arrow-${index}`).classList.remove('rotate-180');
+            
+            // Update the question type
+            updateQuestionType(index, type);
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.custom-dropdown')) {
+                document.querySelectorAll('[id^="dropdown-options-"]').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                    const arrowId = dropdown.id.replace('dropdown-options-', 'dropdown-arrow-');
+                    const arrow = document.getElementById(arrowId);
+                    if (arrow) arrow.classList.remove('rotate-180');
+                });
+            }
+        });
 
         function updateOption(questionIndex, optionIndex, value) {
             if (formData.questions[questionIndex] && formData.questions[questionIndex].options) {
@@ -562,7 +626,7 @@
             } else {
                 // Hide demographics section - disable all demographics
                 grid.classList.add('hidden');
-                toggle.innerHTML = '<img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">';
+                toggle.innerHTML = '<img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full">';
                 
                 // Disable all demographics when hiding section
                 if (!formData.demographics) formData.demographics = {};

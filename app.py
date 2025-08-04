@@ -87,7 +87,7 @@ if not firebase_admin._apps:
     else:
         # Local development - use service account file
         cred = credentials.Certificate(
-            "bermuda-01-firebase-adminsdk-fbsvc-660474f630.json"
+            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
         )
 
     firebase_admin.initialize_app(cred)
@@ -1607,7 +1607,7 @@ def process_chat_message():
         if not check_rate_limit(session_id, request.remote_addr):
             return jsonify({"error": "Rate limit exceeded. Please slow down."}), 429
 
-        # Process message with agent
+        # Process message with GPT-powered agent
         agent = get_chat_agent()
         result = agent.process_message(session_id, message)
 
