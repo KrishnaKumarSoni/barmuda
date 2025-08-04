@@ -144,85 +144,28 @@
         </div>
         
         <!-- Launch Success Modal -->
-        <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-2xl p-6 md:p-8 text-center max-w-2xl w-full mx-4 relative overflow-hidden">
-                <!-- Confetti Animation -->
-                <div id="confetti" class="absolute inset-0 pointer-events-none"></div>
+        <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg p-6 md:p-8 text-center max-w-md w-full mx-4">
+                <!-- Success Message -->
+                <div class="mb-6">
+                    <h3 class="font-jakarta font-bold text-2xl text-bermuda-text mb-2">Form Created Successfully!</h3>
+                    <p class="font-dm text-bermuda-gray">Your form is ready to collect responses.</p>
+                </div>
                 
-                <!-- Success Header -->
-                <div class="mb-8">
-                    <div class="w-16 h-16 bg-gradient-to-r from-bermuda-orange to-bermuda-red rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="ph ph-rocket-launch text-white text-2xl"></i>
-                    </div>
-                    <h3 class="font-jakarta font-bold text-3xl text-bermuda-text mb-2">🎉 Survey Launched!</h3>
-                    <p class="font-dm text-bermuda-gray text-lg">Your survey is live and ready to go viral!</p>
-                </div>
-
-                <!-- Auto-generated Share Graphic -->
-                <div class="mb-8">
-                    <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                        <canvas id="shareGraphicCanvas" class="mx-auto rounded-lg shadow-lg" width="400" height="300" style="max-width: 100%; height: auto;"></canvas>
-                    </div>
-                    <p class="font-dm text-sm text-bermuda-gray">✨ Auto-generated share graphic ready for social media</p>
-                </div>
-
-                <!-- Action Buttons Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <!-- Copy Image Button -->
-                    <button 
-                        onclick="copyShareGraphic()"
-                        class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-6 py-3 rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-3 font-dm font-medium"
-                    >
-                        <i class="ph ph-copy text-lg"></i>
-                        Copy Image
-                    </button>
-                    
-                    <!-- Download Image Button -->
-                    <button 
-                        onclick="downloadShareGraphic()"
-                        class="bg-white border-2 border-bermuda-orange text-bermuda-orange px-6 py-3 rounded-xl hover:bg-bermuda-orange hover:text-white transition-all flex items-center justify-center gap-3 font-dm font-medium"
-                    >
-                        <i class="ph ph-download-simple text-lg"></i>
-                        Download
-                    </button>
-                    
-                    <!-- Copy Link Button -->
+                <!-- Action Buttons -->
+                <div class="flex gap-4">
                     <button 
                         onclick="copyShareLink()"
-                        class="bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-all flex items-center justify-center gap-3 font-dm font-medium"
+                        class="flex-1 bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-dm"
                     >
-                        <i class="ph ph-link text-lg"></i>
                         Copy Link
                     </button>
-                    
-                    <!-- View Dashboard Button -->
                     <button 
                         onclick="goToDashboard()"
-                        class="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-3 font-dm font-medium"
+                        class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm"
                     >
-                        <i class="ph ph-house text-lg"></i>
                         Dashboard
                     </button>
-                </div>
-
-                <!-- Quick Stats Preview -->
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
-                    <div class="flex items-center justify-center gap-6 text-sm">
-                        <div class="text-center">
-                            <div class="font-dm font-semibold text-bermuda-text" id="questionCount">0</div>
-                            <div class="font-dm text-gray-600">Questions</div>
-                        </div>
-                        <div class="w-px h-8 bg-gray-300"></div>
-                        <div class="text-center">
-                            <div class="font-dm font-semibold text-green-600">Active</div>
-                            <div class="font-dm text-gray-600">Status</div>
-                        </div>
-                        <div class="w-px h-8 bg-gray-300"></div>
-                        <div class="text-center">
-                            <div class="font-dm font-semibold text-bermuda-text">Ready</div>
-                            <div class="font-dm text-gray-600">to Share</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -826,13 +769,7 @@
                 if (data.success) {
                     savedFormId = data.form_id;
                     loadingState.classList.add('hidden');
-                    
-                    // Generate share graphic and show success modal
-                    setTimeout(() => {
-                        generateShareGraphic();
-                        createConfetti();
-                        document.getElementById('successModal').classList.remove('hidden');
-                    }, 100);
+                    document.getElementById('successModal').classList.remove('hidden');
                     
                     // Clear session storage after successful save
                     sessionStorage.removeItem('generatedForm');
@@ -862,7 +799,7 @@
             if (savedFormId) {
                 const link = `${window.location.origin}/form/${savedFormId}`;
                 navigator.clipboard.writeText(link).then(() => {
-                    showNotification('Link copied to clipboard! 🔗', 'success');
+                    alert('Link copied to clipboard!');
                 }).catch(() => {
                     // Fallback for older browsers
                     prompt('Copy this link:', link);
@@ -870,216 +807,6 @@
             }
         }
 
-        // Generate share graphic on canvas
-        function generateShareGraphic() {
-            const canvas = document.getElementById('shareGraphicCanvas');
-            const ctx = canvas.getContext('2d');
-            const dpr = window.devicePixelRatio || 1;
-            
-            // Set up high-DPI canvas
-            canvas.width = 400 * dpr;
-            canvas.height = 300 * dpr;
-            ctx.scale(dpr, dpr);
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, 400, 300);
-            
-            // Background gradient
-            const gradient = ctx.createLinearGradient(0, 0, 400, 300);
-            gradient.addColorStop(0, '#cc5500');
-            gradient.addColorStop(1, '#d12b2e');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 400, 300);
-            
-            // Overlay pattern (subtle)
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            for (let i = 0; i < 400; i += 20) {
-                for (let j = 0; j < 300; j += 20) {
-                    if ((i + j) % 40 === 0) {
-                        ctx.fillRect(i, j, 2, 2);
-                    }
-                }
-            }
-            
-            // Main content area with rounded corners
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-            ctx.roundRect(20, 40, 360, 220, 12);
-            ctx.fill();
-            
-            // Barmuda logo/brand
-            ctx.fillStyle = '#cc5500';
-            ctx.font = 'bold 24px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Barmuda', 200, 70);
-            
-            // Form title
-            ctx.fillStyle = '#1e1e1e';
-            ctx.font = 'bold 20px "DM Sans", Arial, sans-serif';
-            const title = formData.title || 'Untitled Survey';
-            const maxWidth = 300;
-            const titleLines = wrapText(ctx, title, maxWidth);
-            
-            titleLines.forEach((line, index) => {
-                ctx.fillText(line, 200, 110 + (index * 25));
-            });
-            
-            // Question count
-            const questionCount = formData.questions.filter(q => q.enabled).length;
-            ctx.fillStyle = '#666';
-            ctx.font = '16px "DM Sans", Arial, sans-serif';
-            ctx.fillText(`${questionCount} Questions • Quick Survey`, 200, 170);
-            
-            // Call to action
-            ctx.fillStyle = '#cc5500';
-            ctx.font = 'bold 18px "DM Sans", Arial, sans-serif';
-            ctx.fillText('Scan or tap to participate!', 200, 200);
-            
-            // QR Code placeholder (simple square for now)
-            ctx.fillStyle = '#1e1e1e';
-            ctx.fillRect(300, 180, 60, 60);
-            ctx.fillStyle = '#fff';
-            ctx.font = '8px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('QR', 330, 215);
-            
-            // Bottom branding
-            ctx.fillStyle = '#999';
-            ctx.font = '12px "DM Sans", Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('barmuda.vercel.app', 200, 250);
-            
-            // Update question count in modal
-            document.getElementById('questionCount').textContent = questionCount;
-        }
-
-        // Helper function to wrap text
-        function wrapText(ctx, text, maxWidth) {
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = words[0];
-
-            for (let i = 1; i < words.length; i++) {
-                const word = words[i];
-                const width = ctx.measureText(currentLine + ' ' + word).width;
-                if (width < maxWidth) {
-                    currentLine += ' ' + word;
-                } else {
-                    lines.push(currentLine);
-                    currentLine = word;
-                }
-            }
-            lines.push(currentLine);
-            return lines.slice(0, 3); // Max 3 lines
-        }
-
-        // Helper function for rounded rectangles
-        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-            if (w < 2 * r) r = w / 2;
-            if (h < 2 * r) r = h / 2;
-            this.beginPath();
-            this.moveTo(x+r, y);
-            this.arcTo(x+w, y,   x+w, y+h, r);
-            this.arcTo(x+w, y+h, x,   y+h, r);
-            this.arcTo(x,   y+h, x,   y,   r);
-            this.arcTo(x,   y,   x+w, y,   r);
-            this.closePath();
-            return this;
-        }
-
-        // Copy share graphic to clipboard
-        async function copyShareGraphic() {
-            try {
-                const canvas = document.getElementById('shareGraphicCanvas');
-                
-                // Convert canvas to blob
-                canvas.toBlob(async (blob) => {
-                    try {
-                        await navigator.clipboard.write([
-                            new ClipboardItem({
-                                'image/png': blob
-                            })
-                        ]);
-                        showNotification('Share graphic copied to clipboard! 🎨', 'success');
-                    } catch (err) {
-                        console.error('Failed to copy image:', err);
-                        showNotification('Copy failed. Try downloading instead.', 'error');
-                    }
-                }, 'image/png');
-                
-            } catch (error) {
-                console.error('Error copying graphic:', error);
-                showNotification('Copy not supported. Try downloading instead.', 'error');
-            }
-        }
-
-        // Download share graphic
-        function downloadShareGraphic() {
-            const canvas = document.getElementById('shareGraphicCanvas');
-            const link = document.createElement('a');
-            
-            // Get form title for filename
-            const title = formData.title || 'Survey';
-            const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            
-            link.download = `barmuda_${filename}_share.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            
-            showNotification('Share graphic downloaded! 📥', 'success');
-        }
-
-        // Enhanced notification system
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-[60] px-6 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-x-full ${
-                type === 'success' ? 'bg-green-500 text-white' : 
-                type === 'error' ? 'bg-red-500 text-white' : 
-                'bg-blue-500 text-white'
-            }`;
-            
-            notification.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="ph ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'} text-lg"></i>
-                    <span class="font-dm font-medium">${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-            
-            // Remove after 4 seconds
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => notification.remove(), 300);
-            }, 4000);
-        }
-
-        // Add confetti animation
-        function createConfetti() {
-            const confettiContainer = document.getElementById('confetti');
-            const colors = ['#cc5500', '#d12b2e', '#ff6b35', '#ffa500', '#32cd32'];
-            
-            for (let i = 0; i < 50; i++) {
-                const confettiPiece = document.createElement('div');
-                confettiPiece.className = 'absolute w-2 h-2 rounded animate-bounce';
-                confettiPiece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confettiPiece.style.left = Math.random() * 100 + '%';
-                confettiPiece.style.top = Math.random() * 100 + '%';
-                confettiPiece.style.animationDelay = Math.random() * 2 + 's';
-                confettiPiece.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                
-                confettiContainer.appendChild(confettiPiece);
-                
-                // Remove after animation
-                setTimeout(() => {
-                    confettiPiece.remove();
-                }, 5000);
-            }
-        }
 
         // Preview functionality
         function showPreview() {
