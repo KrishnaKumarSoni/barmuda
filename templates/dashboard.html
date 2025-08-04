@@ -42,7 +42,10 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for form in forms %}
                 <!-- Survey Card -->
-                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[228px] relative hover:shadow-lg transition-all duration-300" data-form-id="{{ form.form_id }}">
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-6 h-[228px] relative hover:shadow-lg transition-all duration-300 cursor-pointer" 
+                     data-form-id="{{ form.form_id }}" 
+                     onclick="viewResponses('{{ form.form_id }}')"
+                     title="View responses for {{ form.title }}">
                     <!-- Survey Title -->
                     <div class="mb-4">
                         <h3 class="font-['DM_Sans'] font-semibold text-[20px] md:text-[24px] text-black tracking-[-0.24px] leading-tight line-clamp-2">
@@ -57,7 +60,7 @@
                             <span class="font-['DM_Sans'] font-semibold text-[18px] tracking-[-0.18px] text-[#cc5500]">
                                 {{ form.questions|length }} q
                             </span>
-                            <div class="text-right cursor-pointer hover:text-[#d12b2e] transition-colors" onclick="viewResponses('{{ form.form_id }}')">
+                            <div class="text-right cursor-pointer hover:text-[#d12b2e] transition-colors" onclick="event.stopPropagation(); viewResponses('{{ form.form_id }}')">
                                 <span class="font-['DM_Sans'] font-semibold text-[18px] tracking-[-0.18px] text-[#cc5500]">
                                     {{ form.response_count or 0 }} response{{ 's' if (form.response_count or 0) != 1 else '' }}
                                 </span>
@@ -68,25 +71,25 @@
                         <div class="flex justify-between items-center">
                             <!-- Action Icons -->
                             <div class="flex gap-3">
-                                <button onclick="editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit form">
+                                <button onclick="event.stopPropagation(); editForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Edit form">
                                     <i class="ph ph-pencil-line text-xl"></i>
                                 </button>
-                                <button onclick="deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete form">
+                                <button onclick="event.stopPropagation(); deleteForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-red-500 transition-colors" title="Delete form">
                                     <i class="ph ph-trash text-xl"></i>
                                 </button>
-                                <button onclick="testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test form">
+                                <button onclick="event.stopPropagation(); testForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Test form">
                                     <i class="ph ph-play text-xl"></i>
                                 </button>
-                                <button onclick="shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
+                                <button onclick="event.stopPropagation(); shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
                                     <i class="ph ph-share text-xl"></i>
                                 </button>
-                                <button onclick="viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
+                                <button onclick="event.stopPropagation(); viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
                                     <i class="ph ph-chart-bar text-xl"></i>
                                 </button>
                             </div>
                             
                             <!-- Status Toggle -->
-                            <div class="flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 {{ 'bg-[#fff5e0] border border-[#e4b65b]' if form.active else 'bg-[#f8f8f8] border border-[#b8b8b8]' }}" onclick="toggleFormStatus('{{ form.form_id }}', '{{ 'active' if form.active else 'inactive' }}')">
+                            <div class="flex items-center gap-2 px-2 py-1 rounded-[100px] cursor-pointer transition-all duration-200 {{ 'bg-[#fff5e0] border border-[#e4b65b]' if form.active else 'bg-[#f8f8f8] border border-[#b8b8b8]' }}" onclick="event.stopPropagation(); toggleFormStatus('{{ form.form_id }}', '{{ 'active' if form.active else 'inactive' }}')">
                                 {% if form.active %}
                                     <!-- Active State: "on" text left, orange circle right -->
                                     <span class="font-['DM_Sans'] font-medium text-[14px] text-[#e4b65b] tracking-[-0.14px]">on</span>
@@ -216,7 +219,7 @@
                     }
                     
                     // Update the onclick attribute for next toggle
-                    toggleContainer.setAttribute('onclick', `toggleFormStatus('${formId}', '${newStatus}')`);
+                    toggleContainer.setAttribute('onclick', `event.stopPropagation(); toggleFormStatus('${formId}', '${newStatus}')`);
                     
                     showNotification(`Form ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, 'success');
                 } else {

@@ -46,7 +46,7 @@ const CHART_DEFAULTS = {
 /**
  * Create pie chart for multiple choice questions
  */
-function createMultipleChoiceChart(canvas, data, options) {
+function createMultipleChoiceChart(canvas, data, options, colors) {
     const ctx = canvas.getContext('2d');
     
     return new Chart(ctx, {
@@ -55,7 +55,7 @@ function createMultipleChoiceChart(canvas, data, options) {
             labels: options,
             datasets: [{
                 data: data,
-                backgroundColor: BERMUDA_COLORS.primary.slice(0, data.length),
+                backgroundColor: colors || BERMUDA_COLORS.primary.slice(0, data.length),
                 borderWidth: 0,
                 hoverBorderWidth: 2,
                 hoverBorderColor: '#ffffff'
@@ -83,17 +83,17 @@ function createMultipleChoiceChart(canvas, data, options) {
 /**
  * Create pie chart for yes/no questions
  */
-function createYesNoChart(canvas, yesCount, noCount) {
+function createYesNoChart(canvas, data, labels, colors) {
     const ctx = canvas.getContext('2d');
-    const total = yesCount + noCount;
+    const total = data.reduce((a, b) => a + b, 0);
     
     return new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['Yes', 'No'],
+            labels: labels,
             datasets: [{
-                data: [yesCount, noCount],
-                backgroundColor: BERMUDA_COLORS.yesNo,
+                data: data,
+                backgroundColor: colors || BERMUDA_COLORS.yesNo,
                 borderWidth: 0,
                 hoverBorderWidth: 2,
                 hoverBorderColor: '#ffffff'
@@ -120,9 +120,9 @@ function createYesNoChart(canvas, yesCount, noCount) {
 /**
  * Create pie chart for rating questions (1-5 scale)
  */
-function createRatingChart(canvas, ratingData) {
+function createRatingChart(canvas, ratingData, colors) {
     const ctx = canvas.getContext('2d');
-    const labels = Object.keys(ratingData).filter(key => key !== '[SKIP]');
+    const labels = Object.keys(ratingData).filter(key => key !== '[SKIP]' && ratingData[key].count > 0);
     const data = labels.map(label => ratingData[label].count);
     
     return new Chart(ctx, {
@@ -131,7 +131,7 @@ function createRatingChart(canvas, ratingData) {
             labels: labels.map(label => `${label} Star${label !== '1' ? 's' : ''}`),
             datasets: [{
                 data: data,
-                backgroundColor: BERMUDA_COLORS.rating.slice(0, data.length),
+                backgroundColor: colors || BERMUDA_COLORS.rating.slice(0, data.length),
                 borderWidth: 0,
                 hoverBorderWidth: 2,
                 hoverBorderColor: '#ffffff'
@@ -295,12 +295,13 @@ function initializeQuestionChart(questionIndex, questionType, questionData, resp
             const mcStats = calculateChoiceStats(responses, questionData.options || []);
             const mcLabels = Object.keys(mcStats).filter(key => mcStats[key].count > 0);
             const mcData = mcLabels.map(label => mcStats[label].count);
+            const mcColors = BERMUDA_COLORS.primary.slice(0, mcLabels.length);
             
-            chart = createMultipleChoiceChart(canvas, mcData, mcLabels);
+            chart = createMultipleChoiceChart(canvas, mcData, mcLabels, mcColors);
             legendData = {
                 labels: mcLabels,
                 data: mcData,
-                colors: BERMUDA_COLORS.primary.slice(0, mcData.length)
+                colors: mcColors
             };
             break;
             
@@ -308,41 +309,55 @@ function initializeQuestionChart(questionIndex, questionType, questionData, resp
             const ynStats = calculateChoiceStats(responses, ['Yes', 'No']);
             const yesCount = ynStats['Yes']?.count || 0;
             const noCount = ynStats['No']?.count || 0;
+            const ynLabels = [];
+            const ynData = [];
+            const ynColors = [];
             
-            chart = createYesNoChart(canvas, yesCount, noCount);
+            if (yesCount > 0) {
+                ynLabels.push('Yes');
+                ynData.push(yesCount);
+                ynColors.push(BERMUDA_COLORS.yesNo[0]);
+            }
+            if (noCount > 0) {
+                ynLabels.push('No');
+                ynData.push(noCount);
+                ynColors.push(BERMUDA_COLORS.yesNo[1]);
+            }
+            
+            chart = createYesNoChart(canvas, ynData, ynLabels, ynColors);
             legendData = {
-                labels: ['Yes', 'No'],
-                data: [yesCount, noCount],
-                colors: BERMUDA_COLORS.yesNo
+                labels: ynLabels,
+                data: ynData,
+                colors: ynColors
             };
             break;
             
         case 'rating':
             const ratingStats = calculateRatingStats(responses);
-            chart = createRatingChart(canvas, ratingStats);
-            
             const ratingLabels = Object.keys(ratingStats).filter(key => key !== '[SKIP]' && ratingStats[key].count > 0);
             const ratingData = ratingLabels.map(label => ratingStats[label].count);
+            const ratingColors = BERMUDA_COLORS.rating.slice(0, ratingLabels.length);
             
+            chart = createRatingChart(canvas, ratingStats, ratingColors);
             legendData = {
                 labels: ratingLabels.map(label => `${label} Star${label !== '1' ? 's' : ''}`),
                 data: ratingData,
-                colors: BERMUDA_COLORS.rating.slice(0, ratingData.length)
+                colors: ratingColors
             };
             break;
             
         case 'number':
             // Treat numbers similar to ratings for visualization
             const numberStats = calculateNumberStats(responses);
-            chart = createRatingChart(canvas, numberStats);
-            
             const numberLabels = Object.keys(numberStats).filter(key => key !== '[SKIP]' && numberStats[key].count > 0);
             const numberData = numberLabels.map(label => numberStats[label].count);
+            const numberColors = BERMUDA_COLORS.rating.slice(0, numberLabels.length);
             
+            chart = createRatingChart(canvas, numberStats, numberColors);
             legendData = {
                 labels: numberLabels,
                 data: numberData,
-                colors: BERMUDA_COLORS.rating.slice(0, numberData.length)
+                colors: numberColors
             };
             break;
             
