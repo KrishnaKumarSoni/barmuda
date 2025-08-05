@@ -464,16 +464,17 @@
             // Try streaming first, fallback to non-streaming
             if (supportsStreaming) {
                 try {
-                    console.log('Attempting streaming for message:', message);
+                    console.log('🚀 Attempting streaming for message:', message);
                     await sendMessageStreaming(message);
-                    console.log('Streaming completed successfully');
+                    console.log('✅ Streaming completed successfully - should have streamed!');
                     return;
                 } catch (error) {
-                    console.warn('Streaming failed, falling back to non-streaming:', error);
+                    console.error('❌ Streaming failed, falling back to non-streaming:', error);
+                    console.error('❌ Error details:', error.message, error.stack);
                     // Continue to fallback method below
                 }
             } else {
-                console.log('Streaming not supported, using non-streaming');
+                console.log('⚠️ Streaming not supported, using non-streaming');
             }
             
             // Fallback to existing non-streaming method
@@ -482,7 +483,7 @@
         
         // New: Streaming message sender
         async function sendMessageStreaming(message) {
-            console.log('Starting streaming request...');
+            console.log('🔄 Starting streaming request for:', message);
             return new Promise((resolve, reject) => {
                 // Use fetch with stream for POST data support
                 fetch('/api/chat/stream', {
@@ -498,6 +499,7 @@
                     })
                 })
                 .then(response => {
+                    console.log('🔄 Streaming response received:', response.status, response.headers.get('content-type'));
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
@@ -536,6 +538,7 @@
                                 if (line.startsWith('data: ')) {
                                     try {
                                         const data = JSON.parse(line.substring(6));
+                                        console.log('🔄 Streaming data received:', data.type, data);
                                         
                                         switch(data.type) {
                                             case 'processing':
