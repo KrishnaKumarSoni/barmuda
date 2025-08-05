@@ -9,56 +9,31 @@ import re
 from typing import Generator, Dict, Any
 
 
-def simulate_typing_stream(text: str, chunk_size: int = 1, base_delay: float = 0.03) -> Generator[str, None, None]:
+def simulate_typing_stream(text: str, chunk_size: int = 4) -> Generator[str, None, None]:
     """
-    Simulate natural typing by streaming text in chunks with realistic delays
+    Stream text in word groups for efficient streaming
     
     Args:
         text: The complete text to stream
-        chunk_size: Number of characters per chunk (default 1 for char-by-char)
-        base_delay: Base delay between chunks in seconds
+        chunk_size: Number of words per chunk (default 4)
     
     Yields:
-        String chunks of the text
+        String chunks of the text (word groups)
     """
     if not text:
         return
     
-    words = text.split(' ')
-    current_chunk = ""
+    words = text.split()
     
-    for i, word in enumerate(words):
-        # Add the word to current chunk
-        if current_chunk:
-            current_chunk += " " + word
-        else:
-            current_chunk = word
+    # Stream in word groups for better UX and fewer network calls
+    for i in range(0, len(words), chunk_size):
+        chunk_words = words[i:i + chunk_size]
+        chunk_text = ' '.join(chunk_words)
+        yield chunk_text
         
-        # Determine delay based on punctuation and word length
-        delay = base_delay
-        if word.endswith(('.', '!', '?')):
-            delay *= 3  # Longer pause after sentences
-        elif word.endswith((',', ';', ':')):
-            delay *= 2  # Medium pause after commas
-        elif len(word) > 8:
-            delay *= 1.5  # Slight pause after long words
-        
-        # Stream character by character for current chunk
-        for j, char in enumerate(current_chunk):
-            if j < len(current_chunk) - len(word):
-                continue  # Skip already yielded characters
-            
-            yield char
-            
-            # Small delay between characters
-            if char.isalnum():
-                time.sleep(delay * 0.3)
-        
-        # Reset chunk and add space delay
-        current_chunk = ""
-        if i < len(words) - 1:  # Don't add delay after last word
+        # Add space between chunks (except for last chunk)
+        if i + chunk_size < len(words):
             yield " "
-            time.sleep(delay)
 
 
 def stream_agent_response(agent, session_id: str, message: str) -> Generator[Dict[str, Any], None, None]:
