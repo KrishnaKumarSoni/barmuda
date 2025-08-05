@@ -193,7 +193,8 @@ def get_conversation_state(session_id: str) -> dict:
                 "message_count": len(session.chat_history),
                 "redirect_count": session.metadata.get("redirect_count", 0),
                 "session_ended": session.metadata.get("ended", False),
-                "time_elapsed": _calculate_time_elapsed(session.metadata.get("start_time"))
+                "time_elapsed": _calculate_time_elapsed(session.metadata.get("start_time")),
+                "pending_end_confirmation": session.metadata.get("pending_end_confirmation", False)
             },
             "recent_responses": _get_recent_responses(session, limit=3)
         }
@@ -293,6 +294,11 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
             answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
             session.metadata["partial"] = answered_count < enabled_count * 0.8
             
+        elif action == "request_end_confirmation":
+            # User wants to end but needs confirmation
+            session.metadata["pending_end_confirmation"] = True
+            session.metadata["end_request_time"] = datetime.now().isoformat()
+            
         elif action == "redirect":
             session.metadata["redirect_count"] += 1
             
@@ -306,7 +312,8 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
             "action_completed": True,
             "action": action,
             "session_ended": session.metadata.get("ended", False),
-            "redirect_count": session.metadata.get("redirect_count", 0)
+            "redirect_count": session.metadata.get("redirect_count", 0),
+            "pending_end_confirmation": session.metadata.get("pending_end_confirmation", False)
         }
     except Exception as e:
         return {"action_completed": False, "error": str(e)}
@@ -405,6 +412,7 @@ IMPORTANT: Tools return data only. YOU create all conversational responses.
 - Fresh start: Use get_conversation_state(), greet warmly, ask first question naturally
 - Resuming (context shows elapsed time > 120s): "Welcome back! We were talking about [topic]..."
 - Completed survey: "Thanks for completing the survey! Your responses have been saved."
+- Pending end confirmation (conversation_state.pending_end_confirmation = true): User already asked to end and you asked for confirmation. If they say yes/sure, end now. If they say no/continue, resume questions.
 
 ## Asking Questions
 Transform formal questions naturally:
@@ -429,12 +437,22 @@ After 3 redirects (check redirect_count) → End conversation gracefully
 "skip" / "pass" / "next" → "No problem! 😊" → update_session_state("skip") → advance_to_next_question()
 
 ### End Requests
-**IMPORTANT: Two-step process for ending conversations**
-1. First mention of ending ("I'm done" / "stop" / "I want to quit") → Ask confirmation WITHOUT ending: "Are you sure you want to stop? You've answered X of Y questions."
-2. User confirms ("yes" / "yeah" / "sure" / "I'm sure") → THEN call update_session_state("end") → "Thanks for your time! 👋"
-3. User declines ("no" / "wait" / "let me continue") → Continue with current question
+**CRITICAL: Two-step process for ending conversations**
 
-NEVER call update_session_state("end") on the first end request - only after confirmation!
+When user first requests to end ("I'm done" / "stop" / "I want to quit"):
+- Call get_conversation_state() to check progress
+- Call update_session_state("request_end_confirmation") to mark pending
+- ONLY respond: "Are you sure you want to stop? You've answered X of Y questions."
+- Wait for next user message
+
+When user confirms ending in NEXT message ("yes" / "yeah" / "sure" / "I'm sure"):
+- Call update_session_state("end") to actually end
+- Respond: "Thanks for your time! 👋"
+
+When user declines ending ("no" / "wait" / "let me continue"):
+- Continue with current question normally
+
+NEVER EVER call update_session_state("end") on the initial end request - this is the bug!
 
 ### Vague Responses
 "meh" / "okay" / "fine" → "Meh—like a 2 or 3?" (one follow-up only)
@@ -467,10 +485,12 @@ You: "No worries! 😊"
 You: "How about the management—how's that going?"
 
 User: "I'm done now"
-[get_conversation_state() → shows 3/9 answered]
+[get_conversation_state() → shows 3/9 answered, pending_end_confirmation = false]
+[update_session_state("request_end_confirmation")]
 You: "Are you sure you want to stop? You've answered 3 of 9 questions."
 
 User: "yes I'm sure"
+[get_conversation_state() → pending_end_confirmation = true, user confirmed]
 [update_session_state("end")]
 You: "Thanks for your time! 👋"
 
