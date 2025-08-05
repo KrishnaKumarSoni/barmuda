@@ -73,7 +73,7 @@
                     <div class="barmuda-modal-header">
                         <div class="barmuda-form-title">Loading...</div>
                         <div class="barmuda-modal-controls">
-                            <div class="barmuda-powered-by">powered by barmuda.in</div>
+                            <div class="barmuda-powered-by">powered by barmuda</div>
                             <button class="barmuda-close-btn" onclick="window.BarmudaWidget.close()">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -188,11 +188,13 @@
                 visibility: hidden;
                 transition: all 0.3s ease;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                pointer-events: none;
             }
             
             #barmuda-modal.open {
                 opacity: 1;
                 visibility: visible;
+                pointer-events: auto;
             }
             
             .barmuda-modal-overlay {
@@ -253,7 +255,19 @@
             .barmuda-powered-by {
                 font-size: 11px;
                 color: #999;
-                text-decoration: none;
+                text-decoration: none !important;
+                cursor: default !important;
+                pointer-events: none !important;
+                user-select: none !important;
+                border: none !important;
+                background: transparent !important;
+                outline: none !important;
+            }
+            
+            .barmuda-powered-by * {
+                pointer-events: none !important;
+                cursor: default !important;
+                text-decoration: none !important;
             }
             
             .barmuda-close-btn {
@@ -520,6 +534,8 @@
         
         // Modal overlay click to close
         document.querySelector('.barmuda-modal-overlay').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             if (e.target === this) {
                 closeWidget();
             }
@@ -538,6 +554,15 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && isOpen) {
                 closeWidget();
+            }
+        });
+        
+        // Prevent any unwanted navigation from modal content
+        document.querySelector('.barmuda-modal-content').addEventListener('click', function(e) {
+            // Only prevent default for non-interactive elements
+            if (!e.target.matches('button, input, textarea, [onclick], [href]')) {
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
     }
