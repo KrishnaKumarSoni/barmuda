@@ -64,8 +64,12 @@ def stream_agent_response(agent, session_id: str, message: str) -> Generator[Dic
         # Run the existing agent normally - ALL TOOLS EXECUTE HERE
         # This preserves the entire agentic architecture
         print(f"🔄 STREAMING: About to call agent.process_message for session {session_id}")
+        print(f"🔄 STREAMING: Message: {message}")
+        
         result = agent.process_message(session_id, message)
+        
         print(f"🔄 STREAMING: Agent returned result: {result.get('success', False)}")
+        print(f"🔄 STREAMING: Response text length: {len(result.get('response', ''))}")
         
         # Check if agent processing was successful
         if not result.get("success"):

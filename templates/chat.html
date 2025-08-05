@@ -793,10 +793,13 @@
         window.addEventListener('beforeunload', function() {
             if (sessionId && !isEnded) {
                 // Send beacon to save partial response
-                navigator.sendBeacon('/api/chat/message', JSON.stringify({
+                // Note: sendBeacon with Blob to set Content-Type
+                const data = JSON.stringify({
                     session_id: sessionId,
                     message: '[ABANDONED]'
-                }));
+                });
+                const blob = new Blob([data], { type: 'application/json' });
+                navigator.sendBeacon('/api/chat/message', blob);
             }
         });
     </script>

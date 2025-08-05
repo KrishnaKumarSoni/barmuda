@@ -8,6 +8,7 @@ from functools import wraps
 import firebase_admin
 from dotenv import load_dotenv
 from firebase_admin import auth, credentials, firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_from_directory, Response
 from flask_cors import CORS
 from openai import OpenAI
@@ -1501,8 +1502,10 @@ def start_chat_session():
 
                 # Simplified query to avoid index requirement
                 # First get all sessions for this device and form
-                query = sessions_ref.where("metadata.device_id", "==", device_id).where(
-                    "form_id", "==", form_id
+                query = sessions_ref.where(
+                    filter=FieldFilter("metadata.device_id", "==", device_id)
+                ).where(
+                    filter=FieldFilter("form_id", "==", form_id)
                 )
 
                 # Get all matching sessions
@@ -1658,8 +1661,14 @@ def stream_chat_message():
         )
         
     except Exception as e:
-        print(f"Error in streaming endpoint: {str(e)}")
-        return jsonify({"error": "Failed to start streaming"}), 500
+        import traceback
+        error_details = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
+        print(f"🚨 STREAMING ENDPOINT ERROR: {error_details}")
+        return jsonify({"error": "Failed to start streaming", "details": str(e)}), 500
 
 
 @app.route("/api/chat/message", methods=["POST"])

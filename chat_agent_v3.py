@@ -394,6 +394,9 @@ class FormChatAgent:
         # Set the API key in the environment for OpenAI Agents SDK
         os.environ["OPENAI_API_KEY"] = self.openai_api_key
         openai.api_key = self.openai_api_key
+        
+        # Disable OpenAI telemetry to avoid traces/ingest errors
+        os.environ["OPENAI_DISABLE_TELEMETRY"] = "true"
 
         # Ensure event loop exists for async operations
         import asyncio
