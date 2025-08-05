@@ -3,11 +3,18 @@
     
     // Configuration from script attributes
     const currentScript = document.currentScript || document.querySelector('script[src*="widget.js"]');
+    let apiBase = currentScript.src.replace('/widget.js', '');
+    
+    // If the script is loaded from a file:// URL or local context, default to production
+    if (apiBase.startsWith('file://') || apiBase === 'file:' || !apiBase.startsWith('http')) {
+        apiBase = 'https://barmuda.vercel.app';
+    }
+    
     const config = {
         formId: currentScript.getAttribute('data-form-id'),
         position: currentScript.getAttribute('data-position') || 'bottom-right',
         color: currentScript.getAttribute('data-color') || '#cc5500',
-        apiBase: currentScript.src.replace('/widget.js', '')
+        apiBase: apiBase
     };
     
     console.log('Widget configuration:', config);
