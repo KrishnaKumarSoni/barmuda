@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f0f0f0;
+            line-height: 1.6;
+        }
+        
+        .status {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #007cba;
+        }
+        
+        .status.success { border-left-color: #28a745; }
+        .status.error { border-left-color: #dc3545; }
+        
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Barmuda Widget Test</h1>
+    
+    <div class="status" id="status">
+        <h3>Status: Loading...</h3>
+        <p>Checking if the Barmuda widget loads successfully.</p>
+    </div>
+    
+    <div class="status">
+        <h3>Expected Behavior:</h3>
+        <ul>
+            <li>✅ Floating chat button appears in bottom-right corner</li>
+            <li>✅ Button has orange gradient background</li>
+            <li>✅ Clicking button opens modal chat interface</li>
+            <li>✅ Modal shows "Customer Feedback Survey" title</li>
+            <li>✅ Chat responds to messages</li>
+        </ul>
+    </div>
+    
+    <div class="status">
+        <h3>Widget Code:</h3>
+        <div class="code">
+&lt;script&gt;
+(function() {
+    var script = document.createElement('script');
+    script.src = 'https://barmuda.vercel.app/widget.js';
+    script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
+    script.setAttribute('data-position', 'bottom-right');
+    script.setAttribute('data-color', '#cc5500');
+    document.head.appendChild(script);
+})();
+&lt;/script&gt;
+        </div>
+    </div>
+    
+    <div class="status">
+        <h3>Debug Console:</h3>
+        <div id="console" style="background: #000; color: #0f0; padding: 15px; border-radius: 4px; font-family: monospace; min-height: 100px; max-height: 200px; overflow-y: auto;">
+            > Loading widget...<br>
+        </div>
+    </div>
+
+    <script>
+        // Custom console logging for debug
+        const consoleDiv = document.getElementById('console');
+        const statusDiv = document.getElementById('status');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : '#fff';
+            consoleDiv.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span><br>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        // Override console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log('ERROR: ' + args.join(' '), 'error');
+        };
+        
+        // Test widget loading
+        setTimeout(() => {
+            log('Starting widget test...', 'info');
+            
+            const script = document.createElement('script');
+            script.src = 'https://barmuda.vercel.app/widget.js?v=' + Date.now();
+            script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
+            script.setAttribute('data-position', 'bottom-right');
+            script.setAttribute('data-color', '#cc5500');
+            
+            script.onload = function() {
+                log('✅ Widget script loaded successfully!', 'success');
+                
+                setTimeout(() => {
+                    const fab = document.getElementById('barmuda-fab');
+                    if (fab) {
+                        log('✅ FAB button found in DOM!', 'success');
+                        statusDiv.className = 'status success';
+                        statusDiv.innerHTML = '<h3>Status: SUCCESS ✅</h3><p>Widget loaded successfully! You should see a floating chat button in the bottom-right corner.</p>';
+                    } else {
+                        log('❌ FAB button not found in DOM', 'error');
+                        statusDiv.className = 'status error';
+                        statusDiv.innerHTML = '<h3>Status: FAILED ❌</h3><p>Widget failed to create FAB button.</p>';
+                    }
+                    
+                    if (window.BarmudaWidget) {
+                        log('✅ BarmudaWidget global object available', 'success');
+                        log('Available methods: ' + Object.keys(window.BarmudaWidget).join(', '), 'info');
+                    } else {
+                        log('❌ BarmudaWidget global object not found', 'error');
+                    }
+                }, 1000);
+            };
+            
+            script.onerror = function() {
+                log('❌ Failed to load widget script', 'error');
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '<h3>Status: SCRIPT LOAD FAILED ❌</h3><p>Could not load the widget script from the server.</p>';
+            };
+            
+            document.head.appendChild(script);
+            log('Widget script added to DOM', 'info');
+            
+        }, 1000);
+    </script>
+</body>
+</html>
