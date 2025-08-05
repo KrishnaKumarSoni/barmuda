@@ -19,29 +19,14 @@ from firebase_admin import db, firestore
 # Load environment variables and clean API key
 load_dotenv()
 
-# Set up API keys - support both OpenAI and Groq
-USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"
-
-if USE_GROQ:
-    # Use Groq API
-    groq_key = os.getenv("GROQ_API_KEY", "").strip()
-    if groq_key:
-        # Groq uses OpenAI-compatible format, so we can set it as OpenAI key
-        os.environ["OPENAI_API_KEY"] = groq_key
-        print("🚀 Using Groq API (OpenAI GPT-OSS 20B) for ultra-fast inference")
-    else:
-        print("WARNING: GROQ_API_KEY not found, falling back to OpenAI")
-        USE_GROQ = False
-
-if not USE_GROQ:
-    # Use OpenAI API (original behavior)
-    original_key = os.getenv("OPENAI_API_KEY", "")
-    clean_key = original_key.strip()
-    if original_key != clean_key:
-        print(
-            f"WARNING: Cleaned API key (removed {len(original_key) - len(clean_key)} characters)"
-        )
-        os.environ["OPENAI_API_KEY"] = clean_key
+# Critical: Strip the API key to prevent header errors
+original_key = os.getenv("OPENAI_API_KEY", "")
+clean_key = original_key.strip()
+if original_key != clean_key:
+    print(
+        f"WARNING: Cleaned API key (removed {len(original_key) - len(clean_key)} characters)"
+    )
+    os.environ["OPENAI_API_KEY"] = clean_key
 
 # Firebase should already be initialized by app.py when used via Flask
 # For standalone usage, initialize if needed
@@ -410,18 +395,6 @@ class FormChatAgent:
         os.environ["OPENAI_API_KEY"] = self.openai_api_key
         openai.api_key = self.openai_api_key
         
-        # Configure API endpoint based on provider
-        if USE_GROQ:
-            # Configure for Groq API
-            openai.base_url = "https://api.groq.com/openai/v1"
-            os.environ["OPENAI_BASE_URL"] = "https://api.groq.com/openai/v1"
-            model_name = "openai/gpt-oss-20b"  # Groq's OpenAI GPT-OSS 20B model
-            print(f"🚀 Configured for Groq API with model: {model_name}")
-        else:
-            # Use OpenAI's default configuration
-            model_name = "gpt-4o-mini"
-            print(f"🔗 Using OpenAI API with model: {model_name}")
-        
         # Disable OpenAI telemetry to avoid traces/ingest errors
         os.environ["OPENAI_DISABLE_TELEMETRY"] = "true"
         os.environ["OPENAI_LOG_LEVEL"] = "error"  # Reduce logging noise
@@ -442,7 +415,7 @@ class FormChatAgent:
         # Create agent with simplified tools
         self.agent = Agent(
             name="Barney",
-            model=model_name,
+            model="gpt-4o-mini",
             instructions=self._get_system_instructions(),
             tools=[
                 get_conversation_state,
@@ -737,22 +710,16 @@ def get_chat_agent():
     """Get or create the global chat agent instance"""
     global chat_agent
     if chat_agent is None:
-        # Determine which API key to use
-        if USE_GROQ:
-            api_key = os.getenv("GROQ_API_KEY", "").strip()
-            api_provider = "Groq"
-        else:
-            api_key = os.getenv("OPENAI_API_KEY", "").strip()
-            api_provider = "OpenAI"
-            
-        print(f"DEBUG: {api_provider} API key available: {bool(api_key)}")
-        print(f"DEBUG: {api_provider} API key length: {len(api_key) if api_key else 0}")
-        if api_key:
-            print(f"DEBUG: {api_provider} API key prefix: {api_key[:10]}...")
+        openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        print(f"DEBUG: API key available: {bool(openai_api_key)}")
+        print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}")
+        if openai_api_key:
+            print(f"DEBUG: API key prefix: {openai_api_key[:10]}...")
+            print(f"DEBUG: API key ends with newline: {repr(openai_api_key[-2:])}")
 
-        if not api_key:
-            print(f"ERROR: {api_provider}_API_KEY environment variable not set")
-            raise ValueError(f"{api_provider}_API_KEY environment variable not set")
-        chat_agent = FormChatAgent(api_key)
-        print(f"DEBUG: Chat agent created successfully with {api_provider}")
+        if not openai_api_key:
+            print("ERROR: OPENAI_API_KEY environment variable not set")
+            raise ValueError("OPENAI_API_KEY environment variable not set")
+        chat_agent = FormChatAgent(openai_api_key)
+        print("DEBUG: Chat agent created successfully")
     return chat_agent
