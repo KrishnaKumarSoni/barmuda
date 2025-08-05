@@ -562,9 +562,14 @@ get_conversation_state() → warm greeting → first question naturally
 "Hey there! I'm curious about your experience with [topic]"
 
 ## Resuming (when context shows "User returned after break")
-- Reference their progress: "Welcome back! You've answered X of Y questions so far"  
-- Smoothly continue: "We were talking about [current topic] - how's that going?"
-- Keep it natural and contextual to their previous responses
+**CRITICAL: ALWAYS respond to their actual message first, NEVER give generic "welcome back" responses**
+- Respond naturally to what they just said 
+- Build on their last response from conversation history
+- Only reference progress if they seem confused about where they left off
+- Focus on their current message, not the break
+
+**WRONG:** "Welcome back! Let's continue where we left off. 😊"
+**RIGHT:** Respond to their actual message and continue the conversation naturally
 
 ## Pending Confirmation Check
 If conversation_state.pending_end_confirmation = true:
@@ -764,7 +769,7 @@ Red flags to probe deeper:
             if recap_needed:
                 answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
                 total_questions = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
-                recap_context = f"\n[CONTEXT: User returned after break. Progress: {answered_count}/{total_questions} questions completed.]\n"
+                recap_context = f"\n[NOTE: Session resumed - {answered_count}/{total_questions} questions completed so far. Respond to their message naturally.]\n"
             
             # Get recent conversation history for context
             recent_history = session.chat_history[-6:] if len(session.chat_history) > 6 else session.chat_history
