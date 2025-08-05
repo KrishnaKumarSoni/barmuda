@@ -543,14 +543,17 @@
                                         switch(data.type) {
                                             case 'processing':
                                                 // Keep typing indicator, agent is processing
+                                                console.log('🔄 Agent processing...');
                                                 break;
                                                 
                                             case 'start_response':
                                                 // Hide typing indicator, start streaming response
+                                                console.log('🔄 Starting streaming response, hiding typing indicator');
                                                 hideTypingIndicator();
                                                 
                                                 // Create streaming message element
                                                 streamingMessageElement = createStreamingMessage();
+                                                console.log('🔄 Created streaming message element');
                                                 break;
                                                 
                                             case 'text_chunk':
@@ -607,8 +610,8 @@
                     return readStream();
                 })
                 .catch(error => {
-                    console.error('Streaming fetch error:', error);
-                    hideTypingIndicator();
+                    console.error('❌ Streaming fetch error:', error);
+                    hideTypingIndicator(); // Ensure typing indicator is hidden on error
                     
                     // Re-enable input on error
                     const input = document.getElementById('message-input');

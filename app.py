@@ -658,14 +658,14 @@ def dashboard():
         user_id = request.user["uid"]
 
         # Get user's forms with response counts
-        forms_ref = db.collection("forms").where("creator_id", "==", user_id)
+        forms_ref = db.collection("forms").where(filter=FieldFilter("creator_id", "==", user_id))
         forms = []
         for doc in forms_ref.stream():
             form_data = doc.to_dict()
             form_data["form_id"] = doc.id
 
             # Count responses for this form
-            responses_ref = db.collection("responses").where("form_id", "==", doc.id)
+            responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", doc.id))
             response_count = len(list(responses_ref.stream()))
             form_data["response_count"] = response_count
 
@@ -1482,7 +1482,7 @@ def start_chat_session():
 
                 # First, let's check all sessions for this device_id
                 all_device_sessions = list(
-                    sessions_ref.where("metadata.device_id", "==", device_id).stream()
+                    sessions_ref.where(filter=FieldFilter("metadata.device_id", "==", device_id)).stream()
                 )
                 print(
                     f"Total sessions for device {device_id}: {len(all_device_sessions)}"
@@ -1858,7 +1858,7 @@ def get_form_responses(form_id):
 
         # Get responses
         responses_query = (
-            db.collection("responses").where("form_id", "==", form_id).stream()
+            db.collection("responses").where(filter=FieldFilter("form_id", "==", form_id)).stream()
         )
         responses = []
 
@@ -1910,7 +1910,7 @@ def generate_wordcloud(form_id, question_index):
 
         # Get responses for this question
         responses_query = (
-            db.collection("responses").where("form_id", "==", form_id).stream()
+            db.collection("responses").where(filter=FieldFilter("form_id", "==", form_id)).stream()
         )
         text_responses = []
 
@@ -2088,7 +2088,7 @@ def export_responses(form_id, format):
 
         # Get responses
         responses_query = (
-            db.collection("responses").where("form_id", "==", form_id).stream()
+            db.collection("responses").where(filter=FieldFilter("form_id", "==", form_id)).stream()
         )
         responses = []
 
@@ -2218,14 +2218,14 @@ def delete_form(form_id):
         db.collection("forms").document(form_id).delete()
 
         # Delete associated responses (optional - you might want to keep them)
-        responses_ref = db.collection("responses").where("form_id", "==", form_id)
+        responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", form_id))
         responses = responses_ref.stream()
 
         for response in responses:
             response.reference.delete()
 
         # Delete chat sessions
-        sessions_ref = db.collection("chat_sessions").where("form_id", "==", form_id)
+        sessions_ref = db.collection("chat_sessions").where(filter=FieldFilter("form_id", "==", form_id))
         sessions = sessions_ref.stream()
 
         for session in sessions:
