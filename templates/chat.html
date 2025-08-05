@@ -814,11 +814,16 @@
         }
 
         // Event listeners
-        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('send-button').addEventListener('click', () => {
+            console.log('🚨 SEND BUTTON CLICKED');
+            sendMessage();
+        });
         
         document.getElementById('message-input').addEventListener('keypress', function(e) {
+            console.log('🚨 KEY PRESSED:', e.key, 'Input disabled:', this.disabled);
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
+                console.log('🚨 ENTER PRESSED - calling sendMessage');
                 sendMessage();
             }
         });
