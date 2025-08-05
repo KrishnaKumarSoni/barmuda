@@ -166,15 +166,16 @@ def get_conversation_state(session_id: str) -> dict:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
         
-        # Find current unanswered question
+        # Find current unanswered question (NO RAW TEXT EXPOSURE)
         current_question = None
         for i, q in enumerate(questions):
             if q.get("enabled", True) and str(i) not in session.responses:
                 current_question = {
-                    "text": q["text"],
+                    "question_number": i + 1,
                     "type": q["type"],
                     "index": i,
-                    "options": q.get("options", [])
+                    "has_options": bool(q.get("options", [])),
+                    # NO "text" field - agent must ask naturally based on type only
                 }
                 break
         
@@ -590,6 +591,7 @@ Red flags to probe deeper:
 - Let them do most of the talking
 - Tools provide data, you provide humanity"""
 
+
     def create_session(
         self, form_id: str, device_id: str = None, location: Dict = None
     ) -> str:
@@ -676,18 +678,14 @@ Red flags to probe deeper:
                 }
             )
 
-            # Get current question context
-            current_q_idx = session.current_question_index
-            current_question = ""
-            if current_q_idx < len(session.form_data.get("questions", [])):
-                current_question = session.form_data["questions"][current_q_idx]["text"]
+            # Agent will use tools to understand current state - no hints needed
             
             # Generate recap if needed
             recap_context = ""
             if recap_needed:
                 answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
                 total_questions = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
-                recap_context = f"\n[CONTEXT: User returned after break. Progress: {answered_count}/{total_questions} questions completed. Current topic: {current_question}]\n"
+                recap_context = f"\n[CONTEXT: User returned after break. Progress: {answered_count}/{total_questions} questions completed.]\n"
             
             # Get recent conversation history for context
             recent_history = session.chat_history[-6:] if len(session.chat_history) > 6 else session.chat_history
@@ -698,12 +696,11 @@ Red flags to probe deeper:
                     role_label = "User" if msg["role"] == "user" else "You"
                     history_context += f"{role_label}: {msg['content']}\n"
             
-            # Prepare input for the agent with full context
+            # Prepare input for the agent with minimal context (NO RAW QUESTION TEXT)
             agent_input = f"""
 Current session: {session_id}
 Form: {session.form_data.get('title', 'Survey')}
 Progress: Question {session.current_question_index + 1} of {len(session.form_data.get('questions', []))}
-Current Question: "{current_question}"
 {recap_context}
 {history_context}
 User just said: "{user_message}"
