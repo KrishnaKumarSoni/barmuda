@@ -1385,7 +1385,7 @@ def internal_error(error):
 import hashlib
 import time
 
-from chat_agent_v3 import get_chat_agent
+from chat_engine import get_chat_agent
 
 
 @app.route("/form/<form_id>")
@@ -1709,7 +1709,7 @@ def process_chat_message():
 def get_chat_status(session_id):
     """Get chat session status"""
     try:
-        from chat_agent_v3 import load_session
+        from chat_engine import load_session
 
         chat_session = load_session(session_id)
 
