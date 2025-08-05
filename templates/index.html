@@ -43,7 +43,7 @@
             
             <!-- Form Input Area -->
             <div class="w-full max-w-4xl relative">
-                <div class="bg-[#fffcf4] border-2 border-[#fb9a9a] rounded-2xl shadow-xl relative transition-all duration-300 hover:border-[#cc5500]/60 hover:shadow-xl">
+                <div class="bg-[#fffcf4] border-2 border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
                     <textarea 
                         class="w-full h-40 md:h-48 p-6 md:p-8 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-lg md:text-xl text-[#1e1e1e] placeholder-[#9ca3af] leading-relaxed"
                         placeholder="Describe what kind of survey you want to create..."
@@ -51,7 +51,7 @@
                         oninput="handleUnauthenticatedInput()"></textarea>
                     <button onclick="handleUnauthenticatedGenerate()" 
                             id="unauthGenerateBtn"
-                            class="absolute bottom-6 right-6 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-2xl px-6 md:px-8 py-3 md:py-4 text-white font-['Plus_Jakarta_Sans'] font-semibold text-base md:text-lg transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105">
+                            class="absolute bottom-6 right-6 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-2xl px-6 md:px-8 py-3 md:py-4 text-white font-['Plus_Jakarta_Sans'] font-semibold text-base md:text-lg transition-all duration-200 flex items-center gap-3 hover:opacity-90">
                         <span id="unauthButtonText">Generate Survey</span>
                         <div id="unauthSpinner" class="hidden">
                             <div class="flex space-x-1">
@@ -72,7 +72,7 @@
                 </div>
                 <div class="flex flex-wrap gap-3 md:gap-4 justify-center">
                     <!-- Customer Feedback Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('customer-feedback')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('customer-feedback')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-chat-circle-dots text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -82,7 +82,7 @@
                     </div>
                     
                     <!-- Employee Survey Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('employee-survey')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('employee-survey')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-users text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -92,7 +92,7 @@
                     </div>
                     
                     <!-- Market Research Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('market-research')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('market-research')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-chart-line text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -102,7 +102,7 @@
                     </div>
                     
                     <!-- Event Feedback Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('event-feedback')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('event-feedback')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-calendar-check text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -112,7 +112,7 @@
                     </div>
                     
                     <!-- User Experience Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('user-experience')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('user-experience')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-devices text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -122,7 +122,7 @@
                     </div>
                     
                     <!-- Course Evaluation Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('course-evaluation')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('course-evaluation')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-graduation-cap text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -132,7 +132,7 @@
                     </div>
                     
                     <!-- Product Launch Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('product-launch')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('product-launch')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-rocket-launch text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -142,7 +142,7 @@
                     </div>
                     
                     <!-- Support Satisfaction Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('support-satisfaction')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('support-satisfaction')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-headset text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -152,7 +152,7 @@
                     </div>
                     
                     <!-- Brand Awareness Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('brand-awareness')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('brand-awareness')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-megaphone text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -162,7 +162,7 @@
                     </div>
                     
                     <!-- Exit Interview Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('exit-interview')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('exit-interview')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-door-open text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -172,7 +172,7 @@
                     </div>
                     
                     <!-- Website Feedback Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('website-feedback')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('website-feedback')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-globe text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -182,7 +182,7 @@
                     </div>
                     
                     <!-- Training Evaluation Template -->
-                    <div class="bg-white border-2 border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group hover:scale-[1.02] shadow-sm hover:shadow-md" onclick="useTemplate('training-evaluation')">
+                    <div class="bg-white border border-[#DAB568] rounded-full px-4 md:px-5 py-2.5 md:py-3 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('training-evaluation')">
                         <div class="flex items-center gap-2.5">
                             <i class="ph ph-chalkboard-teacher text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                             <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -234,12 +234,15 @@
 
 
     <!-- Problem/Solution Section -->
-    <section class="relative bg-[#f8fafc] py-20 md:py-32 z-10">
+    <section class="relative bg-[#fff5e0] py-20 md:py-32 z-10">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
             <div class="text-center mb-16 md:mb-24">
-                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#0f0f0f] tracking-[-0.02em] mb-6">
-                    Forms suck. Everyone knows it.
-                </h2>
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <i class="ph ph-warning-circle text-red-500 text-4xl md:text-5xl"></i>
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#0f0f0f] tracking-[-0.02em]">
+                        Forms suck. Everyone knows it.
+                    </h2>
+                </div>
                 <p class="font-['DM_Sans'] text-lg md:text-xl text-[#6b7280] max-w-3xl mx-auto leading-relaxed">
                     People see a long form and give up. You get 10% response rates if you're lucky.
                 </p>
@@ -247,7 +250,7 @@
             
             <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                 <!-- Problem -->
-                <div class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-[#f1f5f9]">
+                <div class="bg-white rounded-3xl p-8 md:p-10  border border-[#f1f5f9]">
                     <div class="mb-8">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-6">
                             <i class="ph ph-warning text-red-500 text-2xl"></i>
@@ -289,7 +292,7 @@
                 </div>
                 
                 <!-- Solution -->
-                <div class="bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] rounded-3xl p-8 md:p-10 text-white">
+                <div class="bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-3xl p-8 md:p-10 text-white">
                     <div class="mb-8">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-6">
                             <i class="ph ph-chat-circle text-white text-2xl"></i>
@@ -337,7 +340,12 @@
     <section class="relative bg-white py-20 md:py-32 z-10">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
             <div class="text-center mb-16 md:mb-24">
-                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#0f0f0f] tracking-[-0.02em] mb-6">
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <i class="ph ph-number-circle-one text-[#cc5500] text-4xl md:text-5xl"></i>
+                    <i class="ph ph-number-circle-two text-[#cc5500] text-4xl md:text-5xl"></i>
+                    <i class="ph ph-number-circle-three text-[#cc5500] text-4xl md:text-5xl"></i>
+                </div>
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#0f0f0f] tracking-[-0.02em]">
                     Three steps. That's it.
                 </h2>
                 <p class="font-['DM_Sans'] text-lg md:text-xl text-[#6b7280] max-w-2xl mx-auto leading-relaxed">
@@ -349,7 +357,7 @@
                 <!-- Step 1 -->
                 <div class="text-center group">
                     <div class="relative mb-8">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] rounded-3xl mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-3xl mb-4   transition-transform duration-300">
                             <i class="ph ph-magic-wand text-white text-2xl"></i>
                         </div>
                         <div class="absolute -top-2 -right-2 w-8 h-8 bg-[#10b981] rounded-full flex items-center justify-center">
@@ -365,7 +373,7 @@
                 <!-- Step 2 -->
                 <div class="text-center group">
                     <div class="relative mb-8">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] rounded-3xl mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-3xl mb-4   transition-transform duration-300">
                             <i class="ph ph-share text-white text-2xl"></i>
                         </div>
                         <div class="absolute -top-2 -right-2 w-8 h-8 bg-[#10b981] rounded-full flex items-center justify-center">
@@ -381,7 +389,7 @@
                 <!-- Step 3 -->
                 <div class="text-center group">
                     <div class="relative mb-8">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] rounded-3xl mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-3xl mb-4   transition-transform duration-300">
                             <i class="ph ph-chart-bar text-white text-2xl"></i>
                         </div>
                         <div class="absolute -top-2 -right-2 w-8 h-8 bg-[#10b981] rounded-full flex items-center justify-center">
@@ -402,8 +410,8 @@
                     <p class="font-['DM_Sans'] text-[#6b7280] text-base md:text-lg">This is what your respondents will experience</p>
                 </div>
                 
-                <div class="bg-white rounded-2xl shadow-xl border border-[#e2e8f0] overflow-hidden max-w-lg mx-auto">
-                    <div class="flex items-center gap-3 px-4 py-3 bg-[#f8fafc] border-b border-[#e2e8f0]">
+                <div class="bg-white rounded-2xl  border border-[#e2e8f0] overflow-hidden max-w-lg mx-auto">
+                    <div class="flex items-center gap-3 px-4 py-3 bg-[#fff5e0] border-b border-[#e2e8f0]">
                         <div class="w-3 h-3 bg-[#ef4444] rounded-full"></div>
                         <div class="w-3 h-3 bg-[#f59e0b] rounded-full"></div>
                         <div class="w-3 h-3 bg-[#10b981] rounded-full"></div>
@@ -420,7 +428,7 @@
                         </div>
                         
                         <div class="flex justify-end">
-                            <div class="bg-[#6366f1] rounded-2xl rounded-tr-md px-4 py-3 max-w-sm">
+                            <div class="bg-[#cc5500] rounded-2xl rounded-tr-md px-4 py-3 max-w-sm">
                                 <p class="font-['DM_Sans'] text-sm text-white">I love cold brew, especially during summer!</p>
                             </div>
                         </div>
@@ -445,38 +453,42 @@
     </section>
 
     <!-- Social Proof / Stats Section -->
-    <section class="relative bg-[#f8fafc] py-20 md:py-32 z-10">
+    <section class="relative bg-[#fff5e0] py-20 md:py-32 z-10">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
             <div class="text-center mb-16 md:mb-20">
-                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#0f0f0f] tracking-[-0.02em] mb-6">
-                    The results speak for themselves
-                </h2>
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <i class="ph ph-chart-line-up text-[#10b981] text-4xl md:text-5xl"></i>
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#0f0f0f] tracking-[-0.02em]">
+                        The results speak for themselves
+                    </h2>
+                    <i class="ph ph-chart-line-up text-[#10b981] text-4xl md:text-5xl"></i>
+                </div>
                 <p class="font-['DM_Sans'] text-lg md:text-xl text-[#6b7280] max-w-3xl mx-auto leading-relaxed">
                     Companies using conversational surveys see dramatic improvements in response quality and completion rates
                 </p>
             </div>
             
             <div class="grid md:grid-cols-3 gap-8 md:gap-12 mb-16">
-                <div class="text-center bg-white rounded-2xl p-8 shadow-sm border border-[#f1f5f9]">
-                    <div class="text-4xl md:text-5xl font-['Plus_Jakarta_Sans'] font-bold text-[#6366f1] mb-2">3x</div>
+                <div class="text-center bg-white rounded-2xl p-8  border border-[#f1f5f9]">
+                    <div class="text-4xl md:text-5xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-2">3x</div>
                     <div class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#0f0f0f] mb-2">Higher completion rates</div>
                     <div class="font-['DM_Sans'] text-[#6b7280] text-sm">vs traditional forms</div>
                 </div>
                 
-                <div class="text-center bg-white rounded-2xl p-8 shadow-sm border border-[#f1f5f9]">
+                <div class="text-center bg-white rounded-2xl p-8  border border-[#f1f5f9]">
                     <div class="text-4xl md:text-5xl font-['Plus_Jakarta_Sans'] font-bold text-[#10b981] mb-2">87%</div>
                     <div class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#0f0f0f] mb-2">Average completion rate</div>
                     <div class="font-['DM_Sans'] text-[#6b7280] text-sm">industry average is 31%</div>
                 </div>
                 
-                <div class="text-center bg-white rounded-2xl p-8 shadow-sm border border-[#f1f5f9]">
+                <div class="text-center bg-white rounded-2xl p-8  border border-[#f1f5f9]">
                     <div class="text-4xl md:text-5xl font-['Plus_Jakarta_Sans'] font-bold text-[#f59e0b] mb-2">5x</div>
                     <div class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#0f0f0f] mb-2">More detailed responses</div>
                     <div class="font-['DM_Sans'] text-[#6b7280] text-sm">richer qualitative data</div>
                 </div>
             </div>
             
-            <div class="bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] rounded-3xl p-8 md:p-12 text-white">
+            <div class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-3xl p-8 md:p-12 text-white">
                 <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                     <div>
                         <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-white mb-6">Traditional vs Conversational</h3>
@@ -532,37 +544,37 @@
             <div class="space-y-4">
                 <!-- FAQ 1 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#6366f1] transition-colors">How does the AI understand natural language responses?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How does the AI understand natural language responses?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Our AI uses advanced natural language processing to understand context, handle multiple answers in one message, resolve conflicts, and extract structured data from conversational responses. It's trained to handle edge cases like vague answers, off-topic responses, and questions skipped by respondents.</p>
                 </div>
                 
                 <!-- FAQ 2 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#6366f1] transition-colors">Is this really better than traditional surveys?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">Is this really better than traditional surveys?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Yes. Conversational forms get 3x higher completion rates because they feel personal and engaging. Without visible multiple choice options, responses are more authentic and unbiased. You also get richer qualitative data that reveals the "why" behind answers.</p>
                 </div>
                 
                 <!-- FAQ 3 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#6366f1] transition-colors">What types of questions can I ask?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">What types of questions can I ask?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Any type! Text responses, multiple choice, ratings, yes/no questions, and numbers. The AI automatically infers the question type from your description and handles the data extraction accordingly.</p>
                 </div>
                 
                 <!-- FAQ 4 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#6366f1] transition-colors">How do I analyze the responses?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How do I analyze the responses?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">View responses in your dashboard with charts and insights. Export data as CSV or JSON to use with Excel, Google Sheets, or your analytics tools. All conversational responses are automatically structured into clean, analyzable data.</p>
                 </div>
                 
                 <!-- FAQ 5 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#6366f1] transition-colors">Is respondent data private?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">Is respondent data private?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Completely anonymous by design. We don't collect personal information or require respondents to create accounts. Only you can see your survey responses, and data is encrypted in transit and at rest.</p>
                 </div>
                 
                 <!-- FAQ 6 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#6366f1] transition-colors">How much does it cost?</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How much does it cost?</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Start completely free! Create and test unlimited surveys. We only charge when people respond to your surveys, starting at $0.10 per completed response. No monthly fees, no setup costs - pay only for what you use.</p>
                 </div>
             </div>
@@ -570,7 +582,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="relative bg-gradient-to-br from-[#6366f1] via-[#8b5cf6] to-[#a855f7] py-20 md:py-32 z-10">
+    <section class="relative bg-gradient-to-br from-[#cc5500] to-[#d12b2e] py-20 md:py-32 z-10">
         <div class="max-w-4xl mx-auto px-4 md:px-8 text-center">
             <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-white tracking-[-0.02em] mb-6">
                 Ready to get 3x more responses?
@@ -581,7 +593,7 @@
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
                 <button onclick="signInWithGoogle()" 
-                        class="bg-white text-[#6366f1] font-['Plus_Jakarta_Sans'] font-bold text-lg px-8 py-4 rounded-2xl hover:bg-gray-50 transition-all duration-200 inline-flex items-center gap-3 shadow-xl hover:shadow-2xl hover:scale-105">
+                        class="bg-white text-[#cc5500] font-['Plus_Jakarta_Sans'] font-bold text-lg px-8 py-4 rounded-2xl hover:bg-gray-50 transition-all duration-200 inline-flex items-center gap-3   ">
                     <span>Create your first survey</span>
                     <i class="ph ph-arrow-right text-xl"></i>
                 </button>
@@ -629,13 +641,13 @@
                         Transform boring surveys into engaging conversations. Get 3x higher response rates with AI-powered conversational forms.
                     </p>
                     <div class="flex gap-4">
-                        <a href="#" class="w-10 h-10 bg-[#1f2937] rounded-xl flex items-center justify-center text-[#9ca3af] hover:text-white hover:bg-[#6366f1] transition-all duration-200">
+                        <a href="#" class="w-10 h-10 bg-[#1f2937] rounded-xl flex items-center justify-center text-[#9ca3af] hover:text-white hover:bg-[#cc5500] transition-all duration-200">
                             <i class="ph ph-twitter-logo text-lg"></i>
                         </a>
-                        <a href="#" class="w-10 h-10 bg-[#1f2937] rounded-xl flex items-center justify-center text-[#9ca3af] hover:text-white hover:bg-[#6366f1] transition-all duration-200">
+                        <a href="#" class="w-10 h-10 bg-[#1f2937] rounded-xl flex items-center justify-center text-[#9ca3af] hover:text-white hover:bg-[#cc5500] transition-all duration-200">
                             <i class="ph ph-linkedin-logo text-lg"></i>
                         </a>
-                        <a href="#" class="w-10 h-10 bg-[#1f2937] rounded-xl flex items-center justify-center text-[#9ca3af] hover:text-white hover:bg-[#6366f1] transition-all duration-200">
+                        <a href="#" class="w-10 h-10 bg-[#1f2937] rounded-xl flex items-center justify-center text-[#9ca3af] hover:text-white hover:bg-[#cc5500] transition-all duration-200">
                             <i class="ph ph-github-logo text-lg"></i>
                         </a>
                     </div>
