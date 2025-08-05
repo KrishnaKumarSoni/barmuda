@@ -398,6 +398,10 @@ class FormChatAgent:
         # Disable OpenAI telemetry to avoid traces/ingest errors
         os.environ["OPENAI_DISABLE_TELEMETRY"] = "true"
         os.environ["OPENAI_LOG_LEVEL"] = "error"  # Reduce logging noise
+        
+        # Try to disable httpx INFO logging which shows the traces calls
+        import logging
+        logging.getLogger("httpx").setLevel(logging.WARNING)
 
         # Ensure event loop exists for async operations
         import asyncio
