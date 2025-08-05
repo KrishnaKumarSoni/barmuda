@@ -356,22 +356,19 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Create streaming message element - FORCE VISIBLE
+        // Create streaming message element
         function createStreamingMessage() {
-            console.log('🟢 CREATING streaming message element');
             const messagesContainer = document.getElementById('chat-messages');
             
             const messageDiv = document.createElement('div');
             messageDiv.className = 'streaming-message';
             messageDiv.id = 'current-streaming-message';
-            messageDiv.style.opacity = '1';
-            messageDiv.style.display = 'block';
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
                     <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
                         <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed">
-                            <span class="streaming-text"></span><span class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] animate-pulse ml-1"></span>
+                            <span class="streaming-text text-[#1e1e1e] inline"></span><span class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] animate-pulse ml-1"></span>
                         </div>
                     </div>
                 </div>
@@ -379,10 +376,6 @@
             
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            console.log('✅ Streaming element created and added to DOM');
-            console.log('🔍 Element visible:', messageDiv.offsetHeight > 0);
-            console.log('🔍 Element in DOM:', document.getElementById('current-streaming-message') !== null);
             
             return messageDiv;
         }
@@ -392,8 +385,6 @@
             const textElement = messageElement.querySelector('.streaming-text');
             if (textElement) {
                 textElement.innerHTML = escapeHtml(text);
-                console.log('STREAMING:', text.length, 'chars');
-                
                 const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
@@ -408,10 +399,8 @@
 
         // Finalize streaming message (remove cursor and add timestamp)
         function finalizeStreamingMessage(messageElement) {
-            console.log('🏁 FINALIZING streaming message');
             const cursor = messageElement.querySelector('.streaming-cursor');
             if (cursor) {
-                console.log('🏁 Removing cursor');
                 cursor.remove();
             }
             
@@ -426,15 +415,7 @@
                 timestampDiv.textContent = timeStr;
                 
                 textContainer.appendChild(timestampDiv);
-                console.log('🏁 Added timestamp, message finalized');
-            } else {
-                console.error('🏁 No .bg-white found for timestamp');
             }
-            
-            // Force visibility one more time
-            messageElement.style.display = 'block';
-            messageElement.style.opacity = '1';
-            console.log('🏁 Streaming message should be visible now');
         }
 
         // Streaming support detection (using fetch + ReadableStream)
@@ -451,13 +432,11 @@
         
         // Send message with streaming support
         async function sendMessage() {
-            console.log('🚨 SEND MESSAGE CALLED');
             if (isEnded) return;
             
             const input = document.getElementById('message-input');
             const message = input.value.trim();
             
-            console.log('🚨 Message:', message, 'SessionId:', sessionId);
             if (!message || !sessionId) return;
             
             // Add user message
@@ -474,24 +453,18 @@
             // Try streaming first, fallback to non-streaming
             if (supportsStreaming) {
                 try {
-                    console.log('📞 ATTEMPTING streaming for:', message);
                     await sendMessageStreaming(message);
-                    console.log('✅ STREAMING COMPLETED successfully');
                     return;
                 } catch (error) {
-                    console.error('❌ STREAMING FAILED, falling back:', error.message, error);
+                    console.error('Streaming failed:', error.message);
                 }
-            } else {
-                console.log('⚠️ Streaming not supported, using fallback');
             }
             
-            console.log('📞 FALLBACK to non-streaming');
             await sendMessageNonStreaming(message);
         }
         
         // New: Streaming message sender
         async function sendMessageStreaming(message) {
-            console.log('🚀 FETCH: Starting streaming request to /api/chat/stream');
             return new Promise((resolve, reject) => {
                 fetch('/api/chat/stream', {
                     method: 'POST',
@@ -506,7 +479,6 @@
                     })
                 })
                 .then(response => {
-                    console.log('📡 FETCH: Response received', response.status, response.headers.get('content-type'));
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
@@ -551,25 +523,20 @@
                                                 break;
                                                 
                                             case 'start_response':
-                                                console.log('🔄 START_RESPONSE: Hiding typing, creating streaming element');
                                                 hideTypingIndicator();
                                                 if (!streamingMessageElement) {
                                                     streamingMessageElement = createStreamingMessage();
-                                                    console.log('✅ Created streaming element:', !!streamingMessageElement);
                                                 }
                                                 break;
                                                 
                                             case 'text_chunk':
-                                                console.log('📝 TEXT_CHUNK:', JSON.stringify(data.chunk));
                                                 if (!streamingMessageElement) {
-                                                    console.log('⚠️ No streaming element, creating one');
                                                     hideTypingIndicator();
                                                     streamingMessageElement = createStreamingMessage();
                                                 }
                                                 
                                                 if (streamingMessageElement) {
                                                     accumulatedText = data.accumulated || (accumulatedText + data.chunk);
-                                                    console.log('📝 Accumulated so far:', accumulatedText.length, 'chars');
                                                     updateStreamingMessage(streamingMessageElement, accumulatedText);
                                                 }
                                                 break;
@@ -683,9 +650,8 @@
             }
         }
 
-        // Show typing indicator - SIMPLIFIED
+        // Show typing indicator
         function showTypingIndicator() {
-            console.log('🔵 SHOWING typing indicator');
             hideTypingIndicator();
             
             const messagesContainer = document.getElementById('chat-messages');
@@ -711,53 +677,33 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Hide typing indicator - ULTIMATE NUCLEAR OPTION
+        // Hide typing indicator
         function hideTypingIndicator() {
-            console.log('🔴 ULTIMATE HIDE typing indicator');
             const messagesContainer = document.getElementById('chat-messages');
             
-            // FORCE DELAY to ensure DOM is ready
             setTimeout(() => {
-                console.log('🔥 DELAYED NUCLEAR REMOVAL');
-                
-                // Method 1: Remove by class
                 const typingMessages = messagesContainer.querySelectorAll('.typing-message');
-                console.log('🔍 Found', typingMessages.length, 'typing messages by class');
-                typingMessages.forEach(msg => {
-                    console.log('🗑️ Removing typing message:', msg.id);
-                    msg.remove();
-                });
+                typingMessages.forEach(msg => msg.remove());
                 
-                // Method 2: Remove by ID
                 const typingById = document.getElementById('current-typing-indicator');
-                if (typingById) {
-                    console.log('🗑️ Removing typing by ID');
-                    typingById.remove();
-                }
+                if (typingById) typingById.remove();
                 
-                // Method 3: Nuclear - remove anything with typing-ellipsis
                 const ellipsis = messagesContainer.querySelectorAll('.typing-ellipsis');
-                console.log('🔍 Found', ellipsis.length, 'ellipsis elements');
                 ellipsis.forEach(el => {
                     const parent = el.closest('div');
                     if (parent && parent !== messagesContainer) {
-                        console.log('🗑️ Nuclear removing parent of ellipsis');
                         parent.remove();
                     }
                 });
                 
-                // Method 4: SCORCHED EARTH - remove everything with bouncing dots
                 const dots = messagesContainer.querySelectorAll('.dot');
-                console.log('🔍 Found', dots.length, 'dot elements');
                 dots.forEach(dot => {
                     const parent = dot.closest('div');
                     if (parent && parent !== messagesContainer) {
-                        console.log('🗑️ SCORCHED EARTH removing dot parent');
                         parent.remove();
                     }
                 });
-                
-            }, 100); // 100ms delay
+            }, 100);
         }
 
         // Update progress bar
@@ -814,16 +760,11 @@
         }
 
         // Event listeners
-        document.getElementById('send-button').addEventListener('click', () => {
-            console.log('🚨 SEND BUTTON CLICKED');
-            sendMessage();
-        });
+        document.getElementById('send-button').addEventListener('click', sendMessage);
         
         document.getElementById('message-input').addEventListener('keypress', function(e) {
-            console.log('🚨 KEY PRESSED:', e.key, 'Input disabled:', this.disabled);
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                console.log('🚨 ENTER PRESSED - calling sendMessage');
                 sendMessage();
             }
         });
