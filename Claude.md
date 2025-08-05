@@ -260,7 +260,7 @@ Prioritize these (handle via prompts):
 
 ## Instructions for Claude
 
-**Current Status:** MVP is COMPLETE and DEPLOYED at barmuda.vercel.app
+**Current Status:** MVP is COMPLETE and DEPLOYED at barmuda.in
 
 **Architecture Guidelines:**
 1. Maintain auto-save functionality for data persistence
@@ -280,7 +280,7 @@ Prioritize these (handle via prompts):
 5. Update this file for significant changes
 
 **Deployment:**
-- Production: barmuda.vercel.app (Vercel)
+- Production: barmuda.in (Vercel)
 - Repository: github.com/KrishnaKumarSoni/bermuda
 - Stack: Python Flask + HTML/CSS/JS + Tailwind + Firebase
 
@@ -289,7 +289,7 @@ Prioritize these (handle via prompts):
 <script>
 (function() {
     var script = document.createElement('script');
-    script.src = 'https://barmuda.vercel.app/widget.js';
+    script.src = 'https://barmuda.in/widget.js';
     script.setAttribute('data-form-id', 'YOUR_FORM_ID');
     script.setAttribute('data-position', 'bottom-right'); // or 'bottom-left'
     script.setAttribute('data-color', '#cc5500'); // custom brand color

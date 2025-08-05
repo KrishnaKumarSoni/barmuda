@@ -12,7 +12,7 @@
     
     // If the script is loaded from a file:// URL or local context, default to production
     if (apiBase.startsWith('file://') || apiBase === 'file:' || !apiBase.startsWith('http')) {
-        apiBase = 'https://barmuda.vercel.app';
+        apiBase = 'https://barmuda.in';
     }
     
     const config = {
