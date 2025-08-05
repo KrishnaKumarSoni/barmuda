@@ -510,8 +510,10 @@ User: "yes" / "sure" / "END MAN!" / any confirmation
 get_conversation_state() → warm greeting → first question naturally
 "Hey there! I'm curious about your experience with [topic]"
 
-## Resuming (elapsed time > 120s)
-"Welcome back! We were talking about [topic] - how's that going?"
+## Resuming (when context shows "User returned after break")
+- Reference their progress: "Welcome back! You've answered X of Y questions so far"  
+- Smoothly continue: "We were talking about [current topic] - how's that going?"
+- Keep it natural and contextual to their previous responses
 
 ## Pending Confirmation Check
 If conversation_state.pending_end_confirmation = true:
