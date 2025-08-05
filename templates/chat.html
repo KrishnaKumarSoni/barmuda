@@ -442,7 +442,7 @@
                                     typeof TextDecoder !== 'undefined';
         
         // Feature flag - set to false to disable streaming temporarily
-        const ENABLE_STREAMING = true; // Re-enabled for RCA
+        const ENABLE_STREAMING = false; // Disabled - fix typing indicator first
         
         const supportsStreaming = hasStreamingSupport && ENABLE_STREAMING;
         
@@ -701,36 +701,53 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Hide typing indicator - NUCLEAR OPTION
+        // Hide typing indicator - ULTIMATE NUCLEAR OPTION
         function hideTypingIndicator() {
-            console.log('🔴 HIDING typing indicator');
+            console.log('🔴 ULTIMATE HIDE typing indicator');
             const messagesContainer = document.getElementById('chat-messages');
             
-            // Method 1: Remove by class
-            const typingMessages = messagesContainer.querySelectorAll('.typing-message');
-            console.log('🔍 Found', typingMessages.length, 'typing messages by class');
-            typingMessages.forEach(msg => {
-                console.log('🗑️ Removing typing message:', msg.id);
-                msg.remove();
-            });
-            
-            // Method 2: Remove by ID
-            const typingById = document.getElementById('current-typing-indicator');
-            if (typingById) {
-                console.log('🗑️ Removing typing by ID');
-                typingById.remove();
-            }
-            
-            // Method 3: Nuclear - remove anything with typing-ellipsis
-            const ellipsis = messagesContainer.querySelectorAll('.typing-ellipsis');
-            console.log('🔍 Found', ellipsis.length, 'ellipsis elements');
-            ellipsis.forEach(el => {
-                const parent = el.closest('.typing-message') || el.closest('[class*="message"]');
-                if (parent) {
-                    console.log('🗑️ Nuclear removing parent of ellipsis');
-                    parent.remove();
+            // FORCE DELAY to ensure DOM is ready
+            setTimeout(() => {
+                console.log('🔥 DELAYED NUCLEAR REMOVAL');
+                
+                // Method 1: Remove by class
+                const typingMessages = messagesContainer.querySelectorAll('.typing-message');
+                console.log('🔍 Found', typingMessages.length, 'typing messages by class');
+                typingMessages.forEach(msg => {
+                    console.log('🗑️ Removing typing message:', msg.id);
+                    msg.remove();
+                });
+                
+                // Method 2: Remove by ID
+                const typingById = document.getElementById('current-typing-indicator');
+                if (typingById) {
+                    console.log('🗑️ Removing typing by ID');
+                    typingById.remove();
                 }
-            });
+                
+                // Method 3: Nuclear - remove anything with typing-ellipsis
+                const ellipsis = messagesContainer.querySelectorAll('.typing-ellipsis');
+                console.log('🔍 Found', ellipsis.length, 'ellipsis elements');
+                ellipsis.forEach(el => {
+                    const parent = el.closest('div');
+                    if (parent && parent !== messagesContainer) {
+                        console.log('🗑️ Nuclear removing parent of ellipsis');
+                        parent.remove();
+                    }
+                });
+                
+                // Method 4: SCORCHED EARTH - remove everything with bouncing dots
+                const dots = messagesContainer.querySelectorAll('.dot');
+                console.log('🔍 Found', dots.length, 'dot elements');
+                dots.forEach(dot => {
+                    const parent = dot.closest('div');
+                    if (parent && parent !== messagesContainer) {
+                        console.log('🗑️ SCORCHED EARTH removing dot parent');
+                        parent.remove();
+                    }
+                });
+                
+            }, 100); // 100ms delay
         }
 
         // Update progress bar
