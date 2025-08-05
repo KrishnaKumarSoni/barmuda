@@ -356,81 +356,7 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Create streaming message element
-        function createStreamingMessage() {
-            const messagesContainer = document.getElementById('chat-messages');
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'streaming-message';
-            messageDiv.id = 'current-streaming-message';
-            
-            messageDiv.innerHTML = `
-                <div class="flex justify-start">
-                    <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                        <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed">
-                            <span class="streaming-text text-[#1e1e1e] inline"></span><span class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] animate-pulse ml-1"></span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            return messageDiv;
-        }
-
-        // Update streaming message content
-        function updateStreamingMessage(messageElement, text) {
-            const textElement = messageElement.querySelector('.streaming-text');
-            if (textElement) {
-                textElement.innerHTML = escapeHtml(text);
-                const messagesContainer = document.getElementById('chat-messages');
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }
-        
-        // Escape HTML for safe innerHTML usage
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Finalize streaming message (remove cursor and add timestamp)
-        function finalizeStreamingMessage(messageElement) {
-            const cursor = messageElement.querySelector('.streaming-cursor');
-            if (cursor) {
-                cursor.remove();
-            }
-            
-            // Add timestamp like regular messages
-            const textContainer = messageElement.querySelector('.bg-white');
-            if (textContainer) {
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
-                const timestampDiv = document.createElement('div');
-                timestampDiv.className = "font-['DM_Sans'] text-[#6b7280] text-xs mt-1";
-                timestampDiv.textContent = timeStr;
-                
-                textContainer.appendChild(timestampDiv);
-            }
-        }
-
-        // Streaming support detection (using fetch + ReadableStream)
-        const hasStreamingSupport = typeof fetch !== 'undefined' && 
-                                    typeof ReadableStream !== 'undefined' && 
-                                    typeof TextDecoder !== 'undefined';
-        
-        // Feature flag - set to false to disable streaming temporarily
-        const ENABLE_STREAMING = true; // Re-enabled - typing indicator fixed
-        
-        const supportsStreaming = hasStreamingSupport && ENABLE_STREAMING;
-        
-        console.log('Streaming support:', hasStreamingSupport, 'Enabled:', ENABLE_STREAMING, 'Final:', supportsStreaming);
-        
-        // Send message with streaming support
+        // Send message
         async function sendMessage() {
             if (isEnded) return;
             
@@ -449,147 +375,6 @@
             // Disable input temporarily
             input.disabled = true;
             document.getElementById('send-button').disabled = true;
-            
-            // Try streaming first, fallback to non-streaming
-            if (supportsStreaming) {
-                try {
-                    await sendMessageStreaming(message);
-                    return;
-                } catch (error) {
-                    console.error('Streaming failed:', error.message);
-                }
-            }
-            
-            await sendMessageNonStreaming(message);
-        }
-        
-        // New: Streaming message sender
-        async function sendMessageStreaming(message) {
-            return new Promise((resolve, reject) => {
-                fetch('/api/chat/stream', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/event-stream',
-                        'Cache-Control': 'no-cache'
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        message: message
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = '';
-                    
-                    let streamingMessageElement = null;
-                    let accumulatedText = '';
-                    let streamCompleted = false;
-                    
-                    // Timeout protection - moved inside scope
-                    const timeoutId = setTimeout(() => {
-                        if (!streamCompleted) {
-                            reader.cancel();
-                            reject(new Error('Streaming timeout'));
-                        }
-                    }, 30000);
-                    
-                    function readStream() {
-                        return reader.read().then(({ done, value }) => {
-                            if (done) {
-                                if (!streamCompleted) {
-                                    reject(new Error('Stream ended unexpectedly'));
-                                }
-                                return;
-                            }
-                            
-                            // Decode chunk and process SSE data
-                            buffer += decoder.decode(value, { stream: true });
-                            const lines = buffer.split('\n');
-                            buffer = lines.pop(); // Keep incomplete line in buffer
-                            
-                            for (const line of lines) {
-                                if (line.startsWith('data: ')) {
-                                    try {
-                                        const data = JSON.parse(line.substring(6));
-                                        
-                                        switch(data.type) {
-                                            case 'processing':
-                                                break;
-                                                
-                                            case 'start_response':
-                                                hideTypingIndicator();
-                                                if (!streamingMessageElement) {
-                                                    streamingMessageElement = createStreamingMessage();
-                                                }
-                                                break;
-                                                
-                                            case 'text_chunk':
-                                                if (!streamingMessageElement) {
-                                                    hideTypingIndicator();
-                                                    streamingMessageElement = createStreamingMessage();
-                                                }
-                                                
-                                                if (streamingMessageElement) {
-                                                    accumulatedText = data.accumulated || (accumulatedText + data.chunk);
-                                                    updateStreamingMessage(streamingMessageElement, accumulatedText);
-                                                }
-                                                break;
-                                                
-                                            case 'complete':
-                                                streamCompleted = true;
-                                                clearTimeout(timeoutId);
-                                                
-                                                if (streamingMessageElement) {
-                                                    finalizeStreamingMessage(streamingMessageElement);
-                                                }
-                                                
-                                                if (data.full_result) {
-                                                    handleCompleteResponse(data.full_result);
-                                                }
-                                                
-                                                const input = document.getElementById('message-input');
-                                                input.disabled = false;
-                                                document.getElementById('send-button').disabled = false;
-                                                input.focus();
-                                                
-                                                resolve();
-                                                return;
-                                                
-                                            case 'error':
-                                                reject(new Error(data.message));
-                                                return;
-                                        }
-                                    } catch (error) {
-                                        // Ignore parse errors
-                                    }
-                                }
-                            }
-                            
-                            // Continue reading
-                            return readStream();
-                        });
-                    }
-                    
-                    return readStream();
-                })
-                .catch(error => {
-                    hideTypingIndicator();
-                    const input = document.getElementById('message-input');
-                    input.disabled = false;
-                    document.getElementById('send-button').disabled = false;
-                    reject(error);
-                });
-            });
-        }
-        
-        // Fallback: Non-streaming message sender (existing logic)
-        async function sendMessageNonStreaming(message) {
             try {
                 const response = await fetch('/api/chat/message', {
                     method: 'POST',
@@ -621,7 +406,6 @@
                 hideTypingIndicator();
                 console.error('Chat error:', error);
                 addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
-                throw error;
             } finally {
                 // Re-enable input
                 const input = document.getElementById('message-input');
@@ -656,8 +440,7 @@
             
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'typing-message';
-            messageDiv.id = 'current-typing-indicator';
+            messageDiv.className = 'message-enter typing-message';
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
@@ -674,36 +457,21 @@
             `;
             
             messagesContainer.appendChild(messageDiv);
+            
+            // Trigger animation
+            setTimeout(() => {
+                messageDiv.classList.remove('message-enter');
+                messageDiv.classList.add('message-enter-active');
+            }, 10);
+            
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Hide typing indicator
         function hideTypingIndicator() {
             const messagesContainer = document.getElementById('chat-messages');
-            
-            setTimeout(() => {
-                const typingMessages = messagesContainer.querySelectorAll('.typing-message');
-                typingMessages.forEach(msg => msg.remove());
-                
-                const typingById = document.getElementById('current-typing-indicator');
-                if (typingById) typingById.remove();
-                
-                const ellipsis = messagesContainer.querySelectorAll('.typing-ellipsis');
-                ellipsis.forEach(el => {
-                    const parent = el.closest('div');
-                    if (parent && parent !== messagesContainer) {
-                        parent.remove();
-                    }
-                });
-                
-                const dots = messagesContainer.querySelectorAll('.dot');
-                dots.forEach(dot => {
-                    const parent = dot.closest('div');
-                    if (parent && parent !== messagesContainer) {
-                        parent.remove();
-                    }
-                });
-            }, 100);
+            const typingMessages = messagesContainer.querySelectorAll('.typing-message');
+            typingMessages.forEach(msg => msg.remove());
         }
 
         // Update progress bar
