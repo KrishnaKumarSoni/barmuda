@@ -661,7 +661,7 @@
                 sessionId = data.session_id;
                 
                 // Get form title
-                const formResponse = await fetch(`${config.apiBase}/api/form/${config.formId}`);
+                const formResponse = await fetch(`${config.apiBase}/api/form/${config.formId}/public`);
                 const formData = await formResponse.json();
                 if (formData.success) {
                     document.querySelector('.barmuda-form-title').textContent = formData.form.title;
