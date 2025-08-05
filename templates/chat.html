@@ -408,8 +408,10 @@
 
         // Finalize streaming message (remove cursor and add timestamp)
         function finalizeStreamingMessage(messageElement) {
+            console.log('🏁 FINALIZING streaming message');
             const cursor = messageElement.querySelector('.streaming-cursor');
             if (cursor) {
+                console.log('🏁 Removing cursor');
                 cursor.remove();
             }
             
@@ -424,7 +426,15 @@
                 timestampDiv.textContent = timeStr;
                 
                 textContainer.appendChild(timestampDiv);
+                console.log('🏁 Added timestamp, message finalized');
+            } else {
+                console.error('🏁 No .bg-white found for timestamp');
             }
+            
+            // Force visibility one more time
+            messageElement.style.display = 'block';
+            messageElement.style.opacity = '1';
+            console.log('🏁 Streaming message should be visible now');
         }
 
         // Streaming support detection (using fetch + ReadableStream)
