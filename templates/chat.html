@@ -358,7 +358,7 @@
 
         // Create streaming message element
         function createStreamingMessage() {
-            const messagesContainer = document.getElementById('messages');
+            const messagesContainer = document.getElementById('chat-messages');
             
             const messageDiv = document.createElement('div');
             messageDiv.className = 'mb-4 flex items-start space-x-3';
@@ -386,7 +386,7 @@
                 textElement.textContent = text;
                 
                 // Auto-scroll to bottom
-                const messagesContainer = document.getElementById('messages');
+                const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
         }
@@ -639,28 +639,8 @@
                 
                 // Show completion overlay instead of system message
                 setTimeout(() => {
-                            showCompletionScreen();
-                        }, 1500);
-                    } else {
-                        // Re-enable input
-                        input.disabled = false;
-                        document.getElementById('send-button').disabled = false;
-                        input.focus();
-                    }
-                } else {
-                    addMessage('system', data.response || 'Sorry, there was an error processing your message.');
-                    // Re-enable input
-                    input.disabled = false;
-                    document.getElementById('send-button').disabled = false;
-                }
-                
-            } catch (error) {
-                console.error('Error sending message:', error);
-                hideTypingIndicator();
-                addMessage('system', 'Network error. Please check your connection and try again.');
-                // Re-enable input
-                input.disabled = false;
-                document.getElementById('send-button').disabled = false;
+                    showCompletionScreen();
+                }, 1500);
             }
         }
 
