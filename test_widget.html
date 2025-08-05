@@ -103,6 +103,23 @@
             <h3>🔥 Widget in Action</h3>
             <p>Look for the floating chat button and click it to start a conversation!</p>
             <p><em>The widget loads dynamically and won't slow down your site.</em></p>
+            
+            <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <h4>🧪 Test Features:</h4>
+                <ul style="text-align: left; font-size: 0.9em;">
+                    <li>Modal should <strong>slide in with animation</strong> from the bottom</li>
+                    <li>Widget positioned in <strong>bottom-right corner</strong></li>
+                    <li>Modal should <strong>stay within this page</strong> (no new tabs)</li>
+                    <li>Click outside modal to close, or use ESC key</li>
+                    <li>Form title should load without errors</li>
+                </ul>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button onclick="testPositioning()" style="background: #cc5500; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                    🔄 Switch to Bottom-Left
+                </button>
+            </div>
         </div>
         
         <div class="feature">
@@ -114,16 +131,76 @@
     <!-- Arrow pointing to widget -->
     <div class="arrow">↘️</div>
 
-    <!-- REAL Barmuda Widget Integration -->
+    <!-- Test function for positioning -->
     <script>
-    (function() {
-        var script = document.createElement('script');
-        script.src = 'https://barmuda.vercel.app/widget.js';
-        script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
-        script.setAttribute('data-position', 'bottom-right');
-        script.setAttribute('data-color', '#cc5500');
-        document.head.appendChild(script);
-    })();
+        let currentPosition = 'bottom-right';
+        
+        function testPositioning() {
+            // Remove existing widget
+            const existingFab = document.getElementById('barmuda-fab');
+            const existingModal = document.getElementById('barmuda-modal');
+            if (existingFab) existingFab.remove();
+            if (existingModal) existingModal.remove();
+            
+            // Clear existing widget
+            if (window.BarmudaWidget) {
+                delete window.BarmudaWidget;
+            }
+            
+            // Switch position
+            currentPosition = currentPosition === 'bottom-right' ? 'bottom-left' : 'bottom-right';
+            
+            // Update button text
+            const button = event.target;
+            button.textContent = currentPosition === 'bottom-right' ? '🔄 Switch to Bottom-Left' : '🔄 Switch to Bottom-Right';
+            
+            // Load new widget with different position
+            setTimeout(() => {
+                loadWidget(currentPosition);
+            }, 100);
+        }
+        
+        function loadWidget(position = 'bottom-right') {
+            console.log('🚀 Loading Barmuda widget at position:', position);
+            
+            const script = document.createElement('script');
+            script.src = 'https://barmuda.vercel.app/widget.js';
+            script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
+            script.setAttribute('data-position', position);
+            script.setAttribute('data-color', '#cc5500');
+            
+            script.onload = function() {
+                console.log('✅ Widget script loaded successfully');
+                // Test if widget functions are available
+                setTimeout(() => {
+                    if (window.BarmudaWidget) {
+                        console.log('✅ BarmudaWidget object is available');
+                        console.log('Available methods:', Object.keys(window.BarmudaWidget));
+                    } else {
+                        console.log('❌ BarmudaWidget object not found');
+                    }
+                }, 1000);
+            };
+            
+            script.onerror = function() {
+                console.log('❌ Failed to load widget script');
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Load initial widget
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWidget('bottom-right');
+            
+            // Add some debugging
+            console.log('🎯 Widget test page loaded');
+            console.log('Expected behavior:');
+            console.log('1. Floating button should appear in bottom-right');
+            console.log('2. Click should open modal with slide animation');
+            console.log('3. Modal should stay within this page');
+            console.log('4. Form title should load without JSON errors');
+        });
     </script>
 </body>
 </html>
