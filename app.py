@@ -8,7 +8,7 @@ from functools import wraps
 import firebase_admin
 from dotenv import load_dotenv
 from firebase_admin import auth, credentials, firestore
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_from_directory
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_from_directory, Response
 from flask_cors import CORS
 from openai import OpenAI
 
@@ -1600,6 +1600,66 @@ def start_chat_session():
     except Exception as e:
         print(f"Error starting chat session: {str(e)}")
         return jsonify({"error": "Failed to start chat session"}), 500
+
+
+@app.route("/api/chat/stream", methods=["POST"])
+def stream_chat_message():
+    """Stream a chat message response using Server-Sent Events"""
+    try:
+        data = request.get_json()
+        session_id = data.get("session_id")
+        message = data.get("message", "").strip()
+        
+        if not session_id or not message:
+            return jsonify({"error": "session_id and message are required"}), 400
+            
+        # Rate limiting check (same as existing endpoint)
+        if not check_rate_limit(session_id, request.remote_addr):
+            return jsonify({"error": "Rate limit exceeded. Please slow down."}), 429
+        
+        # Import streaming wrapper
+        try:
+            from streaming_wrapper import StreamingChatManager
+            print("✅ Successfully imported StreamingChatManager")
+        except ImportError as e:
+            print(f"❌ Failed to import StreamingChatManager: {e}")
+            return jsonify({"error": "Streaming not available"}), 500
+        
+        # Get existing agent (preserves all current functionality)
+        agent = get_chat_agent()
+        
+        # Create streaming manager
+        streaming_manager = StreamingChatManager(agent)
+        
+        def generate_stream():
+            """Generator for SSE streaming"""
+            try:
+                # Stream the response using existing agent
+                for sse_data in streaming_manager.stream_message(session_id, message):
+                    yield sse_data
+            except Exception as e:
+                # Error handling
+                error_data = {
+                    "type": "error",
+                    "message": f"Streaming failed: {str(e)}"
+                }
+                yield f"data: {json.dumps(error_data)}\n\n"
+        
+        # Return SSE response
+        return Response(
+            generate_stream(),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        )
+        
+    except Exception as e:
+        print(f"Error in streaming endpoint: {str(e)}")
+        return jsonify({"error": "Failed to start streaming"}), 500
 
 
 @app.route("/api/chat/message", methods=["POST"])
