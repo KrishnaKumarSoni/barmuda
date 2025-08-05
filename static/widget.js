@@ -10,6 +10,8 @@
         apiBase: currentScript.src.replace('/widget.js', '')
     };
     
+    console.log('Widget configuration:', config);
+    
     // Prevent multiple initialization
     if (window.BarmudaWidget) {
         console.warn('Barmuda Widget already initialized');
@@ -643,7 +645,10 @@
             showTypingIndicator();
             
             // Start chat session
-            const response = await fetch(`${config.apiBase}/api/chat/start`, {
+            const apiUrl = `${config.apiBase}/api/chat/start`;
+            console.log('Making request to:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -654,6 +659,15 @@
                     location: {}
                 })
             });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.log('Error response text:', errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
             
             const data = await response.json();
             
