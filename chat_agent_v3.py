@@ -209,11 +209,12 @@ def save_user_response(session_id: str, response_text: str, question_index: int)
     try:
         session = load_session(session_id)
         
-        # Save response
+        # Save response (NO RAW TEXT - for extraction later)
         session.responses[str(question_index)] = {
             "value": response_text,
             "timestamp": datetime.now().isoformat(),
-            "question_text": session.form_data["questions"][question_index]["text"]
+            "question_index": question_index,
+            "question_type": session.form_data["questions"][question_index]["type"]
         }
         
         save_session(session)
@@ -234,17 +235,18 @@ def advance_to_next_question(session_id: str) -> dict:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
         
-        # Find next enabled, unanswered question
+        # Find next enabled, unanswered question (NO RAW TEXT EXPOSURE)
         next_question = None
         for i, q in enumerate(questions):
             if (q.get("enabled", True) and 
                 i > session.current_question_index and 
                 str(i) not in session.responses):
                 next_question = {
-                    "text": q["text"],
                     "type": q["type"],
                     "index": i,
-                    "options": q.get("options", [])
+                    "has_options": bool(q.get("options", [])),
+                    "question_number": i + 1
+                    # NO "text" or "options" fields - agent must ask naturally
                 }
                 session.current_question_index = i
                 break
