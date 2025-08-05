@@ -451,11 +451,13 @@
         
         // Send message with streaming support
         async function sendMessage() {
+            console.log('🚨 SEND MESSAGE CALLED');
             if (isEnded) return;
             
             const input = document.getElementById('message-input');
             const message = input.value.trim();
             
+            console.log('🚨 Message:', message, 'SessionId:', sessionId);
             if (!message || !sessionId) return;
             
             // Add user message
