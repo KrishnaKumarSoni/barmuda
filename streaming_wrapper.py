@@ -9,13 +9,13 @@ import re
 from typing import Generator, Dict, Any
 
 
-def simulate_typing_stream(text: str, chunk_size: int = 4) -> Generator[str, None, None]:
+def simulate_typing_stream(text: str, chunk_size: int = 2) -> Generator[str, None, None]:
     """
-    Stream text in word groups for efficient streaming
+    Stream text in word groups for natural typing effect
     
     Args:
         text: The complete text to stream
-        chunk_size: Number of words per chunk (default 4)
+        chunk_size: Number of words per chunk (default 2 for better streaming effect)
     
     Yields:
         String chunks of the text (word groups)
@@ -25,7 +25,7 @@ def simulate_typing_stream(text: str, chunk_size: int = 4) -> Generator[str, Non
     
     words = text.split()
     
-    # Stream in word groups for better UX and fewer network calls
+    # Stream in smaller word groups for more natural streaming effect
     for i in range(0, len(words), chunk_size):
         chunk_words = words[i:i + chunk_size]
         chunk_text = ' '.join(chunk_words)

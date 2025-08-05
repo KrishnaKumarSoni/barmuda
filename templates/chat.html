@@ -361,19 +361,25 @@
             const messagesContainer = document.getElementById('chat-messages');
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'mb-4 flex items-start space-x-3';
+            messageDiv.className = 'message-enter streaming-message';
             
             messageDiv.innerHTML = `
-                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-full flex items-center justify-center">
-                    <i class="ph ph-robot text-white text-sm"></i>
-                </div>
-                <div class="flex-1 bg-white rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border border-[#fce9c1]">
-                    <div class="streaming-text font-['DM_Sans'] text-[#1e1e1e] text-[15px] leading-relaxed"></div>
-                    <div class="streaming-cursor inline-block w-2 h-5 bg-[#cc5500] ml-1 animate-pulse"></div>
+                <div class="flex justify-start">
+                    <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
+                        <div class="streaming-text font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed"></div>
+                        <div class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] ml-1 animate-pulse"></div>
+                    </div>
                 </div>
             `;
             
             messagesContainer.appendChild(messageDiv);
+            
+            // Trigger animation like regular messages
+            setTimeout(() => {
+                messageDiv.classList.remove('message-enter');
+                messageDiv.classList.add('message-enter-active');
+            }, 10);
+            
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
             return messageDiv;
@@ -383,8 +389,9 @@
         function updateStreamingMessage(messageElement, text) {
             const textElement = messageElement.querySelector('.streaming-text');
             if (textElement) {
-                textElement.textContent = text;
-                console.log('Updated streaming text:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
+                // Use innerHTML to support emojis and formatting, escape HTML properly
+                textElement.innerHTML = escapeHtml(text);
+                console.log('Updated streaming text:', text.length, 'chars:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
                 
                 // Auto-scroll to bottom
                 const messagesContainer = document.getElementById('chat-messages');
@@ -393,12 +400,32 @@
                 console.error('No .streaming-text element found in message element');
             }
         }
+        
+        // Escape HTML for safe innerHTML usage
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-        // Finalize streaming message (remove cursor)
+        // Finalize streaming message (remove cursor and add timestamp)
         function finalizeStreamingMessage(messageElement) {
             const cursor = messageElement.querySelector('.streaming-cursor');
             if (cursor) {
                 cursor.remove();
+            }
+            
+            // Add timestamp like regular messages
+            const textContainer = messageElement.querySelector('.bg-white');
+            if (textContainer) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const timestampDiv = document.createElement('div');
+                timestampDiv.className = "font-['DM_Sans'] text-[#6b7280] text-xs mt-1";
+                timestampDiv.textContent = timeStr;
+                
+                textContainer.appendChild(timestampDiv);
             }
         }
 
