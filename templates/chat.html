@@ -373,11 +373,14 @@
             `;
             
             messagesContainer.appendChild(messageDiv);
+            console.log('✅ Streaming message element appended to DOM');
+            console.log('✅ Element visible:', messageDiv.offsetHeight > 0, 'height:', messageDiv.offsetHeight);
             
             // Trigger animation like regular messages
             setTimeout(() => {
                 messageDiv.classList.remove('message-enter');
                 messageDiv.classList.add('message-enter-active');
+                console.log('✅ Streaming message animation triggered');
             }, 10);
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -391,13 +394,16 @@
             if (textElement) {
                 // Use innerHTML to support emojis and formatting, escape HTML properly
                 textElement.innerHTML = escapeHtml(text);
-                console.log('Updated streaming text:', text.length, 'chars:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
+                console.log('✅ Updated streaming text:', text.length, 'chars:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
+                console.log('✅ Text element innerHTML:', textElement.innerHTML);
+                console.log('✅ Message element visible:', messageElement.offsetHeight > 0, 'height:', messageElement.offsetHeight);
                 
                 // Auto-scroll to bottom
                 const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } else {
-                console.error('No .streaming-text element found in message element');
+                console.error('❌ No .streaming-text element found in message element');
+                console.error('❌ Message element structure:', messageElement.innerHTML);
             }
         }
         
@@ -551,30 +557,44 @@
                                                 console.log('🔄 Starting streaming response, hiding typing indicator');
                                                 hideTypingIndicator();
                                                 
-                                                // Create streaming message element
-                                                streamingMessageElement = createStreamingMessage();
-                                                console.log('🔄 Created streaming message element');
+                                                // Small delay to ensure typing indicator is removed
+                                                setTimeout(() => {
+                                                    // Create streaming message element
+                                                    streamingMessageElement = createStreamingMessage();
+                                                    console.log('🔄 Created streaming message element');
+                                                }, 10);
                                                 break;
                                                 
                                             case 'text_chunk':
+                                                // Ensure streaming message element exists
+                                                if (!streamingMessageElement) {
+                                                    console.log('🔧 Creating streaming message element for text_chunk');
+                                                    hideTypingIndicator();
+                                                    streamingMessageElement = createStreamingMessage();
+                                                }
+                                                
                                                 // Append chunk to streaming message
                                                 if (streamingMessageElement) {
                                                     accumulatedText = data.accumulated || (accumulatedText + data.chunk);
                                                     console.log('Streaming chunk:', JSON.stringify(data.chunk), 'Accumulated:', accumulatedText.length, 'chars');
                                                     updateStreamingMessage(streamingMessageElement, accumulatedText);
                                                 } else {
-                                                    console.warn('No streamingMessageElement for text_chunk');
+                                                    console.error('❌ Still no streamingMessageElement for text_chunk after creating');
                                                 }
                                                 break;
                                                 
                                             case 'complete':
                                                 // Streaming complete
+                                                console.log('✅ Streaming completed successfully!');
                                                 streamCompleted = true;
                                                 clearTimeout(timeoutId);
                                                 
                                                 // Finalize the streaming message
                                                 if (streamingMessageElement) {
+                                                    console.log('✅ Finalizing streaming message');
                                                     finalizeStreamingMessage(streamingMessageElement);
+                                                } else {
+                                                    console.error('❌ No streaming message element to finalize');
                                                 }
                                                 
                                                 // Process the complete result (same as non-streaming)
@@ -725,7 +745,10 @@
             const messagesContainer = document.getElementById('chat-messages');
             const typingMessage = messagesContainer.querySelector('.typing-message');
             if (typingMessage) {
+                console.log('✅ HIDING typing indicator');
                 typingMessage.remove();
+            } else {
+                console.log('⚠️ No typing indicator found to hide');
             }
         }
 
