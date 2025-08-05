@@ -384,10 +384,13 @@
             const textElement = messageElement.querySelector('.streaming-text');
             if (textElement) {
                 textElement.textContent = text;
+                console.log('Updated streaming text:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
                 
                 // Auto-scroll to bottom
                 const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } else {
+                console.error('No .streaming-text element found in message element');
             }
         }
 
@@ -524,7 +527,10 @@
                                                 // Append chunk to streaming message
                                                 if (streamingMessageElement) {
                                                     accumulatedText = data.accumulated || (accumulatedText + data.chunk);
+                                                    console.log('Streaming chunk:', JSON.stringify(data.chunk), 'Accumulated:', accumulatedText.length, 'chars');
                                                     updateStreamingMessage(streamingMessageElement, accumulatedText);
+                                                } else {
+                                                    console.warn('No streamingMessageElement for text_chunk');
                                                 }
                                                 break;
                                                 
