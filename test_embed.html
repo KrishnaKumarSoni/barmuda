@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Embed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .embed-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Barmuda Form Embed Test</h1>
+    
+    <p>This page tests the embeddable form functionality. Replace the form ID in the iframe src with an actual form ID.</p>
+    
+    <div class="embed-container">
+        <h2>Embedded Form (Replace form_id)</h2>
+        <iframe src="https://barmuda-kcx34z2a6-krishnas-projects-cc548bc4.vercel.app/embed/5fjcRD3YcYkK5o3LIDyT" 
+                width="400" 
+                height="600" 
+                frameborder="0" 
+                style="border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+                title="Survey Form">
+        </iframe>
+    </div>
+
+    <script>
+        // Listen for postMessage from iframe
+        window.addEventListener('message', function(event) {
+            // Only accept messages from barmuda domain
+            if (!event.origin.includes('barmuda') || !event.origin.includes('vercel.app')) {
+                return;
+            }
+            
+            console.log('Received message from iframe:', event.data);
+            
+            // Handle height adjustments
+            if (event.data.type === 'barmuda_resize') {
+                const iframe = document.querySelector('iframe');
+                if (iframe) {
+                    iframe.style.height = event.data.height + 'px';
+                    console.log('Adjusted iframe height to:', event.data.height + 'px');
+                }
+            }
+            
+            // Handle other events
+            if (event.data.type === 'barmuda_completed') {
+                console.log('Form completed!');
+                alert('Thank you for completing the form!');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1436,6 +1436,72 @@ def form_response_page(form_id):
         )
 
 
+@app.route("/embed/<form_id>")
+def embed_form(form_id):
+    """Embeddable form chat interface (iframe-optimized)"""
+    try:
+        # Verify form exists and is active (same validation as regular form)
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return (
+                render_template(
+                    "error.html",
+                    error_title="Form Not Found",
+                    error_message="This form doesn't exist or has been removed.",
+                ),
+                404,
+            )
+
+        form_data = form_doc.to_dict()
+
+        # Check if form is active
+        if not form_data.get("active", False):
+            return (
+                render_template(
+                    "error.html",
+                    error_title="Survey Not Available",
+                    error_message="This survey is currently paused and not accepting responses.",
+                ),
+                403,
+            )
+
+        # Create response with CORS headers for embedding
+        response = app.make_response(render_template(
+            "embed.html",
+            form_id=form_id,
+            form_title=form_data.get("title", "Survey"),
+            form_description=form_data.get("description", ""),
+        ))
+        
+        # Add headers to allow iframe embedding from any domain
+        # Remove X-Frame-Options to let CSP handle framing
+        response.headers.pop('X-Frame-Options', None)
+        response.headers['Content-Security-Policy'] = "frame-ancestors https: http: file:"
+        
+        return response
+
+    except Exception as e:
+        print(f"Error loading embed form: {str(e)}")
+        return (
+            render_template(
+                "error.html",
+                error_title="Error Loading Form",
+                error_message="There was an error loading this form. Please try again later.",
+            ),
+            500,
+        )
+
+
+@app.route("/widget.js")
+def widget_script():
+    """Serve the widget JavaScript file with proper CORS headers"""
+    response = send_from_directory('static', 'widget.js', mimetype='application/javascript')
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET'
+    response.headers['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+    return response
+
+
 @app.route("/api/chat/start", methods=["POST"])
 def start_chat_session():
     """Start a new chat session or resume existing one"""

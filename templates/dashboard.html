@@ -83,6 +83,9 @@
                                 <button onclick="event.stopPropagation(); shareForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Share form">
                                     <i class="ph ph-share text-xl"></i>
                                 </button>
+                                <button onclick="event.stopPropagation(); embedForm('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="Embed form">
+                                    <i class="ph ph-code text-xl"></i>
+                                </button>
                                 <button onclick="event.stopPropagation(); viewResponses('{{ form.form_id }}')" class="w-6 h-6 text-[#666] hover:text-[#cc5500] transition-colors" title="View responses">
                                     <i class="ph ph-chart-bar text-xl"></i>
                                 </button>
@@ -170,6 +173,11 @@
                 // Fallback for older browsers
                 prompt('Copy this link:', formUrl);
             });
+        }
+
+        function embedForm(formId) {
+            // Show embed modal
+            showEmbedModal(formId);
         }
 
         function viewResponses(formId) {
@@ -275,10 +283,197 @@
             }, 3000);
         }
 
+        // Embed modal functions
+        function showEmbedModal(formId) {
+            const modal = document.getElementById('embed-modal');
+            const embedCode = document.getElementById('embed-code');
+            
+            // Store current form ID for copy function
+            window.currentEmbedFormId = formId;
+            
+            // Generate initial embed code
+            updateEmbedCode();
+            
+            modal.classList.remove('hidden');
+            
+            // Setup event listeners for customization
+            document.getElementById('widget-position').addEventListener('change', updateEmbedCode);
+            document.getElementById('widget-color').addEventListener('input', updateWidgetPreview);
+            document.getElementById('widget-color').addEventListener('change', updateEmbedCode);
+            
+            // Initial preview update
+            updateWidgetPreview();
+        }
+        
+        function updateEmbedCode() {
+            const position = document.getElementById('widget-position').value;
+            const color = document.getElementById('widget-color').value;
+            const formId = window.currentEmbedFormId;
+            const embedCode = document.getElementById('embed-code');
+            
+            // Generate widget script
+            const widgetScript = `<script>
+(function() {
+    var script = document.createElement('script');
+    script.src = '${window.location.origin}/widget.js';
+    script.setAttribute('data-form-id', '${formId}');
+    script.setAttribute('data-position', '${position}');
+    script.setAttribute('data-color', '${color}');
+    document.head.appendChild(script);
+})();
+</script>`;
+            
+            embedCode.textContent = widgetScript;
+        }
+        
+        function updateWidgetPreview() {
+            const position = document.getElementById('widget-position').value;
+            const color = document.getElementById('widget-color').value;
+            const preview = document.getElementById('widget-preview');
+            
+            // Update preview position
+            preview.classList.remove('bottom-4', 'right-4', 'left-4');
+            if (position === 'bottom-left') {
+                preview.classList.add('bottom-4', 'left-4');
+            } else {
+                preview.classList.add('bottom-4', 'right-4');
+            }
+            
+            // Update preview color
+            preview.style.background = color;
+        }
+
+        function hideEmbedModal() {
+            const modal = document.getElementById('embed-modal');
+            modal.classList.add('hidden');
+        }
+
+        function copyEmbedCode() {
+            const embedCode = document.getElementById('embed-code');
+            const copyBtn = document.getElementById('copy-embed-btn');
+            
+            navigator.clipboard.writeText(embedCode.textContent).then(() => {
+                // Update button temporarily
+                const originalContent = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="ph ph-check text-sm"></i> Copied!';
+                copyBtn.classList.add('bg-green-600');
+                copyBtn.classList.remove('bg-[#cc5500]');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalContent;
+                    copyBtn.classList.remove('bg-green-600');
+                    copyBtn.classList.add('bg-[#cc5500]');
+                }, 2000);
+                
+                showNotification('Embed code copied to clipboard!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = embedCode.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('Embed code copied to clipboard!', 'success');
+            });
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('embed-modal');
+            if (e.target === modal) {
+                hideEmbedModal();
+            }
+        });
+
         // Simple page load - no authentication checks needed
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Dashboard loaded successfully');
         });
     </script>
+
+    <!-- Embed Modal -->
+    <div id="embed-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-[#1e1e1e]">Embed Form</h2>
+                    <button onclick="hideEmbedModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="ph ph-x text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6">
+                <div class="mb-6">
+                    <p class="font-['DM_Sans'] text-[#666] mb-4">
+                        Add a floating chat widget to your website. Visitors will see a chat button that opens your form in a beautiful modal.
+                    </p>
+                </div>
+
+                <!-- Widget Options -->
+                <div class="mb-6">
+                    <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-3">Widget Settings</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-['DM_Sans'] text-sm text-[#666] mb-2">Position</label>
+                            <select id="widget-position" class="w-full p-2 border border-gray-300 rounded-lg font-['DM_Sans'] text-sm">
+                                <option value="bottom-right">Bottom Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-['DM_Sans'] text-sm text-[#666] mb-2">Color</label>
+                            <input type="color" id="widget-color" value="#cc5500" class="w-full h-10 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="mb-6">
+                    <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-3">Preview</h3>
+                    <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative" style="height: 200px;">
+                        <div class="absolute inset-4 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+                            <span class="font-['DM_Sans'] text-sm text-[#999]">Your Website Content</span>
+                        </div>
+                        <div id="widget-preview" class="absolute bottom-4 right-4 w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300" style="background: #cc5500;">
+                            <i class="ph ph-chat-circle text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Embed Code -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e]">Embed Code</h3>
+                        <button onclick="copyEmbedCode()" id="copy-embed-btn" class="bg-[#cc5500] text-white px-4 py-2 rounded-lg text-sm font-['DM_Sans'] font-medium hover:bg-[#b84600] transition-colors flex items-center gap-2">
+                            <i class="ph ph-copy text-sm"></i>
+                            Copy Code
+                        </button>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                        <code id="embed-code" class="text-green-400 text-sm font-mono block whitespace-pre-wrap"></code>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-2">How to install:</h4>
+                    <ol class="font-['DM_Sans'] text-sm text-[#666] space-y-1 pl-4">
+                        <li>1. Copy the widget code above</li>
+                        <li>2. Paste it in your website's HTML (before closing &lt;/body&gt; tag)</li>
+                        <li>3. Save and publish your website</li>
+                        <li>4. A floating chat button will appear on your site!</li>
+                    </ol>
+                    <div class="mt-3 p-3 bg-white rounded border border-blue-200">
+                        <p class="font-['DM_Sans'] text-xs text-[#666] mb-1"><strong>Professional tip:</strong></p>
+                        <p class="font-['DM_Sans'] text-xs text-[#666]">The widget automatically adapts to mobile devices and won't disrupt your page layout.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

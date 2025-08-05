@@ -34,24 +34,14 @@
             <!-- Main Heading -->
             <div class="text-center">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-3xl md:text-4xl lg:text-5xl xl:text-[56px] text-[#1e1e1e] tracking-[-0.56px] leading-none">
-                    stop quizzing.<br>start learning.
+                    People hate filling out forms.<br>So we made surveys that feel like texting.
                 </h1>
-            </div>
-            
-            <!-- Tags -->
-            <div class="flex gap-2 flex-wrap justify-center">
-                <div class="border border-[#e3d1c3] rounded-[100px] px-4 md:px-[25px] py-2 md:py-2.5">
-                    <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">text to survey</p>
-                </div>
-                <div class="border border-[#e3d1c3] rounded-[100px] px-4 md:px-[29px] py-2 md:py-2.5">
-                    <p class="font-['DM_Sans'] text-sm md:text-[15px] text-[#1e1e1e] text-center">chat to respond</p>
-                </div>
             </div>
             
             <!-- Subtitle -->
             <div class="text-center max-w-2xl">
                 <p class="font-['DM_Sans'] text-base md:text-lg lg:text-[20px] text-[#1e1e1e] tracking-[-0.2px]">
-                    make surveys using ai and let people respond by chatting naturally
+                    Paste your questions, get a link. People chat with AI instead of filling boring forms.
                 </p>
             </div>
             
@@ -66,7 +56,7 @@
                     <button onclick="handleUnauthenticatedGenerate()" 
                             id="unauthGenerateBtn"
                             class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-[100px] px-4 md:px-6 py-2 md:py-3 text-white font-['DM_Sans'] font-medium text-sm md:text-base transition-opacity flex items-center gap-2">
-                        <span id="unauthButtonText">generate survey</span>
+                        <span id="unauthButtonText">make your first survey</span>
                         <div id="unauthSpinner" class="hidden">
                             <div class="flex space-x-1">
                                 <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
@@ -203,12 +193,16 @@
                 </div>
             </div>
             
-            <!-- Tagline -->
+            <!-- What we actually built -->
             <div class="text-center max-w-4xl mt-16 md:mt-20 lg:mt-24 mb-8 md:mb-12">
-                <p class="font-['DM_Sans'] text-base md:text-lg lg:text-xl text-[#1e1e1e] tracking-[-0.2px] leading-relaxed">
-                    Transform boring surveys into engaging conversations that people actually want to complete.<br>
-                    <span class="font-medium text-[#cc5500]">Get 3x higher response rates</span> and uncover insights that checkboxes miss.
-                </p>
+                <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-4">What you actually get</h3>
+                <div class="flex flex-wrap gap-2 justify-center text-sm">
+                    <span class="border border-[#e3d1c3] rounded-full px-3 py-1 text-[#6b7280]">Paste text, get survey</span>
+                    <span class="border border-[#e3d1c3] rounded-full px-3 py-1 text-[#6b7280]">Chat interface</span>
+                    <span class="border border-[#e3d1c3] rounded-full px-3 py-1 text-[#6b7280]">CSV export</span>
+                    <span class="border border-[#e3d1c3] rounded-full px-3 py-1 text-[#6b7280]">Share links</span>
+                    <span class="border border-[#e3d1c3] rounded-full px-3 py-1 text-[#6b7280]">Dashboard</span>
+                </div>
             </div>
         </div>
     </div>
@@ -220,10 +214,10 @@
         <div class="max-w-6xl mx-auto px-4 md:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
-                    Traditional surveys are broken
+                    Forms suck. Everyone knows it.
                 </h2>
                 <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto">
-                    Most surveys get abandoned. Respondents rush through checkboxes. You get biased, incomplete data.
+                    People see a long form and give up. You get 10% response rates if you're lucky.
                 </p>
             </div>
             
@@ -235,8 +229,8 @@
                             <i class="ph ph-x text-red-600 text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Low completion rates</h3>
-                            <p class="font-['DM_Sans'] text-[#6b7280]">Average form completion rate is only 20%. People abandon surveys after seeing long lists of questions.</p>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">People quit after 2 minutes</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">They see a long form and give up. The rest of your audience is gone forever.</p>
                         </div>
                     </div>
                     
@@ -245,18 +239,8 @@
                             <i class="ph ph-x text-red-600 text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Biased responses</h3>
-                            <p class="font-['DM_Sans'] text-[#6b7280]">Multiple choice options influence answers. People pick the first option or what seems "right" instead of being honest.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start gap-4">
-                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mt-1">
-                            <i class="ph ph-x text-red-600 text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Shallow insights</h3>
-                            <p class="font-['DM_Sans'] text-[#6b7280]">Checkbox data doesn't reveal the "why" behind responses. You miss the context and nuance.</p>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">You're missing out on responses</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Static forms feel like work. People don't want to scroll through 20 questions.</p>
                         </div>
                     </div>
                 </div>
@@ -268,8 +252,8 @@
                             <i class="ph ph-check text-green-600 text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">3x higher completion</h3>
-                            <p class="font-['DM_Sans'] text-[#6b7280]">Natural conversation feels personal and engaging. People want to finish the chat.</p>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">People finish because it doesn't feel like work</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">AI asks one question at a time, like texting a friend.</p>
                         </div>
                     </div>
                     
@@ -278,18 +262,8 @@
                             <i class="ph ph-check text-green-600 text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Unbiased answers</h3>
-                            <p class="font-['DM_Sans'] text-[#6b7280]">No visible options means authentic responses. AI extracts structured data from natural language.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start gap-4">
-                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
-                            <i class="ph ph-check text-green-600 text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">Rich insights</h3>
-                            <p class="font-['DM_Sans'] text-[#6b7280]">Conversational data reveals emotions, motivations, and context that forms miss.</p>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-2">You get more responses</h3>
+                            <p class="font-['DM_Sans'] text-[#6b7280]">Same data format you expect, but way more people actually respond.</p>
                         </div>
                     </div>
                 </div>
@@ -302,11 +276,8 @@
         <div class="max-w-6xl mx-auto px-4 md:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.32px] mb-4">
-                    How it works
+                    Three steps. That's it.
                 </h2>
-                <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto">
-                    Create better forms in minutes, not hours. Get better data from happier respondents.
-                </p>
             </div>
             
             <div class="grid md:grid-cols-3 gap-8 md:gap-12">
@@ -315,9 +286,9 @@
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-[#cc5500] rounded-2xl mb-6">
                         <i class="ph ph-magic-wand text-white text-2xl"></i>
                     </div>
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">1. Describe your form</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">1. Paste your questions</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] mb-4">
-                        Just write what data you need to collect. Our AI instantly creates the perfect survey structure.
+                        Copy from Google Forms, SurveyMonkey, wherever. Or just type them out.
                     </p>
                 </div>
                 
@@ -328,7 +299,7 @@
                     </div>
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">2. Share the link</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] mb-4">
-                        Respondents chat naturally with our AI bot. No forms to fill out, just a friendly conversation.
+                        We give you a link. Send it however you want.
                     </p>
                 </div>
                 
@@ -337,9 +308,9 @@
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-[#cc5500] rounded-2xl mb-6">
                         <i class="ph ph-chart-bar text-white text-2xl"></i>
                     </div>
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">3. Get rich insights</h3>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e] mb-3">3. Get responses</h3>
                     <p class="font-['DM_Sans'] text-[#6b7280] mb-4">
-                        AI extracts structured data from conversations. View responses, export data, discover insights.
+                        People chat instead of filling forms. You get CSV data like normal.
                     </p>
                 </div>
             </div>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Widget - Barmuda FAB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-align: center;
+        }
+        
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .widget-demo {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .arrow {
+            position: fixed;
+            bottom: 100px;
+            right: 100px;
+            color: #ffeb3b;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+            z-index: 999;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @media (max-width: 768px) {
+            .arrow {
+                bottom: 80px;
+                right: 80px;
+            }
+            
+            body {
+                padding: 20px 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>🚀 Widget Demo Site</h1>
+        
+        <div class="feature">
+            <h2>✨ About This Demo</h2>
+            <p>This page demonstrates the Barmuda chat widget integration. The floating chat button in the bottom-right corner is powered by our conversational form technology.</p>
+        </div>
+        
+        <div class="feature">
+            <h2>🎯 Key Features</h2>
+            <ul>
+                <li><strong>Non-intrusive:</strong> Doesn't disrupt your page layout</li>
+                <li><strong>Mobile-friendly:</strong> Automatically adapts to all screen sizes</li>
+                <li><strong>Customizable:</strong> Choose position and brand colors</li>
+                <li><strong>Professional:</strong> Industry-standard chat widget experience</li>
+            </ul>
+        </div>
+        
+        <div class="widget-demo">
+            <h3>🔥 Widget in Action</h3>
+            <p>Look for the floating chat button and click it to start a conversation!</p>
+            <p><em>The widget loads dynamically and won't slow down your site.</em></p>
+        </div>
+        
+        <div class="feature">
+            <h2>📋 Integration</h2>
+            <p>Adding this widget to your site is as simple as copy-pasting a single script tag. No complex setup, no dependencies, just pure conversational magic!</p>
+        </div>
+    </div>
+
+    <!-- Arrow pointing to widget -->
+    <div class="arrow">↘️</div>
+
+    <!-- Barmuda Widget Integration - Inline Version for Testing -->
+    <div id="barmuda-fab" style="position: fixed; bottom: 24px; right: 24px; z-index: 999999;">
+        <div onclick="openBarmudaWidget()" style="width: 60px; height: 60px; background: linear-gradient(135deg, #cc5500, #d12b2e); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(204, 85, 0, 0.3); animation: barmudaPulse 2s infinite;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="white"/>
+                <circle cx="8" cy="10" r="1" fill="white"/>
+                <circle cx="12" cy="10" r="1" fill="white"/>
+                <circle cx="16" cy="10" r="1" fill="white"/>
+            </svg>
+        </div>
+    </div>
+
+    <style>
+        @keyframes barmudaPulse {
+            0% { box-shadow: 0 4px 20px rgba(204, 85, 0, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(204, 85, 0, 0.5), 0 0 0 10px rgba(204, 85, 0, 0.1); }
+            100% { box-shadow: 0 4px 20px rgba(204, 85, 0, 0.3); }
+        }
+    </style>
+
+    <script>
+        function openBarmudaWidget() {
+            // For now, redirect to the actual form
+            window.open('https://barmuda-kcx34z2a6-krishnas-projects-cc548bc4.vercel.app/form/5fjcRD3YcYkK5o3LIDyT', '_blank', 'width=500,height=700,scrollbars=yes,resizable=yes');
+        }
+    </script>
+</body>
+</html>
