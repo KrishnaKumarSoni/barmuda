@@ -286,9 +286,20 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
             session.current_question_index += 1
             
         elif action == "end":
+            # SAFETY CHECK: Only allow ending if confirmation was already requested
+            if not session.metadata.get("pending_end_confirmation", False):
+                return {
+                    "action_completed": False,
+                    "error": "Cannot end without confirmation. Use 'request_end_confirmation' first.",
+                    "session_ended": False,
+                    "requires_confirmation": True
+                }
+            
+            # Proceed with ending
             session.metadata["ended"] = True
             session.metadata["end_time"] = datetime.now().isoformat()
             session.metadata["end_reason"] = reason
+            session.metadata["pending_end_confirmation"] = False  # Clear pending state
             # Calculate if partial
             enabled_count = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
             answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
@@ -437,22 +448,20 @@ After 3 redirects (check redirect_count) → End conversation gracefully
 "skip" / "pass" / "next" → "No problem! 😊" → update_session_state("skip") → advance_to_next_question()
 
 ### End Requests
-**CRITICAL: Two-step process for ending conversations**
+**ABSOLUTE RULE: NEVER call update_session_state("end") unless user has ALREADY confirmed**
 
-When user first requests to end ("I'm done" / "stop" / "I want to quit"):
-- Call get_conversation_state() to check progress
-- Call update_session_state("request_end_confirmation") to mark pending
-- ONLY respond: "Are you sure you want to stop? You've answered X of Y questions."
-- Wait for next user message
+Step 1 - First end request:
+- User says: "I'm done" / "stop" / "I want to quit"
+- You do: get_conversation_state() only
+- You respond: "Are you sure you want to stop? You've answered X of Y questions."
+- You do NOT call any other tools
 
-When user confirms ending in NEXT message ("yes" / "yeah" / "sure" / "I'm sure"):
-- Call update_session_state("end") to actually end
-- Respond: "Thanks for your time! 👋"
+Step 2 - User's confirmation response:
+- Check get_conversation_state() for pending_end_confirmation
+- If user confirms ("yes"/"sure"): call update_session_state("end") then respond
+- If user declines ("no"/"continue"): clear pending state and continue
 
-When user declines ending ("no" / "wait" / "let me continue"):
-- Continue with current question normally
-
-NEVER EVER call update_session_state("end") on the initial end request - this is the bug!
+The bug occurs when tools are called on Step 1. Only call get_conversation_state() on Step 1.
 
 ### Vague Responses
 "meh" / "okay" / "fine" → "Meh—like a 2 or 3?" (one follow-up only)
