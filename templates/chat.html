@@ -366,8 +366,9 @@
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
                     <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                        <div class="streaming-text font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed min-h-[1.5rem]"></div>
-                        <div class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] ml-1 animate-pulse"></div>
+                        <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed">
+                            <span class="streaming-text"></span><span class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] animate-pulse"></span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -383,8 +384,11 @@
             const textElement = messageElement.querySelector('.streaming-text');
             if (textElement) {
                 textElement.innerHTML = escapeHtml(text);
+                console.log('STREAMING UPDATE:', text.length, 'chars -', text.substring(0, 30));
                 const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } else {
+                console.error('No .streaming-text found in:', messageElement.innerHTML);
             }
         }
         
@@ -422,7 +426,7 @@
                                     typeof TextDecoder !== 'undefined';
         
         // Feature flag - set to false to disable streaming temporarily
-        const ENABLE_STREAMING = false; // Disabled - streaming not working
+        const ENABLE_STREAMING = true; // Re-enabled for RCA
         
         const supportsStreaming = hasStreamingSupport && ENABLE_STREAMING;
         
@@ -521,20 +525,25 @@
                                                 break;
                                                 
                                             case 'start_response':
+                                                console.log('🔄 START_RESPONSE: Hiding typing, creating streaming element');
                                                 hideTypingIndicator();
                                                 if (!streamingMessageElement) {
                                                     streamingMessageElement = createStreamingMessage();
+                                                    console.log('✅ Created streaming element:', !!streamingMessageElement);
                                                 }
                                                 break;
                                                 
                                             case 'text_chunk':
+                                                console.log('📝 TEXT_CHUNK:', JSON.stringify(data.chunk));
                                                 if (!streamingMessageElement) {
+                                                    console.log('⚠️ No streaming element, creating one');
                                                     hideTypingIndicator();
                                                     streamingMessageElement = createStreamingMessage();
                                                 }
                                                 
                                                 if (streamingMessageElement) {
                                                     accumulatedText = data.accumulated || (accumulatedText + data.chunk);
+                                                    console.log('📝 Accumulated so far:', accumulatedText.length, 'chars');
                                                     updateStreamingMessage(streamingMessageElement, accumulatedText);
                                                 }
                                                 break;
