@@ -215,6 +215,16 @@ Prioritize these (handle via prompts):
 - Edge case handling via prompts
 - End-to-end testing completed
 
+**Module 9: Professional Embed Widget System** - DONE
+- Floating Action Button (FAB) widget for website integration
+- Modal overlay chat interface (no iframe conflicts)
+- Configurable positioning (bottom-left/right) and brand colors
+- "Powered by barmuda.in" branding integration
+- Mobile-responsive design with smooth animations
+- Dashboard embed modal with live preview and customization
+- Single-script integration (no complex setup required)
+- Professional UX matching industry standards (Intercom/Drift style)
+
 ## Key Architectural Decisions & Enhancements
 
 **Auto-Save System:**
@@ -239,6 +249,15 @@ Prioritize these (handle via prompts):
 - Visual feedback for form states
 - Intuitive dashboard with complete functionality
 
+**Professional Embed Widget:**
+- FAB widget replaces iframe approach (no CSP/CORS conflicts)
+- `/widget.js` route serves JavaScript with proper CORS headers
+- Dynamic modal overlay with full chat functionality
+- Configurable branding and positioning options
+- Industry-standard installation (single script tag)
+- Mobile-first responsive design with animations
+- Non-intrusive floating button (doesn't disrupt page layout)
+
 ## Instructions for Claude
 
 **Current Status:** MVP is COMPLETE and DEPLOYED at barmuda.vercel.app
@@ -250,6 +269,8 @@ Prioritize these (handle via prompts):
 4. Leverage Phosphor icons consistently
 5. Maintain responsive design principles
 6. Follow established patterns in codebase
+7. Ensure embed widget compatibility across all form features
+8. Test widget functionality on different domains and devices
 
 **For Future Enhancements:**
 1. Follow existing code patterns and architecture
@@ -262,6 +283,26 @@ Prioritize these (handle via prompts):
 - Production: barmuda.vercel.app (Vercel)
 - Repository: github.com/KrishnaKumarSoni/bermuda
 - Stack: Python Flask + HTML/CSS/JS + Tailwind + Firebase
+
+**Embed Widget Usage:**
+```html
+<script>
+(function() {
+    var script = document.createElement('script');
+    script.src = 'https://barmuda.vercel.app/widget.js';
+    script.setAttribute('data-form-id', 'YOUR_FORM_ID');
+    script.setAttribute('data-position', 'bottom-right'); // or 'bottom-left'
+    script.setAttribute('data-color', '#cc5500'); // custom brand color
+    document.head.appendChild(script);
+})();
+</script>
+```
+
+**Key Files:**
+- `/static/widget.js` - Main widget JavaScript with FAB and modal
+- `/templates/embed.html` - Fallback iframe template (legacy)
+- `/templates/dashboard.html` - Updated with embed modal and customization
+- `app.py` - Added `/widget.js` route with CORS headers
 
 **Edge Cases:** Refer to @EdgeCases.md for chat conversation handling
 **Design System:** Refer to @DesignLinks.md for Figma design references 
