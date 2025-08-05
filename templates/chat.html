@@ -473,6 +473,7 @@
                     console.log('🚀 Attempting streaming for message:', message);
                     await sendMessageStreaming(message);
                     console.log('✅ Streaming completed successfully - should have streamed!');
+                    console.log('✅ RETURNING from sendMessage - NO fallback should happen');
                     return;
                 } catch (error) {
                     console.error('❌ Streaming failed, falling back to non-streaming:', error);
@@ -484,6 +485,7 @@
             }
             
             // Fallback to existing non-streaming method
+            console.log('⚠️ FALLBACK: Calling non-streaming method');
             await sendMessageNonStreaming(message);
         }
         
@@ -608,6 +610,7 @@
                                                 document.getElementById('send-button').disabled = false;
                                                 input.focus();
                                                 
+                                                console.log('✅ Streaming resolve() called - should NOT fall back to non-streaming');
                                                 resolve();
                                                 return;
                                                 
