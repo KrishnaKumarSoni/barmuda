@@ -93,7 +93,7 @@
                 class="flex items-center gap-3 px-6 py-3 border border-bermuda-orange rounded-full text-bermuda-red font-dm text-lg hover:bg-bermuda-orange hover:text-white transition-all"
             >
                 Add question
-                <img src="/static/de0ecb426d241b7fe00aed48040a0fd5414132e1.svg" alt="Plus" class="w-6 h-6">
+                <i class="ph ph-plus text-white text-xl"></i>
             </button>
         </div>
         
@@ -106,7 +106,7 @@
                     onclick="toggleDemographics()"
                     class="w-10 h-6"
                 >
-                    <img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full transform rotate-180">
+                    <i class="ph ph-toggle-left text-gray-400 text-lg"></i>
                 </button>
             </div>
             
@@ -131,7 +131,7 @@
                 class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-lg px-8 py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
             >
                 Save & Launch
-                <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+                <i class="ph ph-floppy-disk text-white text-lg"></i>
             </button>
         </div>
         
@@ -326,13 +326,13 @@
                             // Already active form - update button
                             saveBtn.innerHTML = `
                                 Update Form
-                                <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+                                <i class="ph ph-floppy-disk text-white text-lg"></i>
                             `;
                         } else {
                             // Inactive form - keep original "Save & Launch" button
                             saveBtn.innerHTML = `
                                 Save & Launch
-                                <img src="/static/c367c42334fe420e86cb8c443190ecf5993566e3.svg" alt="Save" class="w-6 h-6">
+                                <i class="ph ph-floppy-disk text-white text-lg"></i>
                             `;
                         }
                     }
@@ -376,7 +376,7 @@
                 if (index < formData.questions.length - 1) {
                     const separator = document.createElement('div');
                     separator.className = 'h-px bg-gray-300 my-8';
-                    separator.innerHTML = '<img src="/static/d4b2d18445421ae6aa2afe72fa588ce9063e31a3.svg" alt="Line" class="w-full h-px">';
+                    separator.innerHTML = '<div class="w-full h-px bg-gray-300"></div>';
                     container.appendChild(separator);
                 }
             });
@@ -395,8 +395,7 @@
                         onclick="toggleQuestion(${index})"
                         class="w-10 h-6"
                     >
-                        <img src="/static/${question.enabled ? 'd595dca8967d730147a1e3cdfbb85834e2cd745e.svg' : '77ab3bbe188a70a08cc0303b9233495ca14571bd.svg'}" 
-                             alt="Toggle" class="w-full h-full ${question.enabled ? '' : 'transform rotate-180'}">
+                        <i class="ph ${question.enabled ? 'ph-toggle-right text-green-500' : 'ph-toggle-left text-gray-400'} text-lg"></i>
                     </button>
                 </div>
                 
@@ -541,8 +540,7 @@
                         onclick="${demographicsEnabled ? `toggleDemographic('${option.toLowerCase()}')` : 'return false'}"
                         class="w-10 h-6 ${!demographicsEnabled ? 'cursor-not-allowed' : ''}"
                     >
-                        <img src="/static/${isEnabled ? 'd595dca8967d730147a1e3cdfbb85834e2cd745e.svg' : '77ab3bbe188a70a08cc0303b9233495ca14571bd.svg'}" 
-                             alt="Toggle" class="w-full h-full">
+                        <i class="ph ${isEnabled ? 'ph-toggle-right text-green-500' : 'ph-toggle-left text-gray-400'} text-lg"></i>
                     </button>
                 `;
                 
@@ -676,7 +674,7 @@
             if (grid.classList.contains('hidden')) {
                 // Show demographics section - enable it
                 grid.classList.remove('hidden');
-                toggle.innerHTML = '<img src="/static/d595dca8967d730147a1e3cdfbb85834e2cd745e.svg" alt="Toggle" class="w-full h-full">';
+                toggle.innerHTML = '<i class="ph ph-toggle-right text-green-500 text-lg"></i>';
                 
                 // Initialize demographics if not set
                 if (!formData.demographics) {
@@ -689,7 +687,7 @@
             } else {
                 // Hide demographics section - disable all demographics
                 grid.classList.add('hidden');
-                toggle.innerHTML = '<img src="/static/77ab3bbe188a70a08cc0303b9233495ca14571bd.svg" alt="Toggle" class="w-full h-full">';
+                toggle.innerHTML = '<i class="ph ph-toggle-left text-gray-400 text-lg"></i>';
                 
                 // Disable all demographics when hiding section
                 if (!formData.demographics) formData.demographics = {};
