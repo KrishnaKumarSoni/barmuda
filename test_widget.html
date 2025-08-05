@@ -164,7 +164,8 @@
             console.log('🚀 Loading Barmuda widget at position:', position);
             
             const script = document.createElement('script');
-            script.src = 'https://barmuda.vercel.app/widget.js';
+            // Add cache busting parameter
+            script.src = 'https://barmuda.vercel.app/widget.js?v=' + Date.now();
             script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
             script.setAttribute('data-position', position);
             script.setAttribute('data-color', '#cc5500');

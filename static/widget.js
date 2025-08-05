@@ -5,6 +5,11 @@
     const currentScript = document.currentScript || document.querySelector('script[src*="widget.js"]');
     let apiBase = currentScript.src.replace('/widget.js', '');
     
+    // Remove query parameters from API base (like cache busting ?v=timestamp)
+    if (apiBase.includes('?')) {
+        apiBase = apiBase.split('?')[0];
+    }
+    
     // If the script is loaded from a file:// URL or local context, default to production
     if (apiBase.startsWith('file://') || apiBase === 'file:' || !apiBase.startsWith('http')) {
         apiBase = 'https://barmuda.vercel.app';
