@@ -356,18 +356,22 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Create streaming message element
+        // Create streaming message element - FORCE VISIBLE
         function createStreamingMessage() {
+            console.log('🟢 CREATING streaming message element');
             const messagesContainer = document.getElementById('chat-messages');
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'streaming-message message-enter-active';
+            messageDiv.className = 'streaming-message';
+            messageDiv.id = 'current-streaming-message';
+            messageDiv.style.opacity = '1';
+            messageDiv.style.display = 'block';
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
-                    <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
+                    <div class="bg-green-100 max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border-2 border-green-500 shadow-sm">
                         <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed">
-                            <span class="streaming-text"></span><span class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] animate-pulse"></span>
+                            <span class="streaming-text font-bold">STREAMING:</span><span class="streaming-cursor inline-block w-1 h-4 bg-red-500 animate-pulse ml-1"></span>
                         </div>
                     </div>
                 </div>
@@ -376,19 +380,31 @@
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
+            console.log('✅ Streaming element created and added to DOM');
+            console.log('🔍 Element visible:', messageDiv.offsetHeight > 0);
+            console.log('🔍 Element in DOM:', document.getElementById('current-streaming-message') !== null);
+            
             return messageDiv;
         }
 
-        // Update streaming message content
+        // Update streaming message content - FORCE UPDATE
         function updateStreamingMessage(messageElement, text) {
+            console.log('🔄 UPDATING streaming text to:', text.substring(0, 50));
             const textElement = messageElement.querySelector('.streaming-text');
             if (textElement) {
-                textElement.innerHTML = escapeHtml(text);
-                console.log('STREAMING UPDATE:', text.length, 'chars -', text.substring(0, 30));
+                textElement.innerHTML = 'STREAMING: ' + escapeHtml(text);
+                console.log('✅ Text element updated, innerHTML:', textElement.innerHTML.substring(0, 100));
+                
+                // Force visibility
+                messageElement.style.display = 'block';
+                messageElement.style.opacity = '1';
+                textElement.style.display = 'inline';
+                textElement.style.visibility = 'visible';
+                
                 const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } else {
-                console.error('No .streaming-text found in:', messageElement.innerHTML);
+                console.error('❌ No .streaming-text found in element:', messageElement.innerHTML);
             }
         }
         
@@ -657,14 +673,15 @@
             }
         }
 
-        // Show typing indicator using existing chat bubble
+        // Show typing indicator - SIMPLIFIED
         function showTypingIndicator() {
-            // Remove existing typing indicator if any
+            console.log('🔵 SHOWING typing indicator');
             hideTypingIndicator();
             
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'typing-message message-enter-active';
+            messageDiv.className = 'typing-message';
+            messageDiv.id = 'current-typing-indicator';
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
@@ -684,11 +701,36 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Hide typing indicator
+        // Hide typing indicator - NUCLEAR OPTION
         function hideTypingIndicator() {
+            console.log('🔴 HIDING typing indicator');
             const messagesContainer = document.getElementById('chat-messages');
+            
+            // Method 1: Remove by class
             const typingMessages = messagesContainer.querySelectorAll('.typing-message');
-            typingMessages.forEach(msg => msg.remove());
+            console.log('🔍 Found', typingMessages.length, 'typing messages by class');
+            typingMessages.forEach(msg => {
+                console.log('🗑️ Removing typing message:', msg.id);
+                msg.remove();
+            });
+            
+            // Method 2: Remove by ID
+            const typingById = document.getElementById('current-typing-indicator');
+            if (typingById) {
+                console.log('🗑️ Removing typing by ID');
+                typingById.remove();
+            }
+            
+            // Method 3: Nuclear - remove anything with typing-ellipsis
+            const ellipsis = messagesContainer.querySelectorAll('.typing-ellipsis');
+            console.log('🔍 Found', ellipsis.length, 'ellipsis elements');
+            ellipsis.forEach(el => {
+                const parent = el.closest('.typing-message') || el.closest('[class*="message"]');
+                if (parent) {
+                    console.log('🗑️ Nuclear removing parent of ellipsis');
+                    parent.remove();
+                }
+            });
         }
 
         // Update progress bar
