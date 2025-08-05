@@ -661,10 +661,18 @@
                 sessionId = data.session_id;
                 
                 // Get form title
-                const formResponse = await fetch(`${config.apiBase}/api/form/${config.formId}/public`);
-                const formData = await formResponse.json();
-                if (formData.success) {
-                    document.querySelector('.barmuda-form-title').textContent = formData.form.title;
+                try {
+                    const formResponse = await fetch(`${config.apiBase}/api/form/${config.formId}/public`);
+                    const formData = await formResponse.json();
+                    if (formData.success) {
+                        document.querySelector('.barmuda-form-title').textContent = formData.form.title;
+                    } else {
+                        console.log('Form title not available, using default');
+                        document.querySelector('.barmuda-form-title').textContent = 'Survey';
+                    }
+                } catch (error) {
+                    console.log('Could not load form title, using default:', error);
+                    document.querySelector('.barmuda-form-title').textContent = 'Survey';
                 }
                 
                 hideTypingIndicator();
