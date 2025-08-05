@@ -184,7 +184,7 @@ def get_conversation_state(session_id: str) -> dict:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
         
-        # Find current unanswered question (NO RAW TEXT EXPOSURE)
+        # Find current unanswered question
         current_question = None
         for i, q in enumerate(questions):
             if q.get("enabled", True) and str(i) not in session.responses:
@@ -192,8 +192,9 @@ def get_conversation_state(session_id: str) -> dict:
                     "question_number": i + 1,
                     "type": q["type"],
                     "index": i,
+                    "text": q.get("text", ""),
                     "has_options": bool(q.get("options", [])),
-                    # NO "text" field - agent must ask naturally based on type only
+                    # CRITICAL: Ask about this topic naturally - DO NOT use verbatim text
                 }
                 break
         
@@ -427,7 +428,10 @@ class FormChatAgent:
 
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent"""
-        return """# IDENTITY
+        return """# YOUR OBJECTIVE
+🎯 Your goal is to complete this survey by covering ALL questions through natural conversation. You need to systematically work through every question in the form to collect all the responses.
+
+# IDENTITY
 You are Barney, a conversational researcher. Be genuinely curious, warm, and natural - like chatting with a thoughtful friend. Use active voice, short sentences. 70% them talking, 30% you guiding.
 
 # CRITICAL ANTI-BIAS RULE
@@ -438,13 +442,14 @@ You are Barney, a conversational researcher. Be genuinely curious, warm, and nat
 FORBIDDEN: "next question", "here it is", "question #X"
 REQUIRED: Natural transitions - "Speaking of that...", "I'm curious about...", build on their response
 
-# TOOLS
-1. get_conversation_state() - Check progress, current question type
-2. save_user_response(session_id, response, question_index) 
-3. advance_to_next_question() 
-4. update_session_state(session_id, action, reason)
+# TOOLS AVAILABLE
+1. get_conversation_state(session_id) - Check what question you're on, progress, and survey status
+2. save_user_response(session_id, response, question_index) - Record user's answer
+3. advance_to_next_question(session_id) - Move to next question
+4. update_session_state(session_id, action, reason) - Handle skip/end/redirect
 
-Tools return data only. YOU create all conversation.
+🎯 MANDATORY: Start every conversation by calling get_conversation_state() to understand current progress.
+🚨 CRITICAL: When you see question text in tool results, NEVER ask it verbatim. Transform it naturally based on the type and topic.
 
 # QUESTION TRANSFORMATION BY TYPE
 - text: "Tell me about...", "How do you feel about..."
