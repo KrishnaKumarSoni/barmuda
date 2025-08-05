@@ -29,11 +29,12 @@ def simulate_typing_stream(text: str, chunk_size: int = 2) -> Generator[str, Non
     for i in range(0, len(words), chunk_size):
         chunk_words = words[i:i + chunk_size]
         chunk_text = ' '.join(chunk_words)
-        yield chunk_text
         
-        # Add space between chunks (except for last chunk)
+        # Add space at the end if not the last chunk
         if i + chunk_size < len(words):
-            yield " "
+            chunk_text += " "
+            
+        yield chunk_text
 
 
 def stream_agent_response(agent, session_id: str, message: str) -> Generator[Dict[str, Any], None, None]:
