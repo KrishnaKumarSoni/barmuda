@@ -462,18 +462,24 @@
             // Try streaming first, fallback to non-streaming
             if (supportsStreaming) {
                 try {
+                    console.log('📞 ATTEMPTING streaming for:', message);
                     await sendMessageStreaming(message);
+                    console.log('✅ STREAMING COMPLETED successfully');
                     return;
                 } catch (error) {
-                    console.error('Streaming failed, falling back:', error.message);
+                    console.error('❌ STREAMING FAILED, falling back:', error.message, error);
                 }
+            } else {
+                console.log('⚠️ Streaming not supported, using fallback');
             }
             
+            console.log('📞 FALLBACK to non-streaming');
             await sendMessageNonStreaming(message);
         }
         
         // New: Streaming message sender
         async function sendMessageStreaming(message) {
+            console.log('🚀 FETCH: Starting streaming request to /api/chat/stream');
             return new Promise((resolve, reject) => {
                 fetch('/api/chat/stream', {
                     method: 'POST',
@@ -488,6 +494,7 @@
                     })
                 })
                 .then(response => {
+                    console.log('📡 FETCH: Response received', response.status, response.headers.get('content-type'));
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
