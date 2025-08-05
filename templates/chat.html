@@ -361,7 +361,7 @@
             const messagesContainer = document.getElementById('chat-messages');
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-enter streaming-message';
+            messageDiv.className = 'streaming-message message-enter-active';
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
@@ -373,16 +373,6 @@
             `;
             
             messagesContainer.appendChild(messageDiv);
-            console.log('✅ Streaming message element appended to DOM');
-            console.log('✅ Element visible:', messageDiv.offsetHeight > 0, 'height:', messageDiv.offsetHeight);
-            
-            // Trigger animation like regular messages
-            setTimeout(() => {
-                messageDiv.classList.remove('message-enter');
-                messageDiv.classList.add('message-enter-active');
-                console.log('✅ Streaming message animation triggered');
-            }, 10);
-            
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
             return messageDiv;
@@ -392,18 +382,9 @@
         function updateStreamingMessage(messageElement, text) {
             const textElement = messageElement.querySelector('.streaming-text');
             if (textElement) {
-                // Use innerHTML to support emojis and formatting, escape HTML properly
                 textElement.innerHTML = escapeHtml(text);
-                console.log('✅ Updated streaming text:', text.length, 'chars:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
-                console.log('✅ Text element innerHTML:', textElement.innerHTML);
-                console.log('✅ Message element visible:', messageElement.offsetHeight > 0, 'height:', messageElement.offsetHeight);
-                
-                // Auto-scroll to bottom
                 const messagesContainer = document.getElementById('chat-messages');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            } else {
-                console.error('❌ No .streaming-text element found in message element');
-                console.error('❌ Message element structure:', messageElement.innerHTML);
             }
         }
         
@@ -470,30 +451,19 @@
             // Try streaming first, fallback to non-streaming
             if (supportsStreaming) {
                 try {
-                    console.log('🚀 Attempting streaming for message:', message);
                     await sendMessageStreaming(message);
-                    console.log('✅ Streaming completed successfully - should have streamed!');
-                    console.log('✅ RETURNING from sendMessage - NO fallback should happen');
                     return;
                 } catch (error) {
-                    console.error('❌ Streaming failed, falling back to non-streaming:', error);
-                    console.error('❌ Error details:', error.message, error.stack);
-                    // Continue to fallback method below
+                    console.error('Streaming failed, falling back:', error.message);
                 }
-            } else {
-                console.log('⚠️ Streaming not supported, using non-streaming');
             }
             
-            // Fallback to existing non-streaming method
-            console.log('⚠️ FALLBACK: Calling non-streaming method');
             await sendMessageNonStreaming(message);
         }
         
         // New: Streaming message sender
         async function sendMessageStreaming(message) {
-            console.log('🔄 Starting streaming request for:', message);
             return new Promise((resolve, reject) => {
-                // Use fetch with stream for POST data support
                 fetch('/api/chat/stream', {
                     method: 'POST',
                     headers: {
@@ -507,7 +477,6 @@
                     })
                 })
                 .then(response => {
-                    console.log('🔄 Streaming response received:', response.status, response.headers.get('content-type'));
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
@@ -546,80 +515,56 @@
                                 if (line.startsWith('data: ')) {
                                     try {
                                         const data = JSON.parse(line.substring(6));
-                                        console.log('🔄 Streaming data received:', data.type, data);
                                         
                                         switch(data.type) {
                                             case 'processing':
-                                                // Keep typing indicator, agent is processing
-                                                console.log('🔄 Agent processing...');
                                                 break;
                                                 
                                             case 'start_response':
-                                                // Hide typing indicator, start streaming response
-                                                console.log('🔄 Starting streaming response, hiding typing indicator');
                                                 hideTypingIndicator();
-                                                
-                                                // Create streaming message element immediately (no delay)
                                                 if (!streamingMessageElement) {
                                                     streamingMessageElement = createStreamingMessage();
-                                                    console.log('🔄 Created streaming message element for start_response');
                                                 }
                                                 break;
                                                 
                                             case 'text_chunk':
-                                                // Ensure streaming message element exists
                                                 if (!streamingMessageElement) {
-                                                    console.log('🔧 Creating streaming message element for text_chunk');
                                                     hideTypingIndicator();
                                                     streamingMessageElement = createStreamingMessage();
                                                 }
                                                 
-                                                // Append chunk to streaming message
                                                 if (streamingMessageElement) {
                                                     accumulatedText = data.accumulated || (accumulatedText + data.chunk);
-                                                    console.log('Streaming chunk:', JSON.stringify(data.chunk), 'Accumulated:', accumulatedText.length, 'chars');
                                                     updateStreamingMessage(streamingMessageElement, accumulatedText);
-                                                } else {
-                                                    console.error('❌ Still no streamingMessageElement for text_chunk after creating');
                                                 }
                                                 break;
                                                 
                                             case 'complete':
-                                                // Streaming complete
-                                                console.log('✅ Streaming completed successfully!');
                                                 streamCompleted = true;
                                                 clearTimeout(timeoutId);
                                                 
-                                                // Finalize the streaming message
                                                 if (streamingMessageElement) {
-                                                    console.log('✅ Finalizing streaming message');
                                                     finalizeStreamingMessage(streamingMessageElement);
-                                                } else {
-                                                    console.error('❌ No streaming message element to finalize');
                                                 }
                                                 
-                                                // Process the complete result (same as non-streaming)
                                                 if (data.full_result) {
                                                     handleCompleteResponse(data.full_result);
                                                 }
                                                 
-                                                // Re-enable input
                                                 const input = document.getElementById('message-input');
                                                 input.disabled = false;
                                                 document.getElementById('send-button').disabled = false;
                                                 input.focus();
                                                 
-                                                console.log('✅ Streaming resolve() called - should NOT fall back to non-streaming');
                                                 resolve();
                                                 return;
                                                 
                                             case 'error':
-                                                console.error('Streaming error:', data.message);
                                                 reject(new Error(data.message));
                                                 return;
                                         }
                                     } catch (error) {
-                                        console.error('Error parsing streaming data:', error);
+                                        // Ignore parse errors
                                     }
                                 }
                             }
@@ -632,14 +577,10 @@
                     return readStream();
                 })
                 .catch(error => {
-                    console.error('❌ Streaming fetch error:', error);
-                    hideTypingIndicator(); // Ensure typing indicator is hidden on error
-                    
-                    // Re-enable input on error
+                    hideTypingIndicator();
                     const input = document.getElementById('message-input');
                     input.disabled = false;
                     document.getElementById('send-button').disabled = false;
-                    
                     reject(error);
                 });
             });
@@ -712,10 +653,9 @@
             // Remove existing typing indicator if any
             hideTypingIndicator();
             
-            // Use existing addMessage function with special typing content
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-enter typing-message';
+            messageDiv.className = 'typing-message message-enter-active';
             
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
@@ -732,26 +672,14 @@
             `;
             
             messagesContainer.appendChild(messageDiv);
-            
-            // Trigger same animation as regular messages
-            setTimeout(() => {
-                messageDiv.classList.remove('message-enter');
-                messageDiv.classList.add('message-enter-active');
-            }, 10);
-            
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Hide typing indicator
         function hideTypingIndicator() {
             const messagesContainer = document.getElementById('chat-messages');
-            const typingMessage = messagesContainer.querySelector('.typing-message');
-            if (typingMessage) {
-                console.log('✅ HIDING typing indicator');
-                typingMessage.remove();
-            } else {
-                console.log('⚠️ No typing indicator found to hide');
-            }
+            const typingMessages = messagesContainer.querySelectorAll('.typing-message');
+            typingMessages.forEach(msg => msg.remove());
         }
 
         // Update progress bar
