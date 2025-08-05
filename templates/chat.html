@@ -366,7 +366,7 @@
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
                     <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                        <div class="streaming-text font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed"></div>
+                        <div class="streaming-text font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed min-h-[1.5rem]"></div>
                         <div class="streaming-cursor inline-block w-0.5 h-4 bg-[#cc5500] ml-1 animate-pulse"></div>
                     </div>
                 </div>
@@ -559,12 +559,11 @@
                                                 console.log('🔄 Starting streaming response, hiding typing indicator');
                                                 hideTypingIndicator();
                                                 
-                                                // Small delay to ensure typing indicator is removed
-                                                setTimeout(() => {
-                                                    // Create streaming message element
+                                                // Create streaming message element immediately (no delay)
+                                                if (!streamingMessageElement) {
                                                     streamingMessageElement = createStreamingMessage();
-                                                    console.log('🔄 Created streaming message element');
-                                                }, 10);
+                                                    console.log('🔄 Created streaming message element for start_response');
+                                                }
                                                 break;
                                                 
                                             case 'text_chunk':

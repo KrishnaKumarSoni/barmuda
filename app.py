@@ -1559,11 +1559,23 @@ def start_chat_session():
                     }
                 )
             else:
-                # Resume active session
+                # Resume active session - let agent generate natural resumption response
+                agent = get_chat_agent()
+                try:
+                    greeting_result = agent.process_message(
+                        session_id, "Hello, I'm back to continue our conversation!"
+                    )
+                    greeting_message = greeting_result.get(
+                        "response", "Great to have you back! Let's continue our conversation. 😊"
+                    )
+                except Exception as e:
+                    print(f"Error getting resumption greeting: {e}")
+                    greeting_message = "Great to have you back! Let's continue our conversation. 😊"
+                
                 return jsonify(
                     {
                         "session_id": session_id,
-                        "greeting": "Welcome back! Let's continue where we left off. 😊",
+                        "greeting": greeting_message,
                         "chat_history": session_data.get("chat_history", []),
                         "resumed": True,
                         "ended": False,
