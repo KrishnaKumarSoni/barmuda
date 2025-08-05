@@ -94,28 +94,46 @@ active_sessions = {}
 
 
 def load_session(session_id: str) -> ChatSession:
-    """Load session from Firebase or memory"""
+    """Load session from Firebase or memory with enhanced validation"""
     if session_id in active_sessions:
         return active_sessions[session_id]
 
     # Load from Firestore
-    session_doc = firestore_db.collection("chat_sessions").document(session_id).get()
+    try:
+        session_doc = firestore_db.collection("chat_sessions").document(session_id).get()
 
-    if session_doc.exists:
-        session_data = session_doc.to_dict()
-        session = ChatSession(
-            session_id=session_data["session_id"],
-            form_id=session_data["form_id"],
-            form_data=session_data["form_data"],
-            responses=session_data.get("responses", {}),
-            current_question_index=session_data.get("current_question_index", 0),
-            chat_history=session_data.get("chat_history", []),
-            metadata=session_data.get("metadata", {}),
-        )
-        active_sessions[session_id] = session
-        return session
-    else:
-        raise ValueError(f"Session {session_id} not found")
+        if session_doc.exists:
+            session_data = session_doc.to_dict()
+            
+            # Validate required fields
+            required_fields = ["session_id", "form_id", "form_data"]
+            for field in required_fields:
+                if not session_data.get(field):
+                    raise ValueError(f"Session missing required field: {field}")
+            
+            # Ensure form_data has questions
+            if not isinstance(session_data.get("form_data"), dict) or not session_data["form_data"].get("questions"):
+                raise ValueError("Session has invalid form_data structure")
+            
+            session = ChatSession(
+                session_id=session_data["session_id"],
+                form_id=session_data["form_id"],
+                form_data=session_data["form_data"],
+                responses=session_data.get("responses", {}),
+                current_question_index=session_data.get("current_question_index", 0),
+                chat_history=session_data.get("chat_history", []),
+                metadata=session_data.get("metadata", {}),
+            )
+            active_sessions[session_id] = session
+            return session
+        else:
+            raise ValueError(f"Session {session_id} not found")
+            
+    except Exception as e:
+        # Clean up any corrupted session from memory
+        if session_id in active_sessions:
+            del active_sessions[session_id]
+        raise ValueError(f"Failed to load session {session_id}: {str(e)}")
 
 
 def save_session(session: ChatSession):
@@ -638,6 +656,33 @@ Red flags to probe deeper:
         """Process a user message and return agent response"""
         try:
             session = load_session(session_id)
+            
+            # Enhanced session validation
+            if session.metadata.get("ended", False):
+                return {
+                    "success": False,
+                    "response": "This conversation has already ended. Thanks for your participation!",
+                    "error": "session_ended"
+                }
+            
+            # Check for session timeout (24 hours max)
+            start_time_str = session.metadata.get("start_time")
+            if start_time_str:
+                try:
+                    start_time = datetime.fromisoformat(start_time_str)
+                    session_age = datetime.now() - start_time
+                    if session_age.total_seconds() > 86400:  # 24 hours
+                        # Auto-end stale session
+                        session.metadata["ended"] = True
+                        session.metadata["end_reason"] = "session_timeout"
+                        save_session(session)
+                        return {
+                            "success": False,
+                            "response": "This conversation has expired. Please start a new survey.",
+                            "error": "session_expired"
+                        }
+                except ValueError:
+                    pass  # Continue if timestamp parsing fails
             
             # Check if form is still active
             form_doc = firestore_db.collection("forms").document(session.form_id).get()
