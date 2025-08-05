@@ -676,7 +676,18 @@
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
-            const data = await response.json();
+            const responseText = await response.text();
+            console.log('Raw response text:', responseText.substring(0, 200) + '...');
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+                console.log('Parsed response data:', data);
+            } catch (parseError) {
+                console.error('JSON parsing failed:', parseError);
+                console.log('Full response text:', responseText);
+                throw new Error(`Invalid JSON response: ${parseError.message}`);
+            }
             
             if (data.success) {
                 sessionId = data.session_id;
