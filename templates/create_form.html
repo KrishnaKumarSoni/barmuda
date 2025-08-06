@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
     <title>Create Form - Barmuda</title>
     
     <!-- Tailwind CSS -->
@@ -68,11 +69,11 @@
             
             <!-- Form Input Area -->
             <div class="w-full max-w-3xl relative">
-                <div class="bg-[#fffcf4] border-2 border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
+                <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
                     <textarea 
                         id="formDump"
                         placeholder="Describe what kind of survey you want to create..."
-                        class="w-full h-32 md:h-40 p-4 md:p-6 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base md:text-lg text-[#1e1e1e] placeholder-[#9ca3af] leading-relaxed"
+                        class="w-full h-36 md:h-46 p-4 md:p-6 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base md:text-lg text-[#1e1e1e] placeholder-[#9ca3af] leading-relaxed"
                         oninput="validateInput()"
                     ></textarea>
                     
@@ -80,10 +81,10 @@
                     <button 
                         id="generateBtn"
                         onclick="generateForm()"
-                        class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-5 md:px-6 py-2.5 md:py-3 text-white font-['Plus_Jakarta_Sans'] font-semibold text-sm md:text-base transition-all duration-200 flex items-center gap-2 hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+                        class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-4 md:px-5 py-2 md:py-2.5 text-white font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm transition-all duration-200 flex items-center gap-2 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
                         disabled
                     >
-                        <span id="buttonText">Generate Survey</span>
+                        <span id="buttonText">Generate</span>
                         <div id="buttonSpinner" class="hidden">
                             <div class="flex space-x-1">
                                 <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
