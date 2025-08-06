@@ -1023,6 +1023,12 @@ def create_form():
     return render_template("create_form.html", user=request.user)
 
 
+@app.route("/pricing")
+def pricing():
+    """Pricing page"""
+    return render_template("pricing.html")
+
+
 @app.route("/edit-form")
 @login_required
 def edit_form():

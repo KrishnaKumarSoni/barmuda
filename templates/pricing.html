@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen">
+    <!-- Navigation -->
+    <nav class="relative z-20 bg-[#fff5e0] border-b border-[#fff0cf]">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="flex items-center justify-between h-16 md:h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-center bg-cover bg-no-repeat h-8 w-6"
+                         style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                    <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-[#1e1e1e]">
+                        Barmuda
+                    </h1>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="font-['DM_Sans'] text-[#1e1e1e] hover:text-[#cc5500] transition-colors">Home</a>
+                    <a href="/pricing" class="font-['DM_Sans'] text-[#cc5500] font-medium">Pricing</a>
+                </div>
+
+                <!-- Sign In Button -->
+                <button onclick="signInWithGoogle()" 
+                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['Plus_Jakarta_Sans'] font-semibold text-sm px-4 md:px-6 py-2 md:py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center gap-2">
+                    <span>Sign in</span>
+                    <i class="ph ph-arrow-right text-base"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-[#fff5e0] pt-16 md:pt-24 pb-8 md:pb-16 z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-8 text-center">
+            <div class="mb-6">
+                <i class="ph ph-currency-dollar text-[#cc5500] text-4xl md:text-5xl mb-4"></i>
+            </div>
+            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15] mb-6">
+                Pay for what you use
+            </h1>
+            <p class="font-['DM_Sans'] text-lg md:text-xl text-[#6b7280] max-w-2xl mx-auto leading-relaxed mb-8">
+                Free to try. Paid plans when you need more conversations.
+            </p>
+            <div class="bg-[#fff0cf] rounded-2xl p-6 max-w-2xl mx-auto">
+                <p class="font-['DM_Sans'] text-[#8B4513] text-base leading-relaxed">
+                    <strong>Why we charge:</strong> Each conversation with our AI costs us money via OpenAI's API. That's why we charge.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Tiers -->
+    <section class="relative bg-white py-16 md:py-24 z-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                
+                <!-- Free Plan -->
+                <div class="bg-[#f8fafc] rounded-3xl p-8 border border-[#f1f5f9] relative">
+                    <div class="text-center mb-8">
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#0f0f0f] mb-2">Free</h3>
+                        <div class="font-['Plus_Jakarta_Sans'] font-bold text-4xl text-[#cc5500] mb-2">$0</div>
+                        <div class="font-['DM_Sans'] text-[#6b7280] text-sm">/month</div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <p class="font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] mb-4">Try it out, see if it works for you</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">25 conversations per month</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">3 surveys</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Google login</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Basic chat interface</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">CSV export</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">"Powered by Barmuda" branding</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-2"><strong>Good for:</strong></p>
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm">Testing if people actually respond better to chat surveys</p>
+                    </div>
+                    
+                    <button onclick="signInWithGoogle()" class="w-full bg-[#f1f5f9] text-[#4b5563] font-['Plus_Jakarta_Sans'] font-semibold py-3 px-6 rounded-xl hover:bg-[#e5e7eb] transition-colors">
+                        Start free
+                    </button>
+                </div>
+
+                <!-- Starter Plan -->
+                <div class="bg-white rounded-3xl p-8 border-2 border-[#cc5500] relative transform scale-105">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="bg-[#cc5500] text-white font-['Plus_Jakarta_Sans'] font-semibold text-sm px-4 py-1 rounded-full">Most Popular</span>
+                    </div>
+                    
+                    <div class="text-center mb-8">
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#0f0f0f] mb-2">Starter</h3>
+                        <div class="font-['Plus_Jakarta_Sans'] font-bold text-4xl text-[#cc5500] mb-2">$19</div>
+                        <div class="font-['DM_Sans'] text-[#6b7280] text-sm">/month</div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <p class="font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] mb-4">When you're ready to collect real responses</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">200 conversations per month</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Unlimited surveys</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Remove Barmuda branding</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Same features as free</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-2"><strong>Good for:</strong></p>
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-4">Small businesses, personal projects, student research</p>
+                        <div class="bg-[#fff5e0] rounded-lg p-3">
+                            <p class="font-['DM_Sans'] text-[#8B4513] text-sm"><strong>Simple math:</strong> $19 ÷ 200 = $0.095 per response</p>
+                            <p class="font-['DM_Sans'] text-[#8B4513] text-xs mt-1">Way cheaper than survey incentives or buying email lists</p>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['Plus_Jakarta_Sans'] font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity">
+                        Upgrade to Starter
+                    </button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="bg-white rounded-3xl p-8 border border-[#f1f5f9] relative">
+                    <div class="text-center mb-8">
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#0f0f0f] mb-2">Pro</h3>
+                        <div class="font-['Plus_Jakarta_Sans'] font-bold text-4xl text-[#cc5500] mb-2">$49</div>
+                        <div class="font-['DM_Sans'] text-[#6b7280] text-sm">/month</div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <p class="font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] mb-4">For businesses doing regular surveys</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">1,000 conversations per month</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Everything in Starter</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Priority email support</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-2"><strong>Good for:</strong></p>
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-4">Companies that survey customers monthly, market researchers, consultants</p>
+                        <div class="bg-[#fff5e0] rounded-lg p-3">
+                            <p class="font-['DM_Sans'] text-[#8B4513] text-sm"><strong>Simple math:</strong> $49 ÷ 1,000 = $0.049 per response</p>
+                            <p class="font-['DM_Sans'] text-[#8B4513] text-xs mt-1">Less than a stamp</p>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['Plus_Jakarta_Sans'] font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity">
+                        Upgrade to Pro
+                    </button>
+                </div>
+
+                <!-- Business Plan -->
+                <div class="bg-white rounded-3xl p-8 border border-[#f1f5f9] relative">
+                    <div class="text-center mb-8">
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#0f0f0f] mb-2">Business</h3>
+                        <div class="font-['Plus_Jakarta_Sans'] font-bold text-4xl text-[#cc5500] mb-2">$99</div>
+                        <div class="font-['DM_Sans'] text-[#6b7280] text-sm">/month</div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <p class="font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] mb-4">For teams and high-volume users</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">3,000 conversations per month</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Everything in Pro</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph ph-check text-[#10b981] text-lg mt-0.5"></i>
+                                <span class="font-['DM_Sans'] text-[#4b5563]">Can add team members</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-2"><strong>Good for:</strong></p>
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm mb-4">Agencies, larger companies, research firms</p>
+                        <div class="bg-[#fff5e0] rounded-lg p-3">
+                            <p class="font-['DM_Sans'] text-[#8B4513] text-sm"><strong>Simple math:</strong> $99 ÷ 3,000 = $0.033 per response</p>
+                            <p class="font-['DM_Sans'] text-[#8B4513] text-xs mt-1">Cheaper than a paperclip</p>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['Plus_Jakarta_Sans'] font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity">
+                        Upgrade to Business
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Comparison Table -->
+    <section class="relative bg-[#fff5e0] py-16 md:py-24 z-10">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#0f0f0f] tracking-[-0.02em] mb-6">
+                    What you actually get
+                </h2>
+            </div>
+            
+            <div class="bg-white rounded-3xl overflow-hidden border border-[#f1f5f9]">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-[#f8fafc]">
+                            <tr>
+                                <th class="text-left font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] p-6">Feature</th>
+                                <th class="text-center font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] p-6">Free</th>
+                                <th class="text-center font-['Plus_Jakarta_Sans'] font-semibold text-[#cc5500] p-6">Starter</th>
+                                <th class="text-center font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] p-6">Pro</th>
+                                <th class="text-center font-['Plus_Jakarta_Sans'] font-semibold text-[#0f0f0f] p-6">Business</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">Conversations/month</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6">25</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6 bg-[#fff5e0]">200</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6">1K</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6">3K</td>
+                            </tr>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">Surveys</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6">3</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6 bg-[#fff5e0]">∞</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6">∞</td>
+                                <td class="text-center font-['DM_Sans'] text-[#4b5563] p-6">∞</td>
+                            </tr>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">Chat interface</td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6 bg-[#fff5e0]"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                            </tr>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">CSV export</td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6 bg-[#fff5e0]"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                            </tr>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">Remove branding</td>
+                                <td class="text-center p-6"><i class="ph ph-x text-[#ef4444] text-xl"></i></td>
+                                <td class="text-center p-6 bg-[#fff5e0]"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                            </tr>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">Team members</td>
+                                <td class="text-center p-6"><i class="ph ph-x text-[#ef4444] text-xl"></i></td>
+                                <td class="text-center p-6 bg-[#fff5e0]"><i class="ph ph-x text-[#ef4444] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-x text-[#ef4444] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                            </tr>
+                            <tr class="border-t border-[#f1f5f9]">
+                                <td class="font-['DM_Sans'] text-[#4b5563] p-6">Email support</td>
+                                <td class="text-center p-6"><i class="ph ph-x text-[#ef4444] text-xl"></i></td>
+                                <td class="text-center p-6 bg-[#fff5e0]"><i class="ph ph-x text-[#ef4444] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                                <td class="text-center p-6"><i class="ph ph-check text-[#10b981] text-xl"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="relative bg-white py-16 md:py-24 z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl lg:text-4xl text-[#0f0f0f] tracking-[-0.02em] mb-6">
+                    Frequently asked questions
+                </h2>
+                <p class="font-['DM_Sans'] text-lg md:text-xl text-[#6b7280] max-w-2xl mx-auto leading-relaxed">
+                    Honest answers to common questions
+                </p>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-[#f8fafc] rounded-2xl p-6 md:p-8 border border-[#f1f5f9]">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">What counts as a "conversation"?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">One person chatting with our AI, start to finish. Even if they quit halfway, it counts.</p>
+                </div>
+                
+                <div class="bg-[#f8fafc] rounded-2xl p-6 md:p-8 border border-[#f1f5f9]">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">What if I go over my limit?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">We'll email you. You can upgrade or pay extra for more conversations.</p>
+                </div>
+                
+                <div class="bg-[#f8fafc] rounded-2xl p-6 md:p-8 border border-[#f1f5f9]">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">Can I cancel anytime?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Yes. There's no contract. Just stop paying.</p>
+                </div>
+                
+                <div class="bg-[#f8fafc] rounded-2xl p-6 md:p-8 border border-[#f1f5f9]">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">What payment methods?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Credit cards. That's it for now.</p>
+                </div>
+                
+                <div class="bg-[#f8fafc] rounded-2xl p-6 md:p-8 border border-[#f1f5f9]">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">Can I import from Google Forms?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Just copy-paste your questions. Takes 2 minutes.</p>
+                </div>
+                
+                <div class="bg-[#f8fafc] rounded-2xl p-6 md:p-8 border border-[#f1f5f9]">
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">What if it doesn't work better?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Try it free first. See for yourself.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="relative bg-gradient-to-br from-[#cc5500] to-[#d12b2e] py-16 md:py-24 z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-8 text-center">
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-white tracking-[-0.02em] mb-5">
+                Ready to try conversational surveys?
+            </h2>
+            <p class="font-['DM_Sans'] text-base md:text-lg text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+                Start free. No credit card required. See if people actually respond better to chat surveys.
+            </p>
+            
+            <button onclick="signInWithGoogle()" 
+                    class="bg-white text-[#cc5500] font-['Plus_Jakarta_Sans'] font-bold text-base px-6 py-3 rounded-xl hover:bg-gray-50 transition-all duration-200 inline-flex items-center gap-2 mb-6">
+                <span>Start free today</span>
+                <i class="ph ph-arrow-right text-lg"></i>
+            </button>
+            
+            <div class="text-white/70 text-sm font-['DM_Sans']">
+                <span class="block sm:inline">25 free conversations</span>
+                <span class="hidden sm:inline mx-2">•</span>
+                <span class="block sm:inline">3 free surveys</span>
+                <span class="hidden sm:inline mx-2">•</span>
+                <span class="block sm:inline">No credit card needed</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#0f0f0f] py-16 md:py-20 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-4 gap-8 md:gap-12">
+                <!-- Logo & Description -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-center bg-cover bg-no-repeat h-8 w-6"
+                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-white">
+                            Barmuda
+                        </h3>
+                    </div>
+                    <p class="font-['DM_Sans'] text-[#9ca3af] max-w-md mb-8 leading-relaxed">
+                        Transform boring surveys into engaging conversations. Get 3x higher response rates with AI-powered conversational forms.
+                    </p>
+                </div>
+                
+                <!-- Product -->
+                <div>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-bold text-white mb-6">Product</h4>
+                    <ul class="space-y-4">
+                        <li><a href="/" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">Features</a></li>
+                        <li><a href="/pricing" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">Templates</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Company -->
+                <div>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-bold text-white mb-6">Company</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">Privacy</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">Terms</a></li>
+                        <li><a href="#" class="font-['DM_Sans'] text-[#9ca3af] hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-[#1f2937] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="font-['DM_Sans'] text-[#9ca3af] text-sm">
+                    © 2025 Barmuda. All rights reserved.
+                </p>
+                <p class="font-['DM_Sans'] text-[#9ca3af] text-sm mt-4 md:mt-0">
+                    Made with ❤️ for better surveys
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase Authentication -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Google Sign In
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ idToken })
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/create-form';
+                } else {
+                    const error = await response.json();
+                    alert('Authentication failed: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
