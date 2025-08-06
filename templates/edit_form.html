@@ -58,7 +58,7 @@
         <!-- Go Back -->
         <div class="flex items-center gap-2 mb-8">
             <button onclick="goBack()" class="flex items-center gap-2 text-bermuda-light-gray hover:text-bermuda-orange transition-colors">
-                <i class="ph ph-caret-left text-xl"></i>
+                <i class="ph ph-caret-left text-2xl"></i>
                 <span class="font-jakarta font-bold text-base tracking-tight">go back</span>
             </button>
         </div>
@@ -124,7 +124,7 @@
                 class="border border-bermuda-orange text-bermuda-orange font-dm text-lg px-8 py-3 rounded-full hover:bg-bermuda-orange hover:text-white transition-all flex items-center gap-3"
             >
                 Preview Form
-                <i class="ph ph-eye text-xl"></i>
+                <i class="ph ph-eye text-2xl"></i>
             </button>
             <button 
                 onclick="saveForm()"
@@ -163,7 +163,7 @@
                         onclick="copyShareLink()"
                         class="w-full bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-3 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm font-medium flex items-center justify-center gap-2"
                     >
-                        <i class="ph ph-link text-white"></i>
+                        <i class="ph ph-link text-white text-lg"></i>
                         Copy Link
                     </button>
                     
@@ -173,14 +173,14 @@
                             onclick="copyShareImage()"
                             class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm text-sm flex items-center justify-center gap-2"
                         >
-                            <i class="ph ph-image text-current"></i>
+                            <i class="ph ph-image text-current text-lg"></i>
                             Copy Image
                         </button>
                         <button 
                             onclick="downloadShareImage()"
                             class="flex-1 border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                         >
-                            <i class="ph ph-download-simple text-current"></i>
+                            <i class="ph ph-download-simple text-current text-lg"></i>
                             Download
                         </button>
                     </div>
@@ -190,7 +190,7 @@
                         onclick="goToDashboard()"
                         class="w-full border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                     >
-                        <i class="ph ph-house text-current"></i>
+                        <i class="ph ph-house text-current text-lg"></i>
                         Go to Dashboard
                     </button>
                 </div>
@@ -204,7 +204,7 @@
                     <div class="flex items-center justify-between">
                         <h3 class="font-jakarta font-bold text-2xl text-bermuda-text">Form Preview</h3>
                         <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
-                            <i class="ph ph-x text-2xl"></i>
+                            <i class="ph ph-x text-3xl"></i>
                         </button>
                     </div>
                     <p class="text-sm text-bermuda-gray mt-2">This shows how respondents will experience your form as a conversation.</p>
@@ -582,13 +582,13 @@
         // Custom dropdown functions
         function getQuestionTypeLabel(type) {
             const labels = {
-                'text': '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response',
-                'multiple_choice': '<i class="ph ph-list-bullets text-bermuda-orange text-base mr-2"></i>Multiple Choice Question',
-                'yes_no': '<i class="ph ph-check-circle text-bermuda-orange text-base mr-2"></i>Yes / No',
-                'number': '<i class="ph ph-hash text-bermuda-orange text-base mr-2"></i>Number',
-                'rating': '<i class="ph ph-star text-bermuda-orange text-base mr-2"></i>Rating'
+                'text': '<i class="ph ph-text-aa text-bermuda-orange text-xl mr-2"></i>Text response',
+                'multiple_choice': '<i class="ph ph-list-bullets text-bermuda-orange text-xl mr-2"></i>Multiple Choice Question',
+                'yes_no': '<i class="ph ph-check-circle text-bermuda-orange text-xl mr-2"></i>Yes / No',
+                'number': '<i class="ph ph-hash text-bermuda-orange text-xl mr-2"></i>Number',
+                'rating': '<i class="ph ph-star text-bermuda-orange text-xl mr-2"></i>Rating'
             };
-            return labels[type] || '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response';
+            return labels[type] || '<i class="ph ph-text-aa text-bermuda-orange text-xl mr-2"></i>Text response';
         }
         
         function toggleDropdown(index) {
