@@ -329,6 +329,7 @@
                     currentPosition = value;
                     positionText.textContent = text;
                     document.getElementById('position-indicator').textContent = text;
+                    document.getElementById('widget-position').value = value; // Update hidden input
                     
                     positionOptions.classList.add('hidden');
                     updateWidgetPreview();
