@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Terms of Service - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fff5e0',
+                        'bermuda-light-cream': '#fffcf4',
+                        'bermuda-border': '#fb9a9a',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#c3c3c3'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        {% set nav_type = 'terms' %}
+        {% include 'partials/nav.html' %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 px-4 md:px-8 py-32 md:py-40">
+            <div class="max-w-4xl mx-auto">
+                
+                <!-- Header -->
+                <div class="text-center mb-12">
+                    <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15] mb-4">
+                        Terms of Service
+                    </h1>
+                    <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto leading-relaxed">
+                        Last updated: January 6, 2025
+                    </p>
+                </div>
+
+                <!-- Content -->
+                <div class="bg-white rounded-2xl border border-[#e5e7eb] p-8 md:p-12 space-y-8">
+                    
+                    <!-- Introduction -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Agreement to Terms</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            These Terms of Service ("Terms") govern your use of Barmuda's conversational survey platform and services ("Service") operated by Barmuda ("we," "our," or "us").
+                        </p>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part of these terms, you may not access the Service.
+                        </p>
+                    </section>
+
+                    <!-- Acceptance -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Acceptance of Terms</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            By creating an account or using our Service, you represent that:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>You are at least 13 years old</li>
+                            <li>You have the legal capacity to enter into these Terms</li>
+                            <li>Your use of the Service will not violate any applicable laws</li>
+                            <li>All information you provide is accurate and current</li>
+                        </ul>
+                    </section>
+
+                    <!-- Description of Service -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Description of Service</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            Barmuda provides a conversational survey platform that allows you to:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Create surveys with natural language processing</li>
+                            <li>Deploy surveys through chat interfaces and website embedding</li>
+                            <li>Collect and analyze responses through our dashboard</li>
+                            <li>Export survey data in various formats</li>
+                            <li>Access AI-powered conversation and data extraction features</li>
+                        </ul>
+                    </section>
+
+                    <!-- User Accounts -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">User Accounts</h2>
+                        
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Account Creation</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            To use certain features, you must create an account using Google SSO. You are responsible for:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Maintaining the confidentiality of your account</li>
+                            <li>All activities that occur under your account</li>
+                            <li>Notifying us immediately of any unauthorized use</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Account Termination</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            We reserve the right to suspend or terminate accounts that violate these Terms, engage in abusive behavior, or for any other reason at our sole discretion.
+                        </p>
+                    </section>
+
+                    <!-- Acceptable Use -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Acceptable Use Policy</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">You agree not to:</p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Use the Service for any illegal or unauthorized purpose</li>
+                            <li>Create surveys that collect sensitive personal information without proper disclosure</li>
+                            <li>Harass, abuse, or harm other users or respondents</li>
+                            <li>Attempt to gain unauthorized access to our systems</li>
+                            <li>Reverse engineer or attempt to extract our source code</li>
+                            <li>Spam or send unsolicited survey links</li>
+                            <li>Create surveys with misleading, deceptive, or fraudulent content</li>
+                            <li>Violate any applicable laws, regulations, or third-party rights</li>
+                            <li>Use automated systems to abuse our rate limits</li>
+                            <li>Interfere with the proper working of the Service</li>
+                        </ul>
+                    </section>
+
+                    <!-- Content and Data -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Content and Data Ownership</h2>
+                        
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Your Content</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            You retain ownership of all surveys, questions, and data you create. By using our Service, you grant us a limited license to:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Host, store, and process your content to provide the Service</li>
+                            <li>Use aggregated, anonymized data to improve our AI capabilities</li>
+                            <li>Display your surveys to intended respondents</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Respondent Data</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            As a survey creator, you are responsible for:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Complying with applicable privacy laws (GDPR, CCPA, etc.)</li>
+                            <li>Providing appropriate disclosures to respondents</li>
+                            <li>Obtaining necessary consents for data collection</li>
+                            <li>Using collected data responsibly and lawfully</li>
+                        </ul>
+                    </section>
+
+                    <!-- Subscription and Billing -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Subscription and Billing</h2>
+                        
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Paid Plans</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            Our paid plans are billed monthly and include:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Starter Plan: $19/month for 1,000 conversations</li>
+                            <li>Pro Plan: $49/month for 10,000 conversations</li>
+                            <li>Business Plan: Custom pricing for unlimited conversations</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Billing Terms</h3>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Payments are processed securely through third-party payment processors</li>
+                            <li>Subscriptions automatically renew unless cancelled</li>
+                            <li>No refunds for partial months or unused conversations</li>
+                            <li>Price changes will be communicated 30 days in advance</li>
+                            <li>Overages beyond plan limits may result in additional charges</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Cancellation</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            You may cancel your subscription at any time. Cancellation takes effect at the end of your current billing period. Your data will remain accessible during any paid period.
+                        </p>
+                    </section>
+
+                    <!-- Intellectual Property -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Intellectual Property Rights</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            The Service and its original content, features, and functionality are owned by Barmuda and are protected by copyright, trademark, and other intellectual property laws.
+                        </p>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            You may not copy, modify, distribute, sell, or lease any part of our Service without our express written permission.
+                        </p>
+                    </section>
+
+                    <!-- Privacy -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Privacy</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            Your privacy is important to us. Please review our Privacy Policy, which explains how we collect, use, and protect your information when you use our Service. By using our Service, you agree to our privacy practices.
+                        </p>
+                    </section>
+
+                    <!-- Service Availability -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Service Availability</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            We strive to maintain high service availability but cannot guarantee uninterrupted service. We may:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Perform scheduled maintenance with advance notice</li>
+                            <li>Experience unexpected downtime due to technical issues</li>
+                            <li>Modify or discontinue features with reasonable notice</li>
+                        </ul>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            We are not liable for any downtime or service interruptions.
+                        </p>
+                    </section>
+
+                    <!-- Disclaimers -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Disclaimers and Limitations</h2>
+                        
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">AI Accuracy</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            Our AI-powered features are provided "as is." While we strive for accuracy, we cannot guarantee that:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Survey generation will perfectly match your intent</li>
+                            <li>Response extraction will be 100% accurate</li>
+                            <li>Conversation flows will handle all edge cases perfectly</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Service Limitations</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE DISCLAIM ALL WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+                        </p>
+                    </section>
+
+                    <!-- Limitation of Liability -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Limitation of Liability</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            TO THE MAXIMUM EXTENT PERMITTED BY LAW, BARMUDA SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, OR USE, INCURRED BY YOU OR ANY THIRD PARTY.
+                        </p>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            Our total liability to you for all claims shall not exceed the amount you paid us in the 12 months preceding the claim.
+                        </p>
+                    </section>
+
+                    <!-- Indemnification -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Indemnification</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            You agree to indemnify and hold harmless Barmuda from any claims, damages, losses, or expenses (including attorney fees) arising from your use of the Service, violation of these Terms, or infringement of any third-party rights.
+                        </p>
+                    </section>
+
+                    <!-- Governing Law -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Governing Law and Disputes</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            These Terms are governed by the laws of the State of Delaware, United States, without regard to conflict of law principles.
+                        </p>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            Any disputes arising from these Terms or your use of the Service will be resolved through binding arbitration, except for claims involving intellectual property rights or injunctive relief.
+                        </p>
+                    </section>
+
+                    <!-- Changes to Terms -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Changes to Terms</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            We may modify these Terms at any time. We will notify you of significant changes by email or through the Service. Continued use after changes constitutes acceptance of the updated Terms. If you disagree with changes, you should discontinue using the Service.
+                        </p>
+                    </section>
+
+                    <!-- Severability -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Severability</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            If any provision of these Terms is found to be unenforceable, the remaining provisions will remain in full force and effect. The unenforceable provision will be modified to the minimum extent necessary to make it enforceable.
+                        </p>
+                    </section>
+
+                    <!-- Entire Agreement -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Entire Agreement</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            These Terms, together with our Privacy Policy, constitute the entire agreement between you and Barmuda regarding the Service and supersede all prior agreements and understandings.
+                        </p>
+                    </section>
+
+                    <!-- Contact -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Contact Information</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            If you have any questions about these Terms of Service, please contact us at:
+                        </p>
+                        <div class="bg-[#f9fafb] rounded-xl p-6">
+                            <p class="font-['DM_Sans'] text-[#1e1e1e] font-medium">Email: legal@barmuda.in</p>
+                            <p class="font-['DM_Sans'] text-[#6b7280] mt-2">
+                                We'll respond to legal inquiries within 30 days.
+                            </p>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Footer -->
+    {% include 'partials/footer.html' %}
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Authentication functions
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Get Firebase ID token
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend for verification and session creation
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idToken: idToken
+                    }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    console.error('Backend authentication failed:', data.error);
+                    alert('Authentication failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            }
+        }
+
+        // Check authentication state
+        auth.onAuthStateChanged(user => {
+            console.log('Auth state changed:', user?.email || 'Not signed in');
+        });
+    </script>
+</body>
+</html>

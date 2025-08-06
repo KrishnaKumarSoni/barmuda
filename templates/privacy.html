@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Privacy Policy - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fff5e0',
+                        'bermuda-light-cream': '#fffcf4',
+                        'bermuda-border': '#fb9a9a',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#c3c3c3'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        {% set nav_type = 'privacy' %}
+        {% include 'partials/nav.html' %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 px-4 md:px-8 py-32 md:py-40">
+            <div class="max-w-4xl mx-auto">
+                
+                <!-- Header -->
+                <div class="text-center mb-12">
+                    <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15] mb-4">
+                        Privacy Policy
+                    </h1>
+                    <p class="font-['DM_Sans'] text-base md:text-lg text-[#6b7280] max-w-2xl mx-auto leading-relaxed">
+                        Last updated: January 6, 2025
+                    </p>
+                </div>
+
+                <!-- Content -->
+                <div class="bg-white rounded-2xl border border-[#e5e7eb] p-8 md:p-12 space-y-8">
+                    
+                    <!-- Introduction -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Introduction</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            Barmuda ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our conversational survey platform and services.
+                        </p>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            By using our service, you agree to the collection and use of information in accordance with this policy.
+                        </p>
+                    </section>
+
+                    <!-- Information We Collect -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Information We Collect</h2>
+                        
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Personal Information</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            When you create an account, we collect:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Email address (via Google SSO)</li>
+                            <li>Name and profile information from your Google account</li>
+                            <li>Account preferences and settings</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Survey Data</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            When you create or respond to surveys:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Survey questions and responses</li>
+                            <li>Chat conversation transcripts</li>
+                            <li>Response metadata (timestamps, completion status)</li>
+                            <li>Analytics data (response rates, completion times)</li>
+                        </ul>
+
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-[#1e1e1e] mb-3">Technical Information</h3>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            We automatically collect:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Device fingerprint (for anti-abuse and duplicate detection)</li>
+                            <li>IP address and approximate location</li>
+                            <li>Browser type and version</li>
+                            <li>Usage analytics and performance metrics</li>
+                            <li>Session information</li>
+                        </ul>
+                    </section>
+
+                    <!-- How We Use Information -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">How We Use Your Information</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">We use collected information to:</p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Provide and maintain our survey platform</li>
+                            <li>Process and deliver survey responses</li>
+                            <li>Improve our AI conversation capabilities</li>
+                            <li>Detect and prevent duplicate submissions</li>
+                            <li>Prevent abuse and ensure platform security</li>
+                            <li>Provide customer support</li>
+                            <li>Send service-related communications</li>
+                            <li>Analyze usage patterns to improve our service</li>
+                        </ul>
+                    </section>
+
+                    <!-- Information Sharing -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Information Sharing and Disclosure</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            We do not sell, trade, or rent your personal information. We may share information in these limited circumstances:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li><strong>Service Providers:</strong> With trusted third parties who assist in operating our platform (e.g., OpenAI for AI processing, Firebase for authentication)</li>
+                            <li><strong>Survey Creators:</strong> Survey responses are shared with the creators of those surveys</li>
+                            <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety</li>
+                            <li><strong>Business Transfers:</strong> In connection with mergers, acquisitions, or asset sales</li>
+                        </ul>
+                    </section>
+
+                    <!-- Respondent Privacy -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Survey Respondent Privacy</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            For survey respondents, we prioritize anonymity:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>No account creation required to respond to surveys</li>
+                            <li>We collect device fingerprints and location silently for anti-abuse purposes only</li>
+                            <li>Personal identifiers are not linked to survey responses unless voluntarily provided</li>
+                            <li>Survey creators cannot access respondent IP addresses or device information</li>
+                            <li>Duplicate detection helps ensure data quality without compromising anonymity</li>
+                        </ul>
+                    </section>
+
+                    <!-- Data Security -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Data Security</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            We implement appropriate security measures to protect your information:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Encryption in transit and at rest</li>
+                            <li>Secure authentication via Google SSO</li>
+                            <li>Regular security assessments</li>
+                            <li>Access controls and monitoring</li>
+                            <li>Data backup and recovery procedures</li>
+                        </ul>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.
+                        </p>
+                    </section>
+
+                    <!-- Data Retention -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Data Retention</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">We retain your information for as long as:</p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Your account is active</li>
+                            <li>Needed to provide our services</li>
+                            <li>Required for legal, tax, or accounting purposes</li>
+                            <li>Necessary to resolve disputes or enforce agreements</li>
+                        </ul>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            Survey responses are retained indefinitely unless explicitly deleted by the survey creator.
+                        </p>
+                    </section>
+
+                    <!-- Your Rights -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Your Privacy Rights</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">You have the right to:</p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Access and update your account information</li>
+                            <li>Delete your surveys and associated responses</li>
+                            <li>Export your survey data</li>
+                            <li>Request account deletion</li>
+                            <li>Opt out of non-essential communications</li>
+                        </ul>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            To exercise these rights, contact us at the email address below.
+                        </p>
+                    </section>
+
+                    <!-- Cookies -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Cookies and Tracking</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            We use cookies and similar technologies to:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li>Maintain your login session</li>
+                            <li>Remember your preferences</li>
+                            <li>Analyze site usage and performance</li>
+                            <li>Prevent fraud and abuse</li>
+                        </ul>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            You can control cookies through your browser settings, though some features may not work properly if disabled.
+                        </p>
+                    </section>
+
+                    <!-- Third Party Services -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Third-Party Services</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            Our service integrates with third-party providers:
+                        </p>
+                        <ul class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-6 list-disc pl-6 space-y-2">
+                            <li><strong>Google Firebase:</strong> Authentication and data storage</li>
+                            <li><strong>OpenAI:</strong> AI-powered conversation processing</li>
+                            <li><strong>Vercel:</strong> Platform hosting and deployment</li>
+                            <li><strong>FingerprintJS:</strong> Device identification for anti-abuse</li>
+                        </ul>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            These services have their own privacy policies, which we encourage you to review.
+                        </p>
+                    </section>
+
+                    <!-- International Users -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">International Users</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            Our services are hosted in the United States. By using our platform, you consent to the transfer and processing of your information in the US and other countries where our service providers operate. We take appropriate steps to ensure your data is protected in accordance with this privacy policy.
+                        </p>
+                    </section>
+
+                    <!-- Children's Privacy -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Children's Privacy</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            Our service is not intended for children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us so we can delete such information.
+                        </p>
+                    </section>
+
+                    <!-- Changes -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Changes to This Privacy Policy</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed">
+                            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. Continued use of our service after changes constitutes acceptance of the updated policy.
+                        </p>
+                    </section>
+
+                    <!-- Contact -->
+                    <section>
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#1e1e1e] mb-4">Contact Us</h2>
+                        <p class="font-['DM_Sans'] text-[#4b5563] leading-relaxed mb-4">
+                            If you have any questions about this Privacy Policy, please contact us at:
+                        </p>
+                        <div class="bg-[#f9fafb] rounded-xl p-6">
+                            <p class="font-['DM_Sans'] text-[#1e1e1e] font-medium">Email: privacy@barmuda.in</p>
+                            <p class="font-['DM_Sans'] text-[#6b7280] mt-2">
+                                We'll respond to privacy-related inquiries within 30 days.
+                            </p>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Footer -->
+    {% include 'partials/footer.html' %}
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Authentication functions
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Get Firebase ID token
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend for verification and session creation
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idToken: idToken
+                    }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    console.error('Backend authentication failed:', data.error);
+                    alert('Authentication failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            }
+        }
+
+        // Check authentication state
+        auth.onAuthStateChanged(user => {
+            console.log('Auth state changed:', user?.email || 'Not signed in');
+        });
+    </script>
+</body>
+</html>

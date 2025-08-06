@@ -1029,6 +1029,18 @@ def pricing():
     return render_template("pricing.html")
 
 
+@app.route("/privacy")
+def privacy():
+    """Privacy policy page"""
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms():
+    """Terms of service page"""
+    return render_template("terms.html")
+
+
 @app.route("/edit-form")
 @login_required
 def edit_form():
