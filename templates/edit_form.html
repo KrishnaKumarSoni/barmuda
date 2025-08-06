@@ -58,7 +58,7 @@
         <!-- Go Back -->
         <div class="flex items-center gap-2 mb-8">
             <button onclick="goBack()" class="flex items-center gap-2 text-bermuda-light-gray hover:text-bermuda-orange transition-colors">
-                <i class="ph ph-caret-left text-4xl"></i>
+                <i class="ph ph-caret-left text-xl"></i>
                 <span class="font-jakarta font-bold text-base tracking-tight">go back</span>
             </button>
         </div>
@@ -93,7 +93,7 @@
                 class="flex items-center gap-3 px-6 py-3 border border-bermuda-orange rounded-full text-bermuda-red font-dm text-lg hover:bg-bermuda-orange hover:text-white transition-all"
             >
                 Add question
-                <i class="ph ph-plus text-current text-4xl"></i>
+                <i class="ph ph-plus text-current text-xl"></i>
             </button>
         </div>
         
@@ -124,14 +124,14 @@
                 class="border border-bermuda-orange text-bermuda-orange font-dm text-lg px-8 py-3 rounded-full hover:bg-bermuda-orange hover:text-white transition-all flex items-center gap-3"
             >
                 Preview Form
-                <i class="ph ph-eye text-4xl"></i>
+                <i class="ph ph-eye text-xl"></i>
             </button>
             <button 
                 onclick="saveForm()"
                 class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-lg px-8 py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
             >
                 Save & Launch
-                <i class="ph ph-floppy-disk text-white text-4xl"></i>
+                <i class="ph ph-floppy-disk text-white text-xl"></i>
             </button>
         </div>
         
@@ -163,7 +163,7 @@
                         onclick="copyShareLink()"
                         class="w-full bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-3 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm font-medium flex items-center justify-center gap-2"
                     >
-                        <i class="ph ph-link text-white text-lg"></i>
+                        <i class="ph ph-link text-white text-base"></i>
                         Copy Link
                     </button>
                     
@@ -173,14 +173,14 @@
                             onclick="copyShareImage()"
                             class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm text-sm flex items-center justify-center gap-2"
                         >
-                            <i class="ph ph-image text-current text-lg"></i>
+                            <i class="ph ph-image text-current text-base"></i>
                             Copy Image
                         </button>
                         <button 
                             onclick="downloadShareImage()"
                             class="flex-1 border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                         >
-                            <i class="ph ph-download-simple text-current text-lg"></i>
+                            <i class="ph ph-download-simple text-current text-base"></i>
                             Download
                         </button>
                     </div>
@@ -190,7 +190,7 @@
                         onclick="goToDashboard()"
                         class="w-full border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                     >
-                        <i class="ph ph-house text-current text-lg"></i>
+                        <i class="ph ph-house text-current text-base"></i>
                         Go to Dashboard
                     </button>
                 </div>
@@ -204,7 +204,7 @@
                     <div class="flex items-center justify-between">
                         <h3 class="font-jakarta font-bold text-2xl text-bermuda-text">Form Preview</h3>
                         <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
-                            <i class="ph ph-x text-3xl"></i>
+                            <i class="ph ph-x text-xl"></i>
                         </button>
                     </div>
                     <p class="text-sm text-bermuda-gray mt-2">This shows how respondents will experience your form as a conversation.</p>
@@ -326,13 +326,13 @@
                             // Already active form - update button
                             saveBtn.innerHTML = `
                                 Update Form
-                                <i class="ph ph-floppy-disk text-white text-4xl"></i>
+                                <i class="ph ph-floppy-disk text-white text-xl"></i>
                             `;
                         } else {
                             // Inactive form - keep original "Save & Launch" button
                             saveBtn.innerHTML = `
                                 Save & Launch
-                                <i class="ph ph-floppy-disk text-white text-4xl"></i>
+                                <i class="ph ph-floppy-disk text-white text-xl"></i>
                             `;
                         }
                     }
@@ -395,7 +395,7 @@
                         onclick="toggleQuestion(${index})"
                         class="w-20 h-12"
                     >
-                        <i class="ph ${question.enabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-4xl"></i>
+                        <i class="ph ${question.enabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-5xl"></i>
                     </button>
                 </div>
                 
@@ -428,35 +428,35 @@
                                     class="hidden absolute top-full left-0 right-0 bg-white border border-bermuda-border rounded-lg mt-1 shadow-lg z-10"
                                 >
                                     <div onclick="selectQuestionType(${index}, 'text')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-text-aa text-bermuda-orange text-4xl"></i>
+                                        <i class="ph ph-text-aa text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Text response</div>
                                             <div class="text-xs text-bermuda-light-gray">Open-ended written answers</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'multiple_choice')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-list-bullets text-bermuda-orange text-4xl"></i>
+                                        <i class="ph ph-list-bullets text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Multiple Choice Question</div>
                                             <div class="text-xs text-bermuda-light-gray">Select from predefined options</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'yes_no')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-check-circle text-bermuda-orange text-4xl"></i>
+                                        <i class="ph ph-check-circle text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Yes / No</div>
                                             <div class="text-xs text-bermuda-light-gray">Simple binary choice</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'number')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-hash text-bermuda-orange text-4xl"></i>
+                                        <i class="ph ph-hash text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Number</div>
                                             <div class="text-xs text-bermuda-light-gray">Numeric values only</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'rating')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text border-b-0 flex items-center gap-3">
-                                        <i class="ph ph-star text-bermuda-orange text-4xl"></i>
+                                        <i class="ph ph-star text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Rating</div>
                                             <div class="text-xs text-bermuda-light-gray">Scale-based evaluation</div>
@@ -540,7 +540,7 @@
                         onclick="${demographicsEnabled ? `toggleDemographic('${option.toLowerCase()}')` : 'return false'}"
                         class="w-20 h-12 ${!demographicsEnabled ? 'cursor-not-allowed' : ''}"
                     >
-                        <i class="ph ${isEnabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-4xl"></i>
+                        <i class="ph ${isEnabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-5xl"></i>
                     </button>
                 `;
                 
@@ -582,13 +582,13 @@
         // Custom dropdown functions
         function getQuestionTypeLabel(type) {
             const labels = {
-                'text': '<i class="ph ph-text-aa text-bermuda-orange text-xl mr-2"></i>Text response',
-                'multiple_choice': '<i class="ph ph-list-bullets text-bermuda-orange text-xl mr-2"></i>Multiple Choice Question',
-                'yes_no': '<i class="ph ph-check-circle text-bermuda-orange text-xl mr-2"></i>Yes / No',
-                'number': '<i class="ph ph-hash text-bermuda-orange text-xl mr-2"></i>Number',
-                'rating': '<i class="ph ph-star text-bermuda-orange text-xl mr-2"></i>Rating'
+                'text': '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response',
+                'multiple_choice': '<i class="ph ph-list-bullets text-bermuda-orange text-base mr-2"></i>Multiple Choice Question',
+                'yes_no': '<i class="ph ph-check-circle text-bermuda-orange text-base mr-2"></i>Yes / No',
+                'number': '<i class="ph ph-hash text-bermuda-orange text-base mr-2"></i>Number',
+                'rating': '<i class="ph ph-star text-bermuda-orange text-base mr-2"></i>Rating'
             };
-            return labels[type] || '<i class="ph ph-text-aa text-bermuda-orange text-xl mr-2"></i>Text response';
+            return labels[type] || '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response';
         }
         
         function toggleDropdown(index) {

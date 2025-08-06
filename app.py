@@ -1408,6 +1408,34 @@ import time
 from chat_engine import get_chat_agent
 
 
+@app.route("/api/form/<form_id>/public")
+def get_form_public(form_id):
+    """Get public form metadata (title, active status) for widget usage"""
+    try:
+        # Get form from Firestore
+        form_ref = db.collection("forms").document(form_id)
+        form_doc = form_ref.get()
+        
+        if not form_doc.exists:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+        
+        form_data = form_doc.to_dict()
+        
+        # Return only public metadata needed for widget
+        return jsonify({
+            "success": True,
+            "form": {
+                "title": form_data.get("title", "Survey"),
+                "active": form_data.get("active", False),
+                "form_id": form_id
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting public form data: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to get form data"}), 500
+
+
 @app.route("/form/<form_id>")
 def form_response_page(form_id):
     """Public form response page for respondents"""

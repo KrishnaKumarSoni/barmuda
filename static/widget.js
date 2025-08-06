@@ -697,15 +697,25 @@
             if (data.success) {
                 sessionId = data.session_id;
                 
-                // Get form title
+                // Get form title from public API
                 try {
                     const formResponse = await fetch(`${config.apiBase}/api/form/${config.formId}/public`);
-                    const formData = await formResponse.json();
-                    if (formData.success) {
-                        document.querySelector('.barmuda-form-title').textContent = formData.form.title;
+                    console.log('Form title request to:', `${config.apiBase}/api/form/${config.formId}/public`);
+                    console.log('Form title response status:', formResponse.status);
+                    
+                    if (formResponse.ok) {
+                        const formData = await formResponse.json();
+                        console.log('Form title data:', formData);
+                        
+                        if (formData.success && formData.form.title) {
+                            document.querySelector('.barmuda-form-title').textContent = formData.form.title;
+                            console.log('Form title set to:', formData.form.title);
+                        } else {
+                            console.log('Form title not available in response, using default');
+                            document.querySelector('.barmuda-form-title').textContent = 'Survey';
+                        }
                     } else {
-                        console.log('Form title not available, using default');
-                        document.querySelector('.barmuda-form-title').textContent = 'Survey';
+                        throw new Error(`HTTP ${formResponse.status}`);
                     }
                 } catch (error) {
                     console.log('Could not load form title, using default:', error);
