@@ -344,9 +344,42 @@
             }
         }
 
-        // Check authentication state
+        // Sign out function
+        async function signOut() {
+            try {
+                await auth.signOut();
+                console.log('User signed out');
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign-out error:', error);
+                alert('Sign-out failed. Please try again.');
+            }
+        }
+
+        // Check authentication state and update nav button
         auth.onAuthStateChanged(user => {
             console.log('Auth state changed:', user?.email || 'Not signed in');
+            
+            const authActionButton = document.getElementById('auth-action-button');
+            if (authActionButton) {
+                if (user) {
+                    // User is signed in - show sign out button
+                    authActionButton.innerHTML = `
+                        <button onclick="signOut()" class="w-8 md:w-10 h-8 md:h-10 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center rounded-full hover:bg-gray-50">
+                            <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
+                        </button>
+                    `;
+                } else {
+                    // User is not signed in - show sign in button
+                    authActionButton.innerHTML = `
+                        <button onclick="signInWithGoogle()" 
+                                class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                            <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
+                            <i class="ph ph-sign-in text-white text-sm md:text-lg lg:text-xl"></i>
+                        </button>
+                    `;
+                }
+            }
         });
     </script>
 </body>
