@@ -981,16 +981,16 @@
         
         // Copy embed code to clipboard
         function copyEmbedCode() {
-            const code = `<script>
-(function() {
-    var script = document.createElement('script');
-    script.src = 'https://barmuda.vercel.app/widget.js';
-    script.setAttribute('data-form-id', 'YOUR_FORM_ID');
-    script.setAttribute('data-position', 'bottom-right');
-    script.setAttribute('data-color', '#cc5500');
-    document.head.appendChild(script);
-})();
-</script>`;
+            const code = '<script>\n' +
+                '(function() {\n' +
+                '    var script = document.createElement(\'script\');\n' +
+                '    script.src = \'https://barmuda.vercel.app/widget.js\';\n' +
+                '    script.setAttribute(\'data-form-id\', \'YOUR_FORM_ID\');\n' +
+                '    script.setAttribute(\'data-position\', \'bottom-right\');\n' +
+                '    script.setAttribute(\'data-color\', \'#cc5500\');\n' +
+                '    document.head.appendChild(script);\n' +
+                '})();\n' +
+                '<\/script>';
             
             navigator.clipboard.writeText(code).then(() => {
                 // Visual feedback

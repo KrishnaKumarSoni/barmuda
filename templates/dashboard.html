@@ -284,30 +284,80 @@
         }
 
         // Embed modal functions
+        let currentPosition = 'bottom-right';
+        let currentColor = '#cc5500';
+        
         function showEmbedModal(formId) {
             const modal = document.getElementById('embed-modal');
-            const embedCode = document.getElementById('embed-code');
             
             // Store current form ID for copy function
             window.currentEmbedFormId = formId;
             
+            // Reset to defaults
+            currentPosition = 'bottom-right';
+            currentColor = '#cc5500';
+            
+            // Setup event listeners for custom controls
+            setupCustomControls();
+            
             // Generate initial embed code
             updateEmbedCode();
             
-            modal.classList.remove('hidden');
-            
-            // Setup event listeners for customization
-            document.getElementById('widget-position').addEventListener('change', updateEmbedCode);
-            document.getElementById('widget-color').addEventListener('input', updateWidgetPreview);
-            document.getElementById('widget-color').addEventListener('change', updateEmbedCode);
-            
             // Initial preview update
             updateWidgetPreview();
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function setupCustomControls() {
+            // Position dropdown
+            const positionDropdown = document.getElementById('position-dropdown');
+            const positionOptions = document.getElementById('position-options');
+            const positionText = document.getElementById('position-text');
+            
+            positionDropdown.onclick = function(e) {
+                e.preventDefault();
+                positionOptions.classList.toggle('hidden');
+            };
+            
+            // Position option selection
+            document.querySelectorAll('.position-option').forEach(option => {
+                option.onclick = function() {
+                    const value = this.getAttribute('data-value');
+                    const text = this.textContent.trim();
+                    
+                    currentPosition = value;
+                    positionText.textContent = text;
+                    document.getElementById('position-indicator').textContent = text;
+                    
+                    positionOptions.classList.add('hidden');
+                    updateWidgetPreview();
+                    updateEmbedCode();
+                };
+            });
+            
+            // Color picker
+            const colorInput = document.getElementById('widget-color');
+            const colorPreview = document.getElementById('color-preview');
+            const colorText = document.getElementById('color-text');
+            
+            colorInput.addEventListener('input', function() {
+                currentColor = this.value;
+                colorPreview.style.background = currentColor;
+                colorText.textContent = currentColor.toUpperCase();
+                updateWidgetPreview();
+                updateEmbedCode();
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!positionDropdown.contains(e.target) && !positionOptions.contains(e.target)) {
+                    positionOptions.classList.add('hidden');
+                }
+            });
         }
         
         function updateEmbedCode() {
-            const position = document.getElementById('widget-position').value;
-            const color = document.getElementById('widget-color').value;
             const formId = window.currentEmbedFormId;
             const embedCode = document.getElementById('embed-code');
             
@@ -317,8 +367,8 @@
     var script = document.createElement('script');
     script.src = '${window.location.origin}/widget.js';
     script.setAttribute('data-form-id', '${formId}');
-    script.setAttribute('data-position', '${position}');
-    script.setAttribute('data-color', '${color}');
+    script.setAttribute('data-position', '${currentPosition}');
+    script.setAttribute('data-color', '${currentColor}');
     document.head.appendChild(script);
 })();
 <\/script>`;
@@ -327,20 +377,27 @@
         }
         
         function updateWidgetPreview() {
-            const position = document.getElementById('widget-position').value;
-            const color = document.getElementById('widget-color').value;
             const preview = document.getElementById('widget-preview');
             
-            // Update preview position
-            preview.classList.remove('bottom-4', 'right-4', 'left-4');
-            if (position === 'bottom-left') {
-                preview.classList.add('bottom-4', 'left-4');
+            // Update preview position with smooth animation
+            preview.classList.remove('bottom-3', 'right-3', 'left-3');
+            
+            if (currentPosition === 'bottom-left') {
+                preview.classList.add('bottom-3', 'left-3');
+                document.getElementById('position-indicator').textContent = 'Bottom Left';
             } else {
-                preview.classList.add('bottom-4', 'right-4');
+                preview.classList.add('bottom-3', 'right-3');
+                document.getElementById('position-indicator').textContent = 'Bottom Right';
             }
             
             // Update preview color
-            preview.style.background = color;
+            preview.style.background = currentColor;
+            
+            // Add a subtle bounce animation to show the change
+            preview.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                preview.style.transform = 'scale(1)';
+            }, 200);
         }
 
         function hideEmbedModal() {
@@ -443,6 +500,9 @@
                                 </button>
                                 <input type="color" id="widget-color" value="#cc5500" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             </div>
+                            
+                            <!-- Hidden inputs for compatibility -->
+                            <input type="hidden" id="widget-position" value="bottom-right">
                         </div>
                     </div>
                 </div>
