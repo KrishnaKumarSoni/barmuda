@@ -117,27 +117,22 @@
             <!-- Form Templates Carousel -->
             <div class="w-full max-w-6xl">
                 <div class="text-center mb-6">
-                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#6b7280] font-medium uppercase tracking-wider">Or choose a template</p>
+                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#6b7280] font-medium uppercase tracking-wider">Popular Templates</p>
                 </div>
                 
                 <!-- Carousel Container -->
                 <div class="relative">
-                    <!-- Left Arrow -->
-                    <button id="carousel-left" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white border border-[#DAB568] rounded-full flex items-center justify-center hover:bg-[#cc5500] hover:border-[#cc5500] transition-all duration-200 group shadow-sm">
-                        <i class="ph ph-caret-left text-[#cc5500] group-hover:text-white text-lg transition-colors"></i>
-                    </button>
-                    
-                    <!-- Right Arrow -->
-                    <button id="carousel-right" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white border border-[#DAB568] rounded-full flex items-center justify-center hover:bg-[#cc5500] hover:border-[#cc5500] transition-all duration-200 group shadow-sm">
-                        <i class="ph ph-caret-right text-[#cc5500] group-hover:text-white text-lg transition-colors"></i>
-                    </button>
                     
                     <!-- Carousel Content -->
                     <div id="carousel-container" class="overflow-hidden">
-                        <div id="carousel-track" class="flex transition-transform duration-300 ease-out gap-2 md:gap-3">
+                        <div id="carousel-track" class="flex transition-transform duration-500 ease-out">
+                            
+                            <!-- Page 1 - Business Essentials (8 templates) -->
+                            <div class="flex-shrink-0 w-full">
+                                <div class="flex flex-wrap gap-2 md:gap-3 justify-center max-w-4xl mx-auto">
                             
                             <!-- Customer Feedback Template -->
-                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('customer-feedback')">
+                            <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('customer-feedback')">
                                 <div class="flex items-center gap-2">
                                     <i class="ph ph-chat-circle-dots text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                                     <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
@@ -316,26 +311,202 @@
                                 </div>
                             </div>
                             
-                            <!-- Training Evaluation Template -->
-                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('training-evaluation')">
+                            <!-- Pricing Research Template -->
+                            <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('pricing-research')">
                                 <div class="flex items-center gap-2">
-                                    <i class="ph ph-chalkboard-teacher text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <i class="ph ph-currency-dollar text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
                                     <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
-                                        Training Evaluation
+                                        Pricing Research
                                     </h3>
+                                </div>
+                            </div>
+                            
+                                </div>
+                            </div>
+                            
+                            <!-- Page 2 - Employee & HR (8 templates) -->
+                            <div class="flex-shrink-0 w-full">
+                                <div class="flex flex-wrap gap-2 md:gap-3 justify-center max-w-4xl mx-auto">
+                                    
+                                    <!-- Employee Survey -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('employee-survey')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-users text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Employee Survey
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Performance Review -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('performance-review')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-trophy text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Performance Review
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Exit Interview -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('exit-interview')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-door-open text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Exit Interview
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 360 Feedback -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('360-feedback')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-arrows-clockwise text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                360° Feedback
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Team Collaboration -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('team-collaboration')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-users-three text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Team Collaboration
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Wellness Check-in -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('wellness-checkin')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-flower-lotus text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Wellness Check
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Training Evaluation -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('training-evaluation')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-chalkboard-teacher text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Training Evaluation
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Remote Work Survey -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('remote-work')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-house text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Remote Work
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                            <!-- Page 3 - Healthcare & Service (8 templates) -->
+                            <div class="flex-shrink-0 w-full">
+                                <div class="flex flex-wrap gap-2 md:gap-3 justify-center max-w-4xl mx-auto">
+                                    
+                                    <!-- Patient Satisfaction -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('patient-satisfaction')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-heart text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Patient Survey
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Hotel Experience -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('hotel-experience')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-bed text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Hotel Experience
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Restaurant Feedback -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('restaurant-feedback')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-fork-knife text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Restaurant Review
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Support Satisfaction -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('support-satisfaction')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-headset text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Support Survey
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Course Evaluation -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('course-evaluation')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-graduation-cap text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Course Review
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Beta Testing -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('beta-testing')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-test-tube text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Beta Testing
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Website Feedback -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('website-feedback')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-globe text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakob_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                Website Review
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- App Store Review -->
+                                    <div class="bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('app-review')">
+                                        <div class="flex items-center gap-2">
+                                            <i class="ph ph-device-mobile text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                            <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                                App Review
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                             </div>
                             
                         </div>
                     </div>
                     
-                    <!-- Carousel Dots -->
-                    <div id="carousel-dots" class="flex justify-center gap-2 mt-6">
-                        <!-- Dots will be dynamically generated -->
+                    <!-- Dots Indicator -->
+                    <div id="carousel-dots" class="flex justify-center gap-1.5 mt-6">
+                        <!-- Dots will be generated by JavaScript -->
                     </div>
                 </div>
             </div>
-            
             <!-- Features -->
             <div class="text-center max-w-4xl mt-12 md:mt-16">
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
@@ -761,100 +932,46 @@
             }
         });
         
-        // Carousel functionality
-        let currentSlide = 0;
-        let templateItems = [];
-        let itemsPerSlide = 6; // Default for desktop
-        let totalSlides = 0;
+        // Page-based Carousel functionality
+        let currentPage = 0;
+        let totalPages = 3; // We have 3 pages of templates
         
         function initializeCarousel() {
             const track = document.getElementById('carousel-track');
-            const leftBtn = document.getElementById('carousel-left');
-            const rightBtn = document.getElementById('carousel-right');
             const dotsContainer = document.getElementById('carousel-dots');
             
             if (!track) return;
             
-            // Get all template items
-            templateItems = Array.from(track.children);
-            
-            // Set responsive items per slide
-            function updateItemsPerSlide() {
-                const width = window.innerWidth;
-                if (width < 640) { // mobile
-                    itemsPerSlide = 2;
-                } else if (width < 768) { // small tablet
-                    itemsPerSlide = 3;
-                } else if (width < 1024) { // tablet
-                    itemsPerSlide = 4;
-                } else if (width < 1280) { // small desktop
-                    itemsPerSlide = 5;
-                } else { // large desktop
-                    itemsPerSlide = 6;
-                }
-                
-                totalSlides = Math.ceil(templateItems.length / itemsPerSlide);
-                
-                // Ensure current slide is within bounds
-                if (currentSlide >= totalSlides) {
-                    currentSlide = Math.max(0, totalSlides - 1);
-                }
-                
-                updateCarousel();
-                updateDots();
-            }
-            
             // Update carousel position
             function updateCarousel() {
-                const itemWidth = templateItems[0] ? templateItems[0].offsetWidth : 0;
-                const gap = 8; // md:gap-3 = 12px, but we use 8px for mobile
-                const slideWidth = (itemWidth + gap) * itemsPerSlide;
-                const translateX = -(currentSlide * slideWidth);
-                
-                track.style.transform = `translateX(${translateX}px)`;
-                
-                // Update button states
-                leftBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
-                leftBtn.style.cursor = currentSlide === 0 ? 'not-allowed' : 'pointer';
-                rightBtn.style.opacity = currentSlide >= totalSlides - 1 ? '0.5' : '1';
-                rightBtn.style.cursor = currentSlide >= totalSlides - 1 ? 'not-allowed' : 'pointer';
+                const translateX = -(currentPage * 100);
+                track.style.transform = `translateX(${translateX}%)`;
             }
             
             // Update dots indicator
             function updateDots() {
                 dotsContainer.innerHTML = '';
                 
-                for (let i = 0; i < totalSlides; i++) {
+                for (let i = 0; i < totalPages; i++) {
                     const dot = document.createElement('button');
-                    dot.className = `w-2 h-2 rounded-full transition-all duration-200 ${
-                        i === currentSlide ? 'bg-[#cc5500]' : 'bg-[#DAB568] hover:bg-[#cc5500]/60'
+                    dot.className = `w-2 h-2 rounded-full transition-all duration-300 ${
+                        i === currentPage 
+                            ? 'bg-[#cc5500] scale-125' 
+                            : 'bg-[#DAB568] hover:bg-[#cc5500]/60 hover:scale-110'
                     }`;
-                    dot.onclick = () => goToSlide(i);
+                    dot.onclick = () => goToPage(i);
                     dotsContainer.appendChild(dot);
                 }
             }
             
-            // Go to specific slide
-            function goToSlide(slideIndex) {
-                if (slideIndex >= 0 && slideIndex < totalSlides) {
-                    currentSlide = slideIndex;
+            // Go to specific page
+            function goToPage(pageIndex) {
+                if (pageIndex >= 0 && pageIndex < totalPages) {
+                    currentPage = pageIndex;
                     updateCarousel();
                     updateDots();
                 }
             }
-            
-            // Navigation button handlers
-            leftBtn.onclick = () => {
-                if (currentSlide > 0) {
-                    goToSlide(currentSlide - 1);
-                }
-            };
-            
-            rightBtn.onclick = () => {
-                if (currentSlide < totalSlides - 1) {
-                    goToSlide(currentSlide + 1);
-                }
-            };
             
             // Touch/swipe support
             let startX = 0;
@@ -878,12 +995,12 @@
                 const threshold = 50; // minimum swipe distance
                 
                 if (Math.abs(diff) > threshold) {
-                    if (diff > 0 && currentSlide < totalSlides - 1) {
-                        // Swipe left - next slide
-                        goToSlide(currentSlide + 1);
-                    } else if (diff < 0 && currentSlide > 0) {
-                        // Swipe right - previous slide
-                        goToSlide(currentSlide - 1);
+                    if (diff > 0 && currentPage < totalPages - 1) {
+                        // Swipe left - next page
+                        goToPage(currentPage + 1);
+                    } else if (diff < 0 && currentPage > 0) {
+                        // Swipe right - previous page
+                        goToPage(currentPage - 1);
                     }
                 }
                 
@@ -896,31 +1013,16 @@
                     return; // Don't interfere with form inputs
                 }
                 
-                if (e.key === 'ArrowLeft' && currentSlide > 0) {
-                    goToSlide(currentSlide - 1);
-                } else if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
-                    goToSlide(currentSlide + 1);
+                if (e.key === 'ArrowLeft' && currentPage > 0) {
+                    goToPage(currentPage - 1);
+                } else if (e.key === 'ArrowRight' && currentPage < totalPages - 1) {
+                    goToPage(currentPage + 1);
                 }
             });
             
-            // Handle window resize
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    updateItemsPerSlide();
-                }, 150);
-            });
-            
-            // Initialize
-            updateItemsPerSlide();
+            // Initialize dots
+            updateDots();
         }
-        
-        // Initialize carousel when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize carousel
-            setTimeout(initializeCarousel, 100); // Small delay to ensure DOM is fully rendered
-        });
     </script>
 
     {% include 'partials/footer.html' %}
