@@ -395,7 +395,7 @@
                         onclick="toggleQuestion(${index})"
                         class="w-10 h-6"
                     >
-                        <i class="ph ${question.enabled ? 'ph-toggle-right text-green-500' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
+                        <i class="ph ${question.enabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
                     </button>
                 </div>
                 
@@ -540,7 +540,7 @@
                         onclick="${demographicsEnabled ? `toggleDemographic('${option.toLowerCase()}')` : 'return false'}"
                         class="w-10 h-6 ${!demographicsEnabled ? 'cursor-not-allowed' : ''}"
                     >
-                        <i class="ph ${isEnabled ? 'ph-toggle-right text-green-500' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
+                        <i class="ph ${isEnabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
                     </button>
                 `;
                 
@@ -674,7 +674,7 @@
             if (grid.classList.contains('hidden')) {
                 // Show demographics section - enable it
                 grid.classList.remove('hidden');
-                toggle.innerHTML = '<i class="ph ph-toggle-right text-green-500 text-2xl"></i>';
+                toggle.innerHTML = '<i class="ph ph-toggle-right text-[#cc5500] text-2xl"></i>';
                 
                 // Initialize demographics if not set
                 if (!formData.demographics) {
