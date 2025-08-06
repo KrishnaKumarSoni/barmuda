@@ -15,8 +15,8 @@
             <!-- Navigation Links (authenticated only) -->
             {% if nav_type in ['authenticated', 'dashboard', 'edit_form', 'create_form', 'responses'] %}
             <div class="hidden sm:flex items-center gap-2 md:gap-4 lg:gap-6 font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm lg:text-[14px] text-black tracking-[-0.14px] flex-shrink-0">
-                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">dashboard</a>
-                <a href="/" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">home</a>
+                <a href="/dashboard" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">Dashboard</a>
+                <a href="/" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">Home</a>
             </div>
             {% endif %}
             
@@ -32,15 +32,15 @@
                 {% elif nav_type == 'chat' %}
                     <!-- Generate New Form Button -->
                     <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity min-w-[100px] sm:min-w-[110px] md:min-w-[120px] lg:min-w-[130px] justify-center">
-                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">generate new form</span>
-                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">new form</span>
+                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
+                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">New form</span>
                         <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
                     </a>
                 {% elif nav_type == 'responses' %}
                     <!-- Generate New Form Button -->
                     <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity min-w-[100px] sm:min-w-[110px] md:min-w-[120px] lg:min-w-[130px] justify-center">
-                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">generate new form</span>
-                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">new form</span>
+                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
+                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">New form</span>
                         <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
                     </a>
                 {% else %}
