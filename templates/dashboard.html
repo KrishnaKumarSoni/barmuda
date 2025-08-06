@@ -47,16 +47,28 @@
                      onclick="viewResponses('{{ form.form_id }}')"
                      title="View responses for {{ form.title }}">
                     <!-- Survey Title -->
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <h3 class="font-['DM_Sans'] font-semibold text-[20px] md:text-[24px] text-black tracking-[-0.24px] leading-tight line-clamp-2">
                             {{ form.title }}
                         </h3>
                     </div>
                     
+                    <!-- Created Date - Below title, above questions count -->
+                    <div class="mb-4">
+                        <span class="font-['DM_Sans'] text-[14px] text-[#666] created-date" 
+                              data-timestamp="{{ form.created_at.timestamp() if form.created_at else '' }}">
+                            {% if form.created_at %}
+                                Created {{ form.created_at.strftime('%b %d, %Y') }}
+                            {% else %}
+                                Created Unknown
+                            {% endif %}
+                        </span>
+                    </div>
+                    
                     <!-- Bottom Section -->
                     <div class="absolute bottom-6 left-6 right-6">
                         <!-- Questions Count and Responses -->
-                        <div class="flex justify-between items-center mb-2">
+                        <div class="flex justify-between items-center mb-4">
                             <span class="font-['DM_Sans'] font-semibold text-[18px] tracking-[-0.18px] text-[#cc5500]">
                                 {{ form.questions|length }} q
                             </span>
@@ -65,18 +77,6 @@
                                     {{ form.response_count or 0 }} response{{ 's' if (form.response_count or 0) != 1 else '' }}
                                 </span>
                             </div>
-                        </div>
-                        
-                        <!-- Created Date -->
-                        <div class="flex justify-center mb-4">
-                            <span class="font-['DM_Sans'] text-[14px] text-[#666] created-date" 
-                                  data-timestamp="{{ form.created_at.timestamp() if form.created_at else '' }}">
-                                {% if form.created_at %}
-                                    {{ form.created_at.strftime('%b %d, %Y') }}
-                                {% else %}
-                                    Unknown
-                                {% endif %}
-                            </span>
                         </div>
                         
                         <!-- Status Toggle -->
@@ -458,7 +458,7 @@
 
         // Format timestamps to human-readable format
         function formatTimestamp(timestamp) {
-            if (!timestamp) return 'Unknown';
+            if (!timestamp) return 'Created Unknown';
             
             const now = new Date();
             const date = new Date(timestamp * 1000); // Convert from seconds to milliseconds
@@ -470,31 +470,31 @@
             
             // Less than 1 minute
             if (diffSeconds < 60) {
-                return 'Just now';
+                return 'Created just now';
             }
             // Less than 1 hour
             else if (diffMinutes < 60) {
-                return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+                return `Created ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
             }
             // Less than 24 hours
             else if (diffHours < 24) {
-                return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+                return `Created ${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
             }
             // Yesterday
             else if (diffDays === 1) {
-                return 'Yesterday';
+                return 'Created yesterday';
             }
             // Less than 7 days
             else if (diffDays < 7) {
-                return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+                return `Created ${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
             }
             // This year
             else if (date.getFullYear() === now.getFullYear()) {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return 'Created ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             }
             // Previous years
             else {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                return 'Created ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             }
         }
 
