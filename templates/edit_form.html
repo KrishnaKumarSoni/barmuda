@@ -93,7 +93,7 @@
                 class="flex items-center gap-3 px-6 py-3 border border-bermuda-orange rounded-full text-bermuda-red font-dm text-lg hover:bg-bermuda-orange hover:text-white transition-all"
             >
                 Add question
-                <i class="ph ph-plus text-white text-2xl"></i>
+                <i class="ph ph-plus text-current text-2xl"></i>
             </button>
         </div>
         
@@ -104,9 +104,9 @@
                 <button 
                     id="demographicsToggle"
                     onclick="toggleDemographics()"
-                    class="w-10 h-6"
+                    class="w-12 h-8"
                 >
-                    <i class="ph ph-toggle-left text-gray-400 text-2xl"></i>
+                    <i class="ph ph-toggle-left text-gray-400 text-3xl"></i>
                 </button>
             </div>
             
@@ -131,7 +131,7 @@
                 class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-lg px-8 py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
             >
                 Save & Launch
-                <i class="ph ph-floppy-disk text-white text-xl"></i>
+                <i class="ph ph-floppy-disk text-white text-2xl"></i>
             </button>
         </div>
         
@@ -326,13 +326,13 @@
                             // Already active form - update button
                             saveBtn.innerHTML = `
                                 Update Form
-                                <i class="ph ph-floppy-disk text-white text-xl"></i>
+                                <i class="ph ph-floppy-disk text-white text-2xl"></i>
                             `;
                         } else {
                             // Inactive form - keep original "Save & Launch" button
                             saveBtn.innerHTML = `
                                 Save & Launch
-                                <i class="ph ph-floppy-disk text-white text-xl"></i>
+                                <i class="ph ph-floppy-disk text-white text-2xl"></i>
                             `;
                         }
                     }
@@ -393,7 +393,7 @@
                     </h3>
                     <button 
                         onclick="toggleQuestion(${index})"
-                        class="w-10 h-6"
+                        class="w-12 h-8"
                     >
                         <i class="ph ${question.enabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
                     </button>
@@ -674,7 +674,7 @@
             if (grid.classList.contains('hidden')) {
                 // Show demographics section - enable it
                 grid.classList.remove('hidden');
-                toggle.innerHTML = '<i class="ph ph-toggle-right text-[#cc5500] text-2xl"></i>';
+                toggle.innerHTML = '<i class="ph ph-toggle-right text-[#cc5500] text-3xl"></i>';
                 
                 // Initialize demographics if not set
                 if (!formData.demographics) {
@@ -687,7 +687,7 @@
             } else {
                 // Hide demographics section - disable all demographics
                 grid.classList.add('hidden');
-                toggle.innerHTML = '<i class="ph ph-toggle-left text-gray-400 text-2xl"></i>';
+                toggle.innerHTML = '<i class="ph ph-toggle-left text-gray-400 text-3xl"></i>';
                 
                 // Disable all demographics when hiding section
                 if (!formData.demographics) formData.demographics = {};

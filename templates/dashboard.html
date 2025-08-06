@@ -394,82 +394,98 @@
 
     <!-- Embed Modal -->
     <div id="embed-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
             <!-- Modal Header -->
-            <div class="p-6 border-b border-gray-200">
+            <div class="p-4 border-b border-gray-100">
                 <div class="flex justify-between items-center">
-                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-[#1e1e1e]">Embed Form</h2>
-                    <button onclick="hideEmbedModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <i class="ph ph-x text-2xl"></i>
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#1e1e1e]">Embed Widget</h2>
+                    <button onclick="hideEmbedModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1">
+                        <i class="ph ph-x text-xl"></i>
                     </button>
                 </div>
+                <p class="font-['DM_Sans'] text-sm text-[#666] mt-2">
+                    Add a floating chat widget to your website
+                </p>
             </div>
 
             <!-- Modal Content -->
-            <div class="p-6">
-                <div class="mb-6">
-                    <p class="font-['DM_Sans'] text-[#666] mb-4">
-                        Add a floating chat widget to your website. Visitors will see a chat button that opens your form in a beautiful modal.
-                    </p>
-                </div>
-
-                <!-- Widget Options -->
-                <div class="mb-6">
-                    <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-3">Widget Settings</h3>
-                    <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 space-y-4">
+                <!-- Widget Settings -->
+                <div>
+                    <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-3 text-sm">Settings</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Position Selector -->
                         <div>
-                            <label class="block font-['DM_Sans'] text-sm text-[#666] mb-2">Position</label>
-                            <select id="widget-position" class="w-full p-2 border border-gray-300 rounded-lg font-['DM_Sans'] text-sm">
-                                <option value="bottom-right">Bottom Right</option>
-                                <option value="bottom-left">Bottom Left</option>
-                            </select>
+                            <label class="block font-['DM_Sans'] text-xs text-[#666] mb-2">Position</label>
+                            <div class="relative">
+                                <button id="position-dropdown" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-left font-['DM_Sans'] text-sm focus:ring-2 focus:ring-[#cc5500] focus:border-[#cc5500] flex justify-between items-center">
+                                    <span id="position-text">Bottom Right</span>
+                                    <i class="ph ph-caret-down text-gray-400"></i>
+                                </button>
+                                <div id="position-options" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg z-10">
+                                    <div class="position-option py-2 px-3 hover:bg-gray-50 cursor-pointer font-['DM_Sans'] text-sm" data-value="bottom-right">
+                                        <i class="ph ph-corner-out text-[#cc5500] mr-2"></i>Bottom Right
+                                    </div>
+                                    <div class="position-option py-2 px-3 hover:bg-gray-50 cursor-pointer font-['DM_Sans'] text-sm" data-value="bottom-left">
+                                        <i class="ph ph-corner-out text-[#cc5500] mr-2 transform scale-x-[-1]"></i>Bottom Left
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                        
+                        <!-- Color Picker -->
                         <div>
-                            <label class="block font-['DM_Sans'] text-sm text-[#666] mb-2">Color</label>
-                            <input type="color" id="widget-color" value="#cc5500" class="w-full h-10 border border-gray-300 rounded-lg">
+                            <label class="block font-['DM_Sans'] text-xs text-[#666] mb-2">Color</label>
+                            <div class="relative">
+                                <button id="color-picker-btn" class="w-full border border-gray-300 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-gray-400 transition-colors">
+                                    <div id="color-preview" class="w-4 h-4 rounded border border-gray-300" style="background: #cc5500;"></div>
+                                    <span id="color-text" class="font-['DM_Sans'] text-sm">#cc5500</span>
+                                </button>
+                                <input type="color" id="widget-color" value="#cc5500" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Preview -->
-                <div class="mb-6">
-                    <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-3">Preview</h3>
-                    <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative" style="height: 200px;">
-                        <div class="absolute inset-4 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
-                            <span class="font-['DM_Sans'] text-sm text-[#999]">Your Website Content</span>
+                <div>
+                    <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-3 text-sm">Preview</h3>
+                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-4 relative" style="height: 140px;">
+                        <div class="absolute inset-3 bg-white rounded border border-gray-200 flex items-center justify-center">
+                            <span class="font-['DM_Sans'] text-xs text-[#999]">Your Website</span>
                         </div>
-                        <div id="widget-preview" class="absolute bottom-4 right-4 w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300" style="background: #cc5500;">
-                            <i class="ph ph-chat-circle text-xl"></i>
+                        <div id="widget-preview" class="absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-500 ease-out transform hover:scale-110" style="background: #cc5500;">
+                            <i class="ph ph-chat-circle text-base"></i>
+                        </div>
+                        <!-- Position indicator -->
+                        <div class="absolute top-2 left-2">
+                            <span id="position-indicator" class="text-xs text-[#666] bg-white/80 px-2 py-1 rounded">Bottom Right</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Embed Code -->
-                <div class="mb-6">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e]">Embed Code</h3>
-                        <button onclick="copyEmbedCode()" id="copy-embed-btn" class="bg-[#cc5500] text-white px-4 py-2 rounded-lg text-sm font-['DM_Sans'] font-medium hover:bg-[#b84600] transition-colors flex items-center gap-2">
-                            <i class="ph ph-copy text-sm"></i>
-                            Copy Code
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-sm">Installation Code</h3>
+                        <button onclick="copyEmbedCode()" id="copy-embed-btn" class="bg-[#cc5500] text-white px-3 py-1.5 rounded-md text-xs font-['DM_Sans'] font-medium hover:bg-[#b84600] transition-colors flex items-center gap-1.5">
+                            <i class="ph ph-copy text-xs"></i>
+                            Copy
                         </button>
                     </div>
-                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                        <code id="embed-code" class="text-green-400 text-sm font-mono block whitespace-pre-wrap"></code>
+                    <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                        <code id="embed-code" class="text-green-400 text-xs font-mono block whitespace-pre-wrap leading-relaxed"></code>
                     </div>
                 </div>
 
-                <!-- Instructions -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 class="font-['DM_Sans'] font-medium text-[#1e1e1e] mb-2">How to install:</h4>
-                    <ol class="font-['DM_Sans'] text-sm text-[#666] space-y-1 pl-4">
-                        <li>1. Copy the widget code above</li>
-                        <li>2. Paste it in your website's HTML (before closing &lt;/body&gt; tag)</li>
-                        <li>3. Save and publish your website</li>
-                        <li>4. A floating chat button will appear on your site!</li>
-                    </ol>
-                    <div class="mt-3 p-3 bg-white rounded border border-blue-200">
-                        <p class="font-['DM_Sans'] text-xs text-[#666] mb-1"><strong>Professional tip:</strong></p>
-                        <p class="font-['DM_Sans'] text-xs text-[#666]">The widget automatically adapts to mobile devices and won't disrupt your page layout.</p>
+                <!-- Quick Instructions -->
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <div class="flex items-start gap-2">
+                        <i class="ph ph-info text-orange-500 text-sm mt-0.5 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-['DM_Sans'] text-xs text-orange-800 font-medium">Quick Setup:</p>
+                            <p class="font-['DM_Sans'] text-xs text-orange-700 mt-1">Copy code → Paste before &lt;/body&gt; → Done! Widget appears automatically.</p>
+                        </div>
                     </div>
                 </div>
             </div>
