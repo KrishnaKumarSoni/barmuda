@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Billing - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen">
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen">
+        {% set nav_type = 'dashboard' %}
+        {% include 'partials/nav.html' %}
+
+        <!-- Main Content -->
+        <div class="max-w-4xl mx-auto px-4 md:px-8 pt-24 md:pt-28 pb-8">
+            <!-- Header Section -->
+            <div class="mb-8">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-[40px] text-black tracking-[-0.4px] mb-2">Billing & Usage</h1>
+                <p class="font-['DM_Sans'] text-lg text-[#666]">Manage your subscription and monitor usage</p>
+            </div>
+
+            <!-- Current Plan Section -->
+            <div class="bg-white border border-[#fff0cf] rounded-lg p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-black">Current Plan</h2>
+                    <div class="flex gap-3">
+                        <button onclick="viewPricingPlans()" class="text-[#cc5500] hover:text-[#d12b2e] font-['DM_Sans'] text-sm font-medium border border-[#cc5500] px-4 py-2 rounded-lg transition-colors">
+                            View Plans
+                        </button>
+                        <button id="manage-subscription" onclick="manageSubscription()" class="bg-[#cc5500] text-white px-4 py-2 rounded-lg font-['DM_Sans'] text-sm font-medium hover:bg-[#d12b2e] transition-colors">
+                            Upgrade
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Plan Info -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center p-6 bg-[#fff5e0] rounded-lg">
+                        <div id="current-plan" class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#cc5500] mb-2">Free</div>
+                        <div class="font-['DM_Sans'] text-sm text-[#666]">Current Plan</div>
+                        <div id="plan-price" class="font-['DM_Sans'] text-lg font-medium text-black mt-2">$0/month</div>
+                    </div>
+                    <div class="text-center p-6 bg-[#fff5e0] rounded-lg">
+                        <div id="conversations-usage" class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#cc5500] mb-2">0 / 100</div>
+                        <div class="font-['DM_Sans'] text-sm text-[#666]">Conversations This Month</div>
+                        <div id="conversations-reset" class="font-['DM_Sans'] text-xs text-[#888] mt-2">Resets monthly</div>
+                    </div>
+                    <div class="text-center p-6 bg-[#fff5e0] rounded-lg">
+                        <div id="forms-usage" class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#cc5500] mb-2">0 / 3</div>
+                        <div class="font-['DM_Sans'] text-sm text-[#666]">Total Forms</div>
+                        <div id="forms-limit" class="font-['DM_Sans'] text-xs text-[#888] mt-2">Lifetime limit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Progress Section -->
+            <div class="bg-white border border-[#fff0cf] rounded-lg p-6 mb-6">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-black mb-4">Usage This Month</h2>
+                
+                <!-- Progress Bars -->
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="font-['DM_Sans'] font-medium text-[#333]">Conversations</span>
+                            <span id="conversation-percentage" class="font-['DM_Sans'] text-[#666]">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div id="conversation-progress" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="font-['DM_Sans'] font-medium text-[#333]">Forms</span>
+                            <span id="forms-percentage" class="font-['DM_Sans'] text-[#666]">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div id="forms-progress" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upgrade Warning -->
+            <div id="upgrade-warning" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
+                <div class="flex items-center gap-3">
+                    <i class="ph ph-warning text-yellow-600 text-xl"></i>
+                    <div class="flex-1">
+                        <p class="font-['DM_Sans'] text-sm font-medium text-yellow-800" id="warning-text">
+                            You're approaching your plan limits.
+                        </p>
+                    </div>
+                    <button onclick="showUpgradeOptions()" class="bg-yellow-600 text-white px-4 py-2 rounded-lg font-['DM_Sans'] text-sm font-medium hover:bg-yellow-700 transition-colors">
+                        Upgrade Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Plan Features Section -->
+            <div class="bg-white border border-[#fff0cf] rounded-lg p-6 mb-6">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-black mb-4">Plan Features</h2>
+                
+                <div id="plan-features" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Features will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Billing History Section -->
+            <div class="bg-white border border-[#fff0cf] rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-black">Billing History</h2>
+                    <button onclick="downloadInvoices()" class="text-[#cc5500] hover:text-[#d12b2e] font-['DM_Sans'] text-sm font-medium">
+                        Download All
+                    </button>
+                </div>
+                
+                <div id="billing-history">
+                    <div class="text-center py-8 text-[#666]">
+                        <i class="ph ph-receipt text-4xl mb-2"></i>
+                        <p class="font-['DM_Sans']">No billing history yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Authentication -->
+    <script>
+        // Firebase configuration - REAL config for barmuda-in
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Real Google Sign Out
+        async function signOut() {
+            try {
+                await auth.signOut();
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        // Billing Management Functions
+        async function loadBillingInfo() {
+            try {
+                const response = await fetch('/api/billing/subscription');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateBillingDisplay(data);
+                } else {
+                    console.error('Failed to load billing info:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading billing info:', error);
+            }
+        }
+
+        function updateBillingDisplay(data) {
+            const { subscription, usage, limits, plan_features } = data;
+            
+            // Update plan name
+            const planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1);
+            document.getElementById('current-plan').textContent = planName;
+            
+            // Update plan price
+            const prices = {
+                'free': '$0/month',
+                'starter': '$19/month',
+                'pro': '$49/month',
+                'business': 'Custom'
+            };
+            document.getElementById('plan-price').textContent = prices[subscription.plan] || 'Custom';
+            
+            // Update usage counters
+            const conversationsUsage = document.getElementById('conversations-usage');
+            const formsUsage = document.getElementById('forms-usage');
+            
+            const conversationsLimit = limits.conversations_per_month === -1 ? '∞' : limits.conversations_per_month;
+            const formsLimit = limits.max_forms === -1 ? '∞' : limits.max_forms;
+            
+            conversationsUsage.textContent = `${usage.conversations_count} / ${conversationsLimit}`;
+            formsUsage.textContent = `${usage.forms_count} / ${formsLimit}`;
+            
+            // Update progress bars
+            updateProgressBar('conversation-progress', 'conversation-percentage', 
+                usage.conversations_count, limits.conversations_per_month);
+            updateProgressBar('forms-progress', 'forms-percentage', 
+                usage.forms_count, limits.max_forms);
+            
+            // Update plan features
+            updatePlanFeatures(plan_features);
+            
+            // Show upgrade warning if needed
+            checkAndShowWarning(usage, limits);
+        }
+
+        function updateProgressBar(barId, percentageId, current, limit) {
+            const bar = document.getElementById(barId);
+            const percentageEl = document.getElementById(percentageId);
+            
+            if (limit === -1) {
+                // Unlimited
+                bar.style.width = '0%';
+                percentageEl.textContent = 'Unlimited';
+            } else {
+                const percentage = Math.min((current / limit) * 100, 100);
+                bar.style.width = `${percentage}%`;
+                percentageEl.textContent = `${Math.round(percentage)}%`;
+                
+                // Change color based on usage
+                if (percentage >= 90) {
+                    bar.classList.add('bg-red-500');
+                    bar.classList.remove('bg-gradient-to-r', 'from-[#cc5500]', 'to-[#d12b2e]');
+                } else if (percentage >= 75) {
+                    bar.classList.add('bg-yellow-500');
+                    bar.classList.remove('bg-gradient-to-r', 'from-[#cc5500]', 'to-[#d12b2e]');
+                }
+            }
+        }
+
+        function updatePlanFeatures(features) {
+            const featuresContainer = document.getElementById('plan-features');
+            featuresContainer.innerHTML = '';
+            
+            const featureNames = {
+                'remove_branding': 'Remove Barmuda Branding',
+                'custom_widget_colors': 'Custom Widget Colors',
+                'template_library': 'Template Library',
+                'word_cloud': 'Word Cloud Analytics',
+                'advanced_export': 'Advanced Export Options',
+                'priority_support': 'Priority Support',
+                'team_members': 'Team Members'
+            };
+            
+            Object.entries(featureNames).forEach(([key, name]) => {
+                const isEnabled = features[key];
+                const featureDiv = document.createElement('div');
+                featureDiv.className = 'flex items-center gap-2 p-2';
+                
+                featureDiv.innerHTML = `
+                    <i class="ph ${isEnabled ? 'ph-check-circle text-green-500' : 'ph-x-circle text-gray-400'} text-lg"></i>
+                    <span class="font-['DM_Sans'] text-sm ${isEnabled ? 'text-black' : 'text-gray-400'}">${name}</span>
+                `;
+                
+                featuresContainer.appendChild(featureDiv);
+            });
+        }
+
+        function checkAndShowWarning(usage, limits) {
+            const warningEl = document.getElementById('upgrade-warning');
+            const warningText = document.getElementById('warning-text');
+            
+            let showWarning = false;
+            let warningMessage = '';
+            
+            // Check conversations limit
+            if (limits.conversations_per_month !== -1) {
+                const conversationPercentage = (usage.conversations_count / limits.conversations_per_month) * 100;
+                if (conversationPercentage >= 80) {
+                    showWarning = true;
+                    warningMessage = `You've used ${Math.round(conversationPercentage)}% of your monthly conversations.`;
+                }
+            }
+            
+            // Check forms limit
+            if (limits.max_forms !== -1) {
+                const formsPercentage = (usage.forms_count / limits.max_forms) * 100;
+                if (formsPercentage >= 80) {
+                    showWarning = true;
+                    warningMessage = `You've used ${Math.round(formsPercentage)}% of your form limit.`;
+                }
+            }
+            
+            if (showWarning) {
+                warningText.textContent = warningMessage;
+                warningEl.classList.remove('hidden');
+            } else {
+                warningEl.classList.add('hidden');
+            }
+        }
+
+        function viewPricingPlans() {
+            window.location.href = '/pricing';
+        }
+
+        function manageSubscription() {
+            showUpgradeOptions();
+        }
+
+        async function showUpgradeOptions() {
+            try {
+                const response = await fetch('/api/billing/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ plan: 'starter' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.open(data.checkout_url, '_blank');
+                } else {
+                    showNotification('Failed to create upgrade link: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error creating upgrade link:', error);
+                showNotification('Failed to create upgrade link', 'error');
+            }
+        }
+
+        async function loadBillingHistory() {
+            try {
+                const response = await fetch('/api/billing/invoices');
+                const data = await response.json();
+                
+                if (data.success && data.invoices.length > 0) {
+                    updateBillingHistory(data.invoices);
+                }
+            } catch (error) {
+                console.error('Error loading billing history:', error);
+            }
+        }
+
+        function updateBillingHistory(invoices) {
+            const historyContainer = document.getElementById('billing-history');
+            
+            historyContainer.innerHTML = `
+                <div class="space-y-3">
+                    ${invoices.map(invoice => `
+                        <div class="flex justify-between items-center p-4 border border-gray-200 rounded-lg">
+                            <div>
+                                <div class="font-['DM_Sans'] font-medium text-black">${invoice.plan.charAt(0).toUpperCase() + invoice.plan.slice(1)} Plan</div>
+                                <div class="font-['DM_Sans'] text-sm text-[#666]">${formatDate(invoice.created_at)}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-['DM_Sans'] font-medium text-black">$${(invoice.amount / 100).toFixed(2)}</div>
+                                <div class="font-['DM_Sans'] text-sm text-[#666] capitalize">${invoice.status}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function downloadInvoices() {
+            // This would implement invoice downloading functionality
+            showNotification('Invoice download feature coming soon', 'info');
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Page load initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Billing page loaded successfully');
+            loadBillingInfo();
+            loadBillingHistory();
+            
+            // Refresh billing info every 5 minutes
+            setInterval(loadBillingInfo, 300000);
+        });
+    </script>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

@@ -110,6 +110,10 @@ db = firestore.client()
 openai_api_key = os.environ.get("OPENAI_API_KEY", "").strip()
 openai_client = OpenAI(api_key=openai_api_key)
 
+# Initialize billing system
+from billing import init_billing, get_subscription_manager, get_dodo_client, is_test_mode
+init_billing(db)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -135,6 +139,81 @@ def login_required(f):
 
         return f(*args, **kwargs)
 
+    return decorated_function
+
+
+# Feature gate decorators
+def require_form_creation(f):
+    """Decorator to check if user can create forms"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not hasattr(request, 'user'):
+            return jsonify({"error": "Authentication required"}), 401
+        
+        try:
+            subscription_manager = get_subscription_manager()
+            can_create, error_message = subscription_manager.can_create_form(request.user["uid"])
+            
+            if not can_create:
+                return jsonify({
+                    "success": False,
+                    "error": error_message,
+                    "upgrade_required": True,
+                    "feature": "form_creation"
+                }), 403
+                
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"Error checking form creation limits: {str(e)}")
+            # Allow on error to avoid breaking functionality
+            return f(*args, **kwargs)
+    
+    return decorated_function
+
+
+def require_conversation_limit(f):
+    """Decorator to check conversation limits"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # For conversation endpoints, we need to check the form owner, not the respondent
+        data = request.get_json() if request.is_json else {}
+        form_id = data.get("form_id") or kwargs.get("form_id")
+        
+        if not form_id:
+            return f(*args, **kwargs)
+        
+        try:
+            # Get form owner
+            form_doc = db.collection("forms").document(form_id).get()
+            if not form_doc.exists:
+                return jsonify({"error": "Form not found"}), 404
+                
+            form_data = form_doc.to_dict()
+            form_owner_id = form_data.get("creator_id")
+            
+            if not form_owner_id:
+                return f(*args, **kwargs)
+            
+            subscription_manager = get_subscription_manager()
+            can_start, error_message = subscription_manager.can_start_conversation(form_owner_id)
+            
+            if not can_start:
+                return jsonify({
+                    "error": "Conversation limit reached",
+                    "message": "This survey has reached its monthly conversation limit. The survey owner needs to upgrade their plan.",
+                    "upgrade_required": True
+                }), 403
+            
+            # If allowed, increment counter and proceed
+            subscription_manager.increment_conversation_count(form_owner_id)
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"Error checking conversation limits: {str(e)}")
+            # Allow on error to avoid breaking functionality
+            return f(*args, **kwargs)
+    
     return decorated_function
 
 
@@ -697,6 +776,17 @@ def dashboard():
         return jsonify({"error": "Failed to load dashboard", "details": str(e)}), 500
 
 
+@app.route("/billing")
+@login_required
+def billing():
+    """Protected billing route"""
+    try:
+        return render_template("billing.html", user=request.user)
+
+    except Exception as e:
+        return jsonify({"error": "Failed to load billing page", "details": str(e)}), 500
+
+
 @app.route("/api/user/profile")
 @login_required
 def get_user_profile():
@@ -878,6 +968,7 @@ def validate_form_generation_input(input_text):
 
 @app.route("/api/infer", methods=["POST"])
 @login_required
+@require_form_creation
 def infer_form():
     """
     Infer form structure from unstructured text dump with comprehensive validation
@@ -951,6 +1042,13 @@ def infer_form():
                 # Save to Firebase
                 doc_ref = db.collection("forms").add(survey_data)
                 form_id = doc_ref[1].id
+
+                # Increment form counter for billing
+                try:
+                    subscription_manager = get_subscription_manager()
+                    subscription_manager.increment_form_count(user_id)
+                except Exception as e:
+                    logger.error(f"Error incrementing form count: {str(e)}")
 
                 logger.info(f"Auto-saved inactive survey {form_id} for user {user_id}")
 
@@ -1167,7 +1265,7 @@ def save_form():
         logger.info(f"Form saved successfully with ID: {form_id}")
 
         # Generate share URL
-        share_url = f"barmuda.vercel.app/form/{form_id}"
+        share_url = f"barmuda.in/form/{form_id}"
 
         return (
             jsonify(
@@ -1282,7 +1380,7 @@ def update_form(form_id):
 
         # If activating for the first time, generate share URL
         if form_data.get("active") and not existing_form.get("active"):
-            update_document["share_url"] = f"https://barmuda.vercel.app/form/{form_id}"
+            update_document["share_url"] = f"https://barmuda.in/form/{form_id}"
             logger.info(f"Activating survey {form_id} - generated share URL")
 
         logger.info(
@@ -1297,7 +1395,7 @@ def update_form(form_id):
         # Get final share URL (either existing or newly generated)
         updated_doc = form_ref.get().to_dict()
         share_url = updated_doc.get(
-            "share_url", f"https://barmuda.vercel.app/form/{form_id}"
+            "share_url", f"https://barmuda.in/form/{form_id}"
         )
 
         return (
@@ -1393,6 +1491,248 @@ def health_check():
         ),
         200,
     )
+
+
+# ================================
+# BILLING & SUBSCRIPTION ROUTES
+# ================================
+
+@app.route("/api/billing/plans")
+def get_pricing_plans():
+    """Get available pricing plans"""
+    try:
+        subscription_manager = get_subscription_manager()
+        
+        return jsonify({
+            "success": True,
+            "plans": {
+                "free": {
+                    "name": "Free",
+                    "price": 0,
+                    "currency": "USD",
+                    "features": subscription_manager.PLAN_LIMITS["free"]
+                },
+                "starter": {
+                    "name": "Starter",
+                    "price": 19,
+                    "currency": "USD",
+                    "features": subscription_manager.PLAN_LIMITS["starter"]
+                },
+                "pro": {
+                    "name": "Pro", 
+                    "price": 49,
+                    "currency": "USD",
+                    "features": subscription_manager.PLAN_LIMITS["pro"]
+                },
+                "business": {
+                    "name": "Business",
+                    "price": "Custom",
+                    "currency": "USD",
+                    "features": subscription_manager.PLAN_LIMITS["business"]
+                }
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting pricing plans: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to get pricing plans"}), 500
+
+
+@app.route("/api/billing/subscription")
+@login_required
+def get_user_subscription():
+    """Get current user's subscription details"""
+    try:
+        user_id = request.user["uid"]
+        subscription_manager = get_subscription_manager()
+        
+        subscription = subscription_manager.get_user_subscription(user_id)
+        usage = subscription_manager.get_user_usage(user_id)
+        
+        # Get plan limits for context
+        plan = subscription.get("plan", "free")
+        limits = subscription_manager.PLAN_LIMITS.get(plan, subscription_manager.PLAN_LIMITS["free"])
+        
+        return jsonify({
+            "success": True,
+            "subscription": subscription,
+            "usage": usage,
+            "limits": limits,
+            "plan_features": {
+                "remove_branding": subscription_manager.has_feature(user_id, "remove_branding"),
+                "custom_widget_colors": subscription_manager.has_feature(user_id, "custom_widget_colors"),
+                "template_library": subscription_manager.has_feature(user_id, "template_library"),
+                "word_cloud": subscription_manager.has_feature(user_id, "word_cloud"),
+                "advanced_export": subscription_manager.has_feature(user_id, "advanced_export"),
+                "priority_support": subscription_manager.has_feature(user_id, "priority_support"),
+                "team_members": subscription_manager.has_feature(user_id, "team_members")
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting user subscription: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to get subscription"}), 500
+
+
+@app.route("/api/billing/subscribe", methods=["POST"])
+@login_required
+def create_subscription():
+    """Create a subscription payment link"""
+    try:
+        data = request.get_json()
+        plan = data.get("plan")
+        
+        if not plan or plan not in ["starter", "pro", "business"]:
+            return jsonify({"success": False, "error": "Invalid plan"}), 400
+        
+        user_id = request.user["uid"]
+        user_email = request.user["email"]
+        
+        # Create Dodo payment link
+        dodo_client = get_dodo_client()
+        if not dodo_client:
+            return jsonify({"success": False, "error": "Payment system not configured"}), 500
+        
+        success_url = f"https://barmuda.in/dashboard?payment=success&plan={plan}"
+        cancel_url = f"https://barmuda.in/pricing?payment=cancelled"
+        
+        result = dodo_client.create_subscription_link(
+            plan=plan,
+            customer_email=user_email,
+            success_url=success_url,
+            cancel_url=cancel_url
+        )
+        
+        if result["success"]:
+            return jsonify({
+                "success": True,
+                "checkout_url": result["data"]["url"],
+                "plan": plan
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": f"Failed to create payment link: {result['error']}"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error creating subscription: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to create subscription"}), 500
+
+
+@app.route("/api/billing/cancel", methods=["POST"])
+@login_required
+def cancel_subscription():
+    """Cancel user's subscription"""
+    try:
+        user_id = request.user["uid"]
+        subscription_manager = get_subscription_manager()
+        
+        subscription = subscription_manager.get_user_subscription(user_id)
+        dodo_subscription_id = subscription.get("dodo_subscription_id")
+        
+        if dodo_subscription_id:
+            # Cancel with Dodo
+            dodo_client = get_dodo_client()
+            if dodo_client:
+                result = dodo_client.cancel_subscription(dodo_subscription_id)
+                if not result["success"]:
+                    logger.warning(f"Failed to cancel Dodo subscription: {result['error']}")
+        
+        # Update local subscription
+        subscription_manager.cancel_subscription(user_id)
+        
+        return jsonify({
+            "success": True,
+            "message": "Subscription cancelled successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error cancelling subscription: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to cancel subscription"}), 500
+
+
+@app.route("/api/billing/invoices")
+@login_required
+def get_user_invoices():
+    """Get user's billing history"""
+    try:
+        user_id = request.user["uid"]
+        subscription_manager = get_subscription_manager()
+        
+        invoices = subscription_manager.get_user_invoices(user_id)
+        
+        return jsonify({
+            "success": True,
+            "invoices": invoices
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting invoices: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to get invoices"}), 500
+
+
+@app.route("/webhooks/dodo", methods=["POST"])
+def dodo_webhook():
+    """Handle Dodo payment webhooks"""
+    try:
+        # Verify webhook signature
+        signature = request.headers.get("X-Signature")
+        webhook_secret = os.environ.get("DODO_WEBHOOK_SECRET")
+        
+        if not webhook_secret or not signature:
+            logger.warning("Missing webhook signature or secret")
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        payload = request.get_data(as_text=True)
+        dodo_client = get_dodo_client()
+        
+        if not dodo_client or not dodo_client.verify_webhook(payload, signature, webhook_secret):
+            logger.warning("Invalid webhook signature")
+            return jsonify({"error": "Invalid signature"}), 401
+        
+        # Process webhook event
+        event_data = request.get_json()
+        event_type = event_data.get("type")
+        event_object = event_data.get("data", {})
+        
+        subscription_manager = get_subscription_manager()
+        
+        if event_type == "subscription.created":
+            # New subscription created
+            customer_email = event_object.get("customer_email")
+            plan = event_object.get("metadata", {}).get("plan")
+            subscription_id = event_object.get("id")
+            
+            # Find user by email
+            users_ref = db.collection("users").where("email", "==", customer_email)
+            users = list(users_ref.stream())
+            
+            if users:
+                user_id = users[0].id
+                subscription_manager.update_subscription(user_id, plan, subscription_id)
+                logger.info(f"Updated subscription for user {user_id} to {plan}")
+            
+        elif event_type == "subscription.cancelled":
+            # Subscription cancelled
+            subscription_id = event_object.get("id")
+            
+            # Find user by subscription ID
+            users_ref = db.collection("users").where("subscription.dodo_subscription_id", "==", subscription_id)
+            users = list(users_ref.stream())
+            
+            if users:
+                user_id = users[0].id
+                subscription_manager.cancel_subscription(user_id)
+                logger.info(f"Cancelled subscription for user {user_id}")
+        
+        # Note: Invoice events not available in current Dodo setup
+        # Invoice handling can be added later when available
+        
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        return jsonify({"error": "Webhook processing failed"}), 500
 
 
 # Error handlers
@@ -1569,6 +1909,7 @@ def widget_script():
 
 
 @app.route("/api/chat/start", methods=["POST"])
+@require_conversation_limit
 def start_chat_session():
     """Start a new chat session or resume existing one"""
     try:

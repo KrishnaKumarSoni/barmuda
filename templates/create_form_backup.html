@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Create Form - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fff5e0',
+                        'bermuda-light-cream': '#fffcf4',
+                        'bermuda-border': '#fb9a9a',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#c3c3c3'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        {% set nav_type = 'create_form' %}
+        {% include 'partials/nav.html' %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col items-center px-4 md:px-8 space-y-6 md:space-y-10 pt-32 md:pt-40 pb-16 md:pb-24">
+            <!-- Main Heading -->
+            <div class="text-center max-w-4xl space-y-4">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl md:text-4xl lg:text-5xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15]">
+                    People hate filling out forms.
+                </h1>
+                <h2 class="font-['Plus_Jakarta_Sans'] font-semibold text-2xl md:text-3xl lg:text-4xl text-[#cc5500] tracking-[-0.02em] leading-[1.2]">
+                    So we made surveys that feel like texting.
+                </h2>
+                <p class="font-['DM_Sans'] text-base md:text-lg lg:text-xl text-[#6b7280] max-w-3xl mx-auto leading-relaxed">
+                    Paste your questions, get a link. People chat with AI instead of filling boring forms.
+                </p>
+            </div>
+            
+            <!-- Form Input Area -->
+            <div class="w-full max-w-3xl relative">
+                <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
+                    <textarea 
+                        id="formDump"
+                        placeholder="Describe what kind of survey you want to create..."
+                        class="w-full h-36 md:h-46 p-4 md:p-6 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base md:text-lg text-[#1e1e1e] placeholder-[#9ca3af] leading-relaxed"
+                        oninput="validateInput()"
+                    ></textarea>
+                    
+                    <!-- Generate Button (Inside the box) -->
+                    <button 
+                        id="generateBtn"
+                        onclick="generateForm()"
+                        class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-4 md:px-5 py-2 md:py-2.5 text-white font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm transition-all duration-200 flex items-center gap-2 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
+                        disabled
+                    >
+                        <span id="buttonText">Generate</span>
+                        <div id="buttonSpinner" class="hidden">
+                            <div class="flex space-x-1">
+                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                            </div>
+                        </div>
+                        <i class="ph ph-arrow-right text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Validation Message (Outside the box) -->
+                <div id="validationMessage" class="hidden mt-2 text-sm text-red-600 font-['DM_Sans']"></div>
+            </div>
+            
+            <!-- Error State -->
+            <div id="errorState" class="hidden w-full max-w-2xl">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p class="text-red-800 font-['DM_Sans']">
+                        <span class="font-semibold">Error:</span>
+                        <span id="errorMessage"></span>
+                    </p>
+                    <button onclick="document.getElementById('errorState').classList.add('hidden')" 
+                            class="mt-2 text-red-600 hover:text-red-800 font-['DM_Sans'] text-sm">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Form Templates Carousel -->
+            <div class="w-full max-w-6xl">
+                <div class="text-center mb-6">
+                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#6b7280] font-medium uppercase tracking-wider">Or choose a template</p>
+                </div>
+                
+                <!-- Carousel Container -->
+                <div class="relative">
+                    <!-- Left Arrow -->
+                    <button id="carousel-left" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white border border-[#DAB568] rounded-full flex items-center justify-center hover:bg-[#cc5500] hover:border-[#cc5500] transition-all duration-200 group shadow-sm">
+                        <i class="ph ph-caret-left text-[#cc5500] group-hover:text-white text-lg transition-colors"></i>
+                    </button>
+                    
+                    <!-- Right Arrow -->
+                    <button id="carousel-right" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white border border-[#DAB568] rounded-full flex items-center justify-center hover:bg-[#cc5500] hover:border-[#cc5500] transition-all duration-200 group shadow-sm">
+                        <i class="ph ph-caret-right text-[#cc5500] group-hover:text-white text-lg transition-colors"></i>
+                    </button>
+                    
+                    <!-- Carousel Content -->
+                    <div id="carousel-container" class="overflow-hidden">
+                        <div id="carousel-track" class="flex transition-transform duration-300 ease-out gap-2 md:gap-3">
+                            
+                            <!-- Customer Feedback Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('customer-feedback')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-chat-circle-dots text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Customer Feedback
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Employee Survey Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('employee-survey')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-users text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Employee Survey
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Market Research Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('market-research')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-chart-line text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Market Research
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Event Feedback Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('event-feedback')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-calendar-check text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Event Feedback
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- User Experience Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('user-experience')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-devices text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        User Experience
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Lead Qualification Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('lead-qualification')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-target text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Lead Qualification
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Customer Onboarding Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('customer-onboarding')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-handshake text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Customer Onboarding
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Pricing Research Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('pricing-research')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-currency-dollar text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Pricing Research
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Patient Satisfaction Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('patient-satisfaction')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-heart text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Patient Satisfaction
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Hotel Experience Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('hotel-experience')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-bed text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Hotel Experience
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Restaurant Feedback Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('restaurant-feedback')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-fork-knife text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Restaurant Feedback
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Course Evaluation Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('course-evaluation')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-graduation-cap text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Course Evaluation
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Beta Testing Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('beta-testing')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-test-tube text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Beta Testing
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Product Launch Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('product-launch')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-rocket-launch text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Product Launch
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Support Satisfaction Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('support-satisfaction')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-headset text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Support Satisfaction
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Brand Awareness Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('brand-awareness')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-megaphone text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Brand Awareness
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Exit Interview Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('exit-interview')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-door-open text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Exit Interview
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Website Feedback Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('website-feedback')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-globe text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Website Feedback
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Training Evaluation Template -->
+                            <div class="flex-shrink-0 bg-white border border-[#DAB568] rounded-full px-3 md:px-4 py-2 md:py-2.5 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('training-evaluation')">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-chalkboard-teacher text-[#cc5500] group-hover:text-white text-base transition-colors"></i>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                        Training Evaluation
+                                    </h3>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <!-- Carousel Dots -->
+                    <div id="carousel-dots" class="flex justify-center gap-2 mt-6">
+                        <!-- Dots will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features -->
+            <div class="text-center max-w-4xl mt-12 md:mt-16">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+                    <div class="flex flex-col items-center p-4">
+                        <div class="w-12 h-12 bg-[#cc5500]/10 rounded-xl flex items-center justify-center mb-3">
+                            <i class="ph ph-magic-wand text-[#cc5500] text-xl"></i>
+                        </div>
+                        <span class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#6b7280]">AI-Generated</span>
+                    </div>
+                    <div class="flex flex-col items-center p-4">
+                        <div class="w-12 h-12 bg-[#cc5500]/10 rounded-xl flex items-center justify-center mb-3">
+                            <i class="ph ph-chat-circle text-[#cc5500] text-xl"></i>
+                        </div>
+                        <span class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#6b7280]">Chat Interface</span>
+                    </div>
+                    <div class="flex flex-col items-center p-4">
+                        <div class="w-12 h-12 bg-[#cc5500]/10 rounded-xl flex items-center justify-center mb-3">
+                            <i class="ph ph-file-csv text-[#cc5500] text-xl"></i>
+                        </div>
+                        <span class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#6b7280]">CSV Export</span>
+                    </div>
+                    <div class="flex flex-col items-center p-4">
+                        <div class="w-12 h-12 bg-[#cc5500]/10 rounded-xl flex items-center justify-center mb-3">
+                            <i class="ph ph-share text-[#cc5500] text-xl"></i>
+                        </div>
+                        <span class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#6b7280]">Share Links</span>
+                    </div>
+                    <div class="flex flex-col items-center p-4">
+                        <div class="w-12 h-12 bg-[#cc5500]/10 rounded-xl flex items-center justify-center mb-3">
+                            <i class="ph ph-chart-bar text-[#cc5500] text-xl"></i>
+                        </div>
+                        <span class="font-['Plus_Jakarta_Sans'] font-medium text-sm text-[#6b7280]">Dashboard</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Authentication functions
+        async function signOut() {
+            try {
+                await auth.signOut();
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign out error:', error);
+                alert('Failed to sign out');
+            }
+        }
+
+        // Helper function for session-based authenticated requests
+        async function authenticatedFetch(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                credentials: 'include',
+                headers: {
+                    ...options.headers,
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+
+        // Validation state
+        let validationTimeout;
+        let isValid = false;
+        
+        // Real-time input validation with debouncing
+        function validateInput() {
+            const input = document.getElementById('formDump');
+            const generateBtn = document.getElementById('generateBtn');
+            const validationMessage = document.getElementById('validationMessage');
+            const inputCard = document.getElementById('inputCard');
+            
+            clearTimeout(validationTimeout);
+            
+            validationTimeout = setTimeout(() => {
+                const text = input.value.trim();
+                const validation = validateFormInput(text);
+                
+                if (validation.isValid) {
+                    // Valid input
+                    isValid = true;
+                    generateBtn.disabled = false;
+                    validationMessage.classList.add('hidden');
+                    inputCard.classList.remove('border-red-300');
+                    inputCard.classList.add('border-[#fb9a9a]');
+                } else {
+                    // Invalid input
+                    isValid = false;
+                    generateBtn.disabled = true;
+                    if (validation.message && text.length > 0) {
+                        validationMessage.textContent = validation.message;
+                        validationMessage.classList.remove('hidden');
+                        inputCard.classList.add('border-red-300');
+                        inputCard.classList.remove('border-[#fb9a9a]');
+                    } else {
+                        validationMessage.classList.add('hidden');
+                        inputCard.classList.remove('border-red-300');
+                        inputCard.classList.add('border-[#fb9a9a]');
+                    }
+                }
+            }, 300); // 300ms debounce
+        }
+        
+        // Comprehensive input validation
+        function validateFormInput(text) {
+            // Empty or too short
+            if (!text || text.length === 0) {
+                return { isValid: false, message: '' };
+            }
+            
+            if (text.length < 20) {
+                return { 
+                    isValid: false, 
+                    message: 'Please provide more details about your form (minimum 20 characters)' 
+                };
+            }
+            
+            // Only whitespace or newlines
+            if (!/\S/.test(text) || text.replace(/\s/g, '').length < 10) {
+                return { 
+                    isValid: false, 
+                    message: 'Please describe what kind of form you want to create' 
+                };
+            }
+            
+            // Repetitive characters (like "aaaaaaa" or "1111111")
+            const repetitivePattern = /(.)\1{6,}/;
+            if (repetitivePattern.test(text)) {
+                return { 
+                    isValid: false, 
+                    message: 'Please provide a meaningful description of your form' 
+                };
+            }
+            
+            // Keyboard mashing detection
+            const keyboardMashing = /^[qwertyuiop]+$|^[asdfghjkl]+$|^[zxcvbnm]+$/i;
+            if (keyboardMashing.test(text.replace(/\s/g, ''))) {
+                return { 
+                    isValid: false, 
+                    message: 'Please provide a real description of the form you want to create' 
+                };
+            }
+            
+            // Not form-related (basic check)
+            const formKeywords = /\b(form|survey|question|data|collect|response|feedback|poll|quiz|assessment|evaluation|information|details|input)\b/i;
+            const nonFormKeywords = /\b(weather|time|date|news|sports|movie|music|food|recipe|game|joke|story)\b/i;
+            
+            if (nonFormKeywords.test(text) && !formKeywords.test(text)) {
+                return { 
+                    isValid: false, 
+                    message: 'This doesn\'t seem to be about creating a form. Please describe your form goals.' 
+                };
+            }
+            
+            return { isValid: true, message: '' };
+        }
+        
+        // Enhanced loading states
+        function setButtonState(state) {
+            const generateBtn = document.getElementById('generateBtn');
+            const buttonText = document.getElementById('buttonText');
+            const buttonSpinner = document.getElementById('buttonSpinner');
+            
+            switch(state) {
+                case 'validating':
+                    generateBtn.disabled = true;
+                    buttonText.textContent = 'validating...';
+                    buttonSpinner.classList.remove('hidden');
+                    break;
+                case 'generating':
+                    buttonText.textContent = 'generating';
+                    buttonSpinner.classList.remove('hidden');
+                    break;
+                case 'redirecting':
+                    buttonText.textContent = 'redirecting...';
+                    buttonSpinner.classList.remove('hidden');
+                    break;
+                case 'idle':
+                    generateBtn.disabled = !isValid;
+                    buttonText.textContent = 'generate form';
+                    buttonSpinner.classList.add('hidden');
+                    break;
+                case 'error':
+                    generateBtn.disabled = false;
+                    buttonText.textContent = 'try again';
+                    buttonSpinner.classList.add('hidden');
+                    break;
+            }
+        }
+        
+        // Enhanced generate form function with progressive loading
+        async function generateForm() {
+            const dumpInput = document.getElementById('formDump');
+            const errorState = document.getElementById('errorState');
+            
+            const dump = dumpInput.value.trim();
+            
+            console.log('Generating form with input:', dump);
+            console.log('Input length:', dump.length);
+            
+            // Final validation before submission
+            const validation = validateFormInput(dump);
+            console.log('Frontend validation result:', validation);
+            
+            if (!validation.isValid) {
+                showError(validation.message || 'Please provide a valid form description');
+                return;
+            }
+            
+            // Progressive loading states
+            setButtonState('validating');
+            errorState.classList.add('hidden');
+            
+            try {
+                // Small delay for UX
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                setButtonState('generating');
+                
+                // Clear any old form data first
+                sessionStorage.removeItem('generatedForm');
+                
+                console.log('Sending request to /api/infer');
+                
+                const response = await authenticatedFetch('/api/infer', {
+                    method: 'POST',
+                    body: JSON.stringify({ dump })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Backend response:', data);
+                
+                if (data.success) {
+                    setButtonState('redirecting');
+                    
+                    // Small delay before redirect
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Redirect to edit form page with form_id
+                    if (data.form_id) {
+                        window.location.href = `/edit-form?id=${data.form_id}`;
+                    } else {
+                        // Fallback to sessionStorage if auto-save failed
+                        sessionStorage.setItem('generatedForm', JSON.stringify(data.form));
+                        window.location.href = '/edit-form';
+                    }
+                } else {
+                    setButtonState('error');
+                    showError(data.error || 'Failed to generate form');
+                }
+                
+            } catch (error) {
+                console.error('Generate form error:', error);
+                setButtonState('error');
+                
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    showError('Please sign in to generate forms');
+                } else {
+                    showError('Network error. Please check your connection and try again.');
+                }
+            }
+        }
+        
+        // Show error function
+        function showError(message) {
+            const errorState = document.getElementById('errorState');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = message;
+            errorState.classList.remove('hidden');
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Clear any old generated form data to prevent cache issues
+            sessionStorage.removeItem('generatedForm');
+            
+            // Initial validation state
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            
+            // Check for pending form description from unauthenticated flow
+            const pendingDescription = sessionStorage.getItem('pendingFormDescription');
+            if (pendingDescription) {
+                const formDump = document.getElementById('formDump');
+                formDump.value = pendingDescription;
+                // Clear from sessionStorage
+                sessionStorage.removeItem('pendingFormDescription');
+                // Validate the restored content
+                validateInput();
+                // Focus at end of text
+                formDump.focus();
+                formDump.setSelectionRange(formDump.value.length, formDump.value.length);
+            } else {
+                // Initialize validation on any existing content
+                validateInput();
+            }
+            
+            console.log('Create form page loaded successfully');
+        });
+        
+        // Template data
+        const templates = {
+            'customer-feedback': `Create a customer feedback form to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
+            
+            'employee-survey': `Create an employee engagement and satisfaction form for our company. I want to measure workplace satisfaction, engagement levels, work-life balance, management effectiveness, career development opportunities, company culture, and identify areas where we can improve employee experience and retention.`,
+            
+            'market-research': `Create a market research form to understand customer needs, preferences, and market trends in our industry. I want to gather data about target demographics, purchasing behaviors, brand awareness, competitor analysis, price sensitivity, and unmet needs in the market to guide our business strategy.`,
+            
+            'event-feedback': `Create an event feedback form to gather insights from attendees about their experience. I want to collect feedback on event organization, content quality, speaker performance, venue satisfaction, networking opportunities, and suggestions for future events to improve our event planning.`,
+            
+            'user-experience': `Create a user experience form to evaluate how people interact with our website or application. I want to understand usability issues, navigation challenges, feature usefulness, design preferences, performance concerns, and overall user satisfaction to guide our product development.`,
+            
+            'course-evaluation': `Create a course evaluation form for students to provide feedback on their learning experience. I want to assess course content quality, instructor effectiveness, learning materials, difficulty level, engagement, and suggestions for improvement to enhance our educational offerings.`,
+            
+            'product-launch': `Create a product launch feedback form to gather insights about our new product introduction. I want to understand initial impressions, purchase intent, feature appeal, pricing perception, marketing effectiveness, target audience fit, and early adopter feedback to optimize our launch strategy and future product development.`,
+            
+            'support-satisfaction': `Create a customer support satisfaction form to evaluate our service quality. I want to measure response time satisfaction, resolution effectiveness, agent helpfulness, communication clarity, overall support experience, and identify areas for improvement in our customer service processes.`,
+            
+            'brand-awareness': `Create a brand awareness and perception study to understand how our brand is viewed in the market. I want to measure brand recognition, association strength, competitive positioning, brand attributes, purchase consideration, and overall brand sentiment to guide our marketing and branding strategies.`,
+            
+            'exit-interview': `Create an exit interview form for departing employees to gather honest feedback about their experience. I want to understand reasons for leaving, management feedback, workplace culture assessment, career development opportunities, compensation satisfaction, and suggestions for improvement to enhance employee retention.`,
+            
+            'website-feedback': `Create a website feedback form to evaluate our online presence and user experience. I want to gather insights about site navigation, content usefulness, visual design, loading speed, mobile experience, feature functionality, and overall satisfaction to improve our website performance.`,
+            
+            'training-evaluation': `Create a training evaluation form to assess the effectiveness of our educational programs. I want to measure content relevance, instructor quality, delivery methods, engagement levels, knowledge retention, practical applicability, and overall training satisfaction to improve our learning and development initiatives.`,
+            
+            // Business & Sales Templates
+            'lead-qualification': `Create a sales lead qualification survey to identify high-potential prospects. I want to assess budget availability, decision-making authority, timeline for purchase, specific pain points, current solutions being used, and level of interest to help our sales team prioritize leads effectively.`,
+            
+            'customer-onboarding': `Create a customer onboarding survey to improve our new customer experience. I want to understand initial impressions, setup challenges, feature adoption, support needs, expectations vs reality, and satisfaction with the onboarding process to optimize our customer journey.`,
+            
+            'pricing-research': `Create a pricing research survey to optimize our product pricing strategy. I want to understand price sensitivity, value perception, competitor pricing awareness, willingness to pay, preferred pricing models, and factors that influence purchasing decisions.`,
+            
+            'vendor-evaluation': `Create a vendor evaluation survey for procurement decisions. I want to assess service quality, reliability, cost-effectiveness, communication, technical capabilities, delivery performance, and overall satisfaction to make informed vendor selection and management decisions.`,
+            
+            // Healthcare & Wellness Templates
+            'patient-satisfaction': `Create a patient satisfaction survey to improve healthcare service quality. I want to evaluate appointment scheduling, wait times, staff courtesy, facility cleanliness, treatment effectiveness, communication clarity, and overall care experience to enhance patient outcomes.`,
+            
+            'wellness-checkin': `Create a wellness check-in survey to monitor employee or community well-being. I want to assess stress levels, work-life balance, mental health indicators, physical health status, support needs, and satisfaction with wellness programs to promote holistic health.`,
+            
+            'medical-research': `Create a medical research survey to gather patient data and insights. I want to collect information about symptoms, treatment responses, quality of life measures, medication adherence, side effects, and patient-reported outcomes for clinical research purposes.`,
+            
+            // Events & Hospitality Templates  
+            'hotel-experience': `Create a hotel guest experience survey to improve hospitality services. I want to evaluate check-in/check-out process, room quality, staff service, amenities, cleanliness, location convenience, and overall stay satisfaction to enhance guest experience and loyalty.`,
+            
+            'restaurant-feedback': `Create a restaurant feedback survey to improve dining experiences. I want to assess food quality, service speed, staff friendliness, ambiance, cleanliness, value for money, and overall satisfaction to optimize operations and customer satisfaction.`,
+            
+            'travel-experience': `Create a travel experience survey to evaluate trip satisfaction. I want to understand booking process, transportation quality, accommodation standards, activity experiences, destination appeal, value for money, and likelihood to recommend for travel service improvement.`,
+            
+            // Education Templates
+            'student-admission': `Create a student admission survey to improve enrollment processes. I want to evaluate application experience, information accessibility, communication quality, campus visit satisfaction, decision factors, and overall admission process to optimize student recruitment.`,
+            
+            'parent-feedback': `Create a parent feedback survey for educational institutions. I want to assess communication effectiveness, curriculum satisfaction, teacher quality, facility standards, extracurricular activities, safety measures, and overall school performance from parent perspective.`,
+            
+            'skills-assessment': `Create a skills assessment survey to evaluate competencies and training needs. I want to measure current skill levels, learning preferences, knowledge gaps, professional development interests, and career goals to design effective training programs.`,
+            
+            // Technology Templates
+            'beta-testing': `Create a beta testing feedback survey for software products. I want to evaluate functionality, usability, performance, bug reports, feature preferences, user interface design, and overall experience to refine products before public release.`,
+            
+            'feature-requests': `Create a feature request survey to prioritize product development. I want to understand user needs, feature importance, usage patterns, pain points, desired improvements, and willingness to pay for new features to guide product roadmap decisions.`,
+            
+            'app-feedback': `Create a mobile app feedback survey to improve user experience. I want to assess functionality, interface design, performance, ease of use, feature satisfaction, bug reports, and overall app rating to optimize mobile applications.`
+        };
+
+        // Use template function
+        function useTemplate(templateId) {
+            const template = templates[templateId];
+            if (template) {
+                const formDump = document.getElementById('formDump');
+                formDump.value = template;
+                
+                // Trigger validation
+                validateInput();
+                
+                // Focus and scroll to textarea
+                formDump.focus();
+                formDump.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Set cursor to end of text
+                formDump.setSelectionRange(formDump.value.length, formDump.value.length);
+            }
+        }
+
+        // Allow Ctrl/Cmd+Enter to trigger form generation
+        document.getElementById('formDump').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                if (isValid) {
+                    generateForm();
+                }
+            }
+        });
+        
+        // Handle button state reset on error dismissal
+        document.addEventListener('click', function(e) {
+            if (e.target.textContent === 'Dismiss' && e.target.closest('#errorState')) {
+                setTimeout(() => {
+                    setButtonState('idle');
+                }, 100);
+            }
+        });
+        
+        // Carousel functionality
+        let currentSlide = 0;
+        let templateItems = [];
+        let itemsPerSlide = 6; // Default for desktop
+        let totalSlides = 0;
+        
+        function initializeCarousel() {
+            const track = document.getElementById('carousel-track');
+            const leftBtn = document.getElementById('carousel-left');
+            const rightBtn = document.getElementById('carousel-right');
+            const dotsContainer = document.getElementById('carousel-dots');
+            
+            if (!track) return;
+            
+            // Get all template items
+            templateItems = Array.from(track.children);
+            
+            // Set responsive items per slide
+            function updateItemsPerSlide() {
+                const width = window.innerWidth;
+                if (width < 640) { // mobile
+                    itemsPerSlide = 2;
+                } else if (width < 768) { // small tablet
+                    itemsPerSlide = 3;
+                } else if (width < 1024) { // tablet
+                    itemsPerSlide = 4;
+                } else if (width < 1280) { // small desktop
+                    itemsPerSlide = 5;
+                } else { // large desktop
+                    itemsPerSlide = 6;
+                }
+                
+                totalSlides = Math.ceil(templateItems.length / itemsPerSlide);
+                
+                // Ensure current slide is within bounds
+                if (currentSlide >= totalSlides) {
+                    currentSlide = Math.max(0, totalSlides - 1);
+                }
+                
+                updateCarousel();
+                updateDots();
+            }
+            
+            // Update carousel position
+            function updateCarousel() {
+                const itemWidth = templateItems[0] ? templateItems[0].offsetWidth : 0;
+                const gap = 8; // md:gap-3 = 12px, but we use 8px for mobile
+                const slideWidth = (itemWidth + gap) * itemsPerSlide;
+                const translateX = -(currentSlide * slideWidth);
+                
+                track.style.transform = `translateX(${translateX}px)`;
+                
+                // Update button states
+                leftBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
+                leftBtn.style.cursor = currentSlide === 0 ? 'not-allowed' : 'pointer';
+                rightBtn.style.opacity = currentSlide >= totalSlides - 1 ? '0.5' : '1';
+                rightBtn.style.cursor = currentSlide >= totalSlides - 1 ? 'not-allowed' : 'pointer';
+            }
+            
+            // Update dots indicator
+            function updateDots() {
+                dotsContainer.innerHTML = '';
+                
+                for (let i = 0; i < totalSlides; i++) {
+                    const dot = document.createElement('button');
+                    dot.className = `w-2 h-2 rounded-full transition-all duration-200 ${
+                        i === currentSlide ? 'bg-[#cc5500]' : 'bg-[#DAB568] hover:bg-[#cc5500]/60'
+                    }`;
+                    dot.onclick = () => goToSlide(i);
+                    dotsContainer.appendChild(dot);
+                }
+            }
+            
+            // Go to specific slide
+            function goToSlide(slideIndex) {
+                if (slideIndex >= 0 && slideIndex < totalSlides) {
+                    currentSlide = slideIndex;
+                    updateCarousel();
+                    updateDots();
+                }
+            }
+            
+            // Navigation button handlers
+            leftBtn.onclick = () => {
+                if (currentSlide > 0) {
+                    goToSlide(currentSlide - 1);
+                }
+            };
+            
+            rightBtn.onclick = () => {
+                if (currentSlide < totalSlides - 1) {
+                    goToSlide(currentSlide + 1);
+                }
+            };
+            
+            // Touch/swipe support
+            let startX = 0;
+            let isDragging = false;
+            
+            track.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            }, { passive: true });
+            
+            track.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+            }, { passive: false });
+            
+            track.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                
+                const endX = e.changedTouches[0].clientX;
+                const diff = startX - endX;
+                const threshold = 50; // minimum swipe distance
+                
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0 && currentSlide < totalSlides - 1) {
+                        // Swipe left - next slide
+                        goToSlide(currentSlide + 1);
+                    } else if (diff < 0 && currentSlide > 0) {
+                        // Swipe right - previous slide
+                        goToSlide(currentSlide - 1);
+                    }
+                }
+                
+                isDragging = false;
+            }, { passive: true });
+            
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
+                    return; // Don't interfere with form inputs
+                }
+                
+                if (e.key === 'ArrowLeft' && currentSlide > 0) {
+                    goToSlide(currentSlide - 1);
+                } else if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
+                    goToSlide(currentSlide + 1);
+                }
+            });
+            
+            // Handle window resize
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    updateItemsPerSlide();
+                }, 150);
+            });
+            
+            // Initialize
+            updateItemsPerSlide();
+        }
+        
+        // Initialize carousel when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize carousel
+            setTimeout(initializeCarousel, 100); // Small delay to ensure DOM is fully rendered
+        });
+    </script>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

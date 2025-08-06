@@ -177,7 +177,7 @@
                             </div>
                         </div>
                         
-                        <button class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-6 py-3 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm hover:opacity-90 transition-all duration-200 mt-6">
+                        <button onclick="upgradeToStarter()" class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-6 py-3 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm hover:opacity-90 transition-all duration-200 mt-6">
                             Upgrade to Starter
                         </button>
                     </div>
@@ -232,7 +232,7 @@
                             </div>
                         </div>
                         
-                        <button class="w-full bg-white border-2 border-[#e5e7eb] rounded-xl px-6 py-3 text-[#1e1e1e] font-['Plus_Jakarta_Sans'] font-medium text-sm hover:border-[#cc5500] hover:text-[#cc5500] transition-all duration-200 mt-6">
+                        <button onclick="upgradeToPro()" class="w-full bg-white border-2 border-[#e5e7eb] rounded-xl px-6 py-3 text-[#1e1e1e] font-['Plus_Jakarta_Sans'] font-medium text-sm hover:border-[#cc5500] hover:text-[#cc5500] transition-all duration-200 mt-6">
                             Upgrade to Pro
                         </button>
                     </div>
@@ -282,7 +282,7 @@
                             </div>
                         </div>
                         
-                        <button class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-6 py-3 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm hover:opacity-90 transition-all duration-200 mt-6">
+                        <button onclick="contactSales()" class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-6 py-3 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm hover:opacity-90 transition-all duration-200 mt-6">
                             Contact Sales
                         </button>
                     </div>
@@ -535,6 +535,52 @@
         auth.onAuthStateChanged(user => {
             console.log('Auth state changed:', user?.email || 'Not signed in');
         });
+
+        // Upgrade functions
+        async function upgradeToStarter() {
+            await handleUpgrade('starter');
+        }
+
+        async function upgradeToPro() {
+            await handleUpgrade('pro');
+        }
+
+        function contactSales() {
+            // For now, redirect to email
+            window.location.href = 'mailto:krishnakumarsonibbsr@gmail.com?subject=Barmuda Business Plan Inquiry';
+        }
+
+        async function handleUpgrade(plan) {
+            // Check if user is authenticated
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Please sign in first to upgrade your plan.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/billing/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ plan: plan }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Redirect to Dodo checkout
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Failed to create checkout: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating checkout:', error);
+                alert('Failed to create checkout. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>

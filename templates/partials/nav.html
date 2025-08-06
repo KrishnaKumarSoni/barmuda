@@ -16,6 +16,7 @@
             {% if nav_type in ['authenticated', 'dashboard', 'edit_form', 'create_form', 'responses'] %}
             <div class="hidden sm:flex items-center gap-2 md:gap-4 lg:gap-6 font-['Plus_Jakarta_Sans'] font-medium text-xs md:text-sm lg:text-[14px] text-black tracking-[-0.14px] flex-shrink-0">
                 <a href="/dashboard" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">Dashboard</a>
+                <a href="/billing" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">Billing</a>
                 <a href="/" class="hover:text-[#cc5500] transition-colors whitespace-nowrap">Home</a>
             </div>
             {% endif %}
@@ -61,6 +62,9 @@
         <div class="flex flex-col gap-3">
             <a href="/dashboard" class="py-2 px-3 text-center text-[#cc5500] font-['Plus_Jakarta_Sans'] font-medium hover:bg-[#fff5e0] rounded-lg transition-colors">
                 Dashboard
+            </a>
+            <a href="/billing" class="py-2 px-3 text-center text-[#cc5500] font-['Plus_Jakarta_Sans'] font-medium hover:bg-[#fff5e0] rounded-lg transition-colors">
+                Billing
             </a>
             <a href="/" class="py-2 px-3 text-center text-[#cc5500] font-['Plus_Jakarta_Sans'] font-medium hover:bg-[#fff5e0] rounded-lg transition-colors">
                 Home
