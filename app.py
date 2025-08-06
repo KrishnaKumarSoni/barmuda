@@ -657,8 +657,8 @@ def dashboard():
     try:
         user_id = request.user["uid"]
 
-        # Get user's forms with response counts
-        forms_ref = db.collection("forms").where(filter=FieldFilter("creator_id", "==", user_id))
+        # Get user's forms with response counts, ordered by creation date (newest first)
+        forms_ref = db.collection("forms").where(filter=FieldFilter("creator_id", "==", user_id)).order_by("created_at", direction=firestore.Query.DESCENDING)
         forms = []
         for doc in forms_ref.stream():
             form_data = doc.to_dict()
