@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Widget Test - Survey Title Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f0f0f0;
+            line-height: 1.6;
+        }
+        
+        .status {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #007cba;
+        }
+        
+        .status.success { border-left-color: #28a745; }
+        .status.error { border-left-color: #dc3545; }
+        
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        
+        #console {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Local Barmuda Widget Test - Survey Title Fix</h1>
+    
+    <div class="status" id="status">
+        <h3>Status: Loading...</h3>
+        <p>Testing the survey title loading fix for the widget.</p>
+    </div>
+    
+    <div class="status">
+        <h3>Expected Results:</h3>
+        <ul>
+            <li>✅ Widget loads successfully from localhost:5001</li>
+            <li>✅ FAB button appears in bottom-right corner</li>
+            <li>✅ Modal opens when clicked</li>
+            <li>✅ Form title should display "Customer Feedback Survey" instead of "Loading..."</li>
+            <li>✅ Console shows successful API calls</li>
+        </ul>
+    </div>
+    
+    <div class="status">
+        <h3>Test API Endpoint:</h3>
+        <div class="code">
+            GET http://localhost:5001/api/form/5fjcRD3YcYkK5o3LIDyT/public
+        </div>
+        <button onclick="testAPI()" style="margin-top: 10px; padding: 5px 10px; cursor: pointer;">Test API Direct</button>
+        <div id="api-result" style="margin-top: 10px;"></div>
+    </div>
+    
+    <div class="status">
+        <h3>Widget Code (Local):</h3>
+        <div class="code">
+&lt;script&gt;
+(function() {
+    var script = document.createElement('script');
+    script.src = 'http://localhost:5001/widget.js';
+    script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
+    script.setAttribute('data-position', 'bottom-right');
+    script.setAttribute('data-color', '#cc5500');
+    document.head.appendChild(script);
+})();
+&lt;/script&gt;
+        </div>
+    </div>
+    
+    <div class="status">
+        <h3>Debug Console:</h3>
+        <div id="console">
+            > Loading widget from local server...<br>
+        </div>
+    </div>
+
+    <script>
+        // Custom console logging for debug
+        const consoleDiv = document.getElementById('console');
+        const statusDiv = document.getElementById('status');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : '#fff';
+            consoleDiv.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span><br>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        // Override console methods to capture widget logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log('ERROR: ' + args.join(' '), 'error');
+        };
+        
+        // Test API endpoint directly
+        function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<em>Testing...</em>';
+            
+            fetch('http://localhost:5001/api/form/5fjcRD3YcYkK5o3LIDyT/public')
+                .then(response => response.json())
+                .then(data => {
+                    resultDiv.innerHTML = `<div class="code" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>`;
+                    if (data.success && data.form.title === "Customer Feedback Survey") {
+                        log('✅ Direct API test successful - title: ' + data.form.title, 'success');
+                    } else {
+                        log('❌ Direct API test failed or title missing', 'error');
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `<div style="color: red;">Error: ${error.message}</div>`;
+                    log('❌ Direct API test failed: ' + error.message, 'error');
+                });
+        }
+        
+        // Test widget loading
+        setTimeout(() => {
+            log('Starting local widget test...', 'info');
+            
+            const script = document.createElement('script');
+            script.src = 'http://localhost:5001/widget.js?v=' + Date.now();
+            script.setAttribute('data-form-id', '5fjcRD3YcYkK5o3LIDyT');
+            script.setAttribute('data-position', 'bottom-right');
+            script.setAttribute('data-color', '#cc5500');
+            
+            script.onload = function() {
+                log('✅ Widget script loaded from localhost!', 'success');
+                
+                setTimeout(() => {
+                    const fab = document.getElementById('barmuda-fab');
+                    if (fab) {
+                        log('✅ FAB button found in DOM!', 'success');
+                        statusDiv.className = 'status success';
+                        statusDiv.innerHTML = '<h3>Status: SUCCESS ✅</h3><p>Widget loaded! Click the chat button and check if the title shows "Customer Feedback Survey".</p>';
+                    } else {
+                        log('❌ FAB button not found in DOM', 'error');
+                        statusDiv.className = 'status error';
+                        statusDiv.innerHTML = '<h3>Status: FAILED ❌</h3><p>Widget failed to create FAB button.</p>';
+                    }
+                    
+                    if (window.BarmudaWidget) {
+                        log('✅ BarmudaWidget global object available', 'success');
+                        log('Available methods: ' + Object.keys(window.BarmudaWidget).join(', '), 'info');
+                        
+                        // Auto-test by opening widget after 2 seconds
+                        setTimeout(() => {
+                            log('🚀 Auto-opening widget to test title...', 'info');
+                            window.BarmudaWidget.open();
+                            
+                            // Check title after a moment
+                            setTimeout(() => {
+                                const titleElement = document.querySelector('.barmuda-form-title');
+                                if (titleElement) {
+                                    const titleText = titleElement.textContent;
+                                    log('📋 Widget title element found: "' + titleText + '"', titleText === 'Customer Feedback Survey' ? 'success' : 'error');
+                                    
+                                    if (titleText === 'Customer Feedback Survey') {
+                                        log('🎉 TITLE FIX SUCCESSFUL! Survey title is loading correctly!', 'success');
+                                    } else if (titleText === 'Loading...') {
+                                        log('⏳ Title still shows "Loading..." - may need more time', 'info');
+                                    } else {
+                                        log('❌ Title shows unexpected text: ' + titleText, 'error');
+                                    }
+                                } else {
+                                    log('❌ Title element not found in modal', 'error');
+                                }
+                            }, 2000);
+                        }, 3000);
+                    } else {
+                        log('❌ BarmudaWidget global object not found', 'error');
+                    }
+                }, 1000);
+            };
+            
+            script.onerror = function() {
+                log('❌ Failed to load widget script from localhost', 'error');
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '<h3>Status: SCRIPT LOAD FAILED ❌</h3><p>Could not load the widget script from localhost:5001.</p>';
+            };
+            
+            document.head.appendChild(script);
+            log('Widget script added to DOM (localhost:5001)', 'info');
+            
+        }, 1000);
+        
+        // Auto-test API on load
+        setTimeout(() => {
+            testAPI();
+        }, 500);
+    </script>
+</body>
+</html>
