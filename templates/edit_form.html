@@ -58,7 +58,7 @@
         <!-- Go Back -->
         <div class="flex items-center gap-2 mb-8">
             <button onclick="goBack()" class="flex items-center gap-2 text-bermuda-light-gray hover:text-bermuda-orange transition-colors">
-                <i class="ph ph-caret-left text-2xl"></i>
+                <i class="ph ph-caret-left text-4xl"></i>
                 <span class="font-jakarta font-bold text-base tracking-tight">go back</span>
             </button>
         </div>
@@ -93,7 +93,7 @@
                 class="flex items-center gap-3 px-6 py-3 border border-bermuda-orange rounded-full text-bermuda-red font-dm text-lg hover:bg-bermuda-orange hover:text-white transition-all"
             >
                 Add question
-                <i class="ph ph-plus text-current text-2xl"></i>
+                <i class="ph ph-plus text-current text-4xl"></i>
             </button>
         </div>
         
@@ -104,9 +104,9 @@
                 <button 
                     id="demographicsToggle"
                     onclick="toggleDemographics()"
-                    class="w-12 h-8"
+                    class="w-20 h-12"
                 >
-                    <i class="ph ph-toggle-left text-gray-400 text-3xl"></i>
+                    <i class="ph ph-toggle-left text-gray-400 text-5xl"></i>
                 </button>
             </div>
             
@@ -124,14 +124,14 @@
                 class="border border-bermuda-orange text-bermuda-orange font-dm text-lg px-8 py-3 rounded-full hover:bg-bermuda-orange hover:text-white transition-all flex items-center gap-3"
             >
                 Preview Form
-                <i class="ph ph-eye text-2xl"></i>
+                <i class="ph ph-eye text-4xl"></i>
             </button>
             <button 
                 onclick="saveForm()"
                 class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-lg px-8 py-3 rounded-full hover:opacity-90 transition-opacity flex items-center gap-3"
             >
                 Save & Launch
-                <i class="ph ph-floppy-disk text-white text-2xl"></i>
+                <i class="ph ph-floppy-disk text-white text-4xl"></i>
             </button>
         </div>
         
@@ -326,13 +326,13 @@
                             // Already active form - update button
                             saveBtn.innerHTML = `
                                 Update Form
-                                <i class="ph ph-floppy-disk text-white text-2xl"></i>
+                                <i class="ph ph-floppy-disk text-white text-4xl"></i>
                             `;
                         } else {
                             // Inactive form - keep original "Save & Launch" button
                             saveBtn.innerHTML = `
                                 Save & Launch
-                                <i class="ph ph-floppy-disk text-white text-2xl"></i>
+                                <i class="ph ph-floppy-disk text-white text-4xl"></i>
                             `;
                         }
                     }
@@ -393,9 +393,9 @@
                     </h3>
                     <button 
                         onclick="toggleQuestion(${index})"
-                        class="w-12 h-8"
+                        class="w-20 h-12"
                     >
-                        <i class="ph ${question.enabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
+                        <i class="ph ${question.enabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-4xl"></i>
                     </button>
                 </div>
                 
@@ -428,35 +428,35 @@
                                     class="hidden absolute top-full left-0 right-0 bg-white border border-bermuda-border rounded-lg mt-1 shadow-lg z-10"
                                 >
                                     <div onclick="selectQuestionType(${index}, 'text')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-text-aa text-bermuda-orange text-2xl"></i>
+                                        <i class="ph ph-text-aa text-bermuda-orange text-4xl"></i>
                                         <div>
                                             <div>Text response</div>
                                             <div class="text-xs text-bermuda-light-gray">Open-ended written answers</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'multiple_choice')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-list-bullets text-bermuda-orange text-2xl"></i>
+                                        <i class="ph ph-list-bullets text-bermuda-orange text-4xl"></i>
                                         <div>
                                             <div>Multiple Choice Question</div>
                                             <div class="text-xs text-bermuda-light-gray">Select from predefined options</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'yes_no')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-check-circle text-bermuda-orange text-2xl"></i>
+                                        <i class="ph ph-check-circle text-bermuda-orange text-4xl"></i>
                                         <div>
                                             <div>Yes / No</div>
                                             <div class="text-xs text-bermuda-light-gray">Simple binary choice</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'number')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
-                                        <i class="ph ph-hash text-bermuda-orange text-2xl"></i>
+                                        <i class="ph ph-hash text-bermuda-orange text-4xl"></i>
                                         <div>
                                             <div>Number</div>
                                             <div class="text-xs text-bermuda-light-gray">Numeric values only</div>
                                         </div>
                                     </div>
                                     <div onclick="selectQuestionType(${index}, 'rating')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text border-b-0 flex items-center gap-3">
-                                        <i class="ph ph-star text-bermuda-orange text-2xl"></i>
+                                        <i class="ph ph-star text-bermuda-orange text-4xl"></i>
                                         <div>
                                             <div>Rating</div>
                                             <div class="text-xs text-bermuda-light-gray">Scale-based evaluation</div>
@@ -538,9 +538,9 @@
                     <span class="font-dm text-base text-bermuda-text tracking-tight">${option}</span>
                     <button 
                         onclick="${demographicsEnabled ? `toggleDemographic('${option.toLowerCase()}')` : 'return false'}"
-                        class="w-10 h-6 ${!demographicsEnabled ? 'cursor-not-allowed' : ''}"
+                        class="w-20 h-12 ${!demographicsEnabled ? 'cursor-not-allowed' : ''}"
                     >
-                        <i class="ph ${isEnabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-2xl"></i>
+                        <i class="ph ${isEnabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-4xl"></i>
                     </button>
                 `;
                 
@@ -674,7 +674,7 @@
             if (grid.classList.contains('hidden')) {
                 // Show demographics section - enable it
                 grid.classList.remove('hidden');
-                toggle.innerHTML = '<i class="ph ph-toggle-right text-[#cc5500] text-3xl"></i>';
+                toggle.innerHTML = '<i class="ph ph-toggle-right text-[#cc5500] text-5xl"></i>';
                 
                 // Initialize demographics if not set
                 if (!formData.demographics) {
@@ -687,7 +687,7 @@
             } else {
                 // Hide demographics section - disable all demographics
                 grid.classList.add('hidden');
-                toggle.innerHTML = '<i class="ph ph-toggle-left text-gray-400 text-3xl"></i>';
+                toggle.innerHTML = '<i class="ph ph-toggle-left text-gray-400 text-5xl"></i>';
                 
                 // Disable all demographics when hiding section
                 if (!formData.demographics) formData.demographics = {};

@@ -657,19 +657,39 @@ def dashboard():
     try:
         user_id = request.user["uid"]
 
-        # Get user's forms with response counts, ordered by creation date (newest first)
-        forms_ref = db.collection("forms").where(filter=FieldFilter("creator_id", "==", user_id)).order_by("created_at", direction=firestore.Query.DESCENDING)
-        forms = []
-        for doc in forms_ref.stream():
-            form_data = doc.to_dict()
-            form_data["form_id"] = doc.id
+        # Get user's forms with response counts
+        try:
+            # Try to get forms ordered by creation date (newest first) - requires composite index
+            forms_ref = db.collection("forms").where(filter=FieldFilter("creator_id", "==", user_id)).order_by("created_at", direction=firestore.Query.DESCENDING)
+            forms = []
+            for doc in forms_ref.stream():
+                form_data = doc.to_dict()
+                form_data["form_id"] = doc.id
 
-            # Count responses for this form
-            responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", doc.id))
-            response_count = len(list(responses_ref.stream()))
-            form_data["response_count"] = response_count
+                # Count responses for this form
+                responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", doc.id))
+                response_count = len(list(responses_ref.stream()))
+                form_data["response_count"] = response_count
 
-            forms.append(form_data)
+                forms.append(form_data)
+        except Exception as index_error:
+            # Fallback: Get forms without ordering if composite index doesn't exist yet
+            print(f"Composite index not available, falling back to unordered query: {index_error}")
+            forms_ref = db.collection("forms").where(filter=FieldFilter("creator_id", "==", user_id))
+            forms = []
+            for doc in forms_ref.stream():
+                form_data = doc.to_dict()
+                form_data["form_id"] = doc.id
+
+                # Count responses for this form
+                responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", doc.id))
+                response_count = len(list(responses_ref.stream()))
+                form_data["response_count"] = response_count
+
+                forms.append(form_data)
+            
+            # Sort in Python as fallback (less efficient but works without index)
+            forms.sort(key=lambda x: x.get('created_at', datetime.min), reverse=True)
 
         return render_template("dashboard.html", forms=forms, user=request.user)
 
