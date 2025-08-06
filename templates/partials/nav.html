@@ -1,7 +1,7 @@
 <!-- Responsive Navigation Component -->
 <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-4">
-    <div class="bg-white rounded-full border border-[#fff0cf] px-3 sm:px-4 md:px-6 py-2.5 md:py-3 shadow-sm w-full max-w-4xl">
-        <div class="flex items-center justify-between gap-2 sm:gap-4 md:gap-8 lg:gap-12">
+    <div class="bg-white rounded-full border border-[#fff0cf] px-3 sm:px-4 md:px-6 py-2.5 md:py-3 shadow-sm max-w-fit">
+        <div class="flex items-center gap-2 sm:gap-4 md:gap-6">
             <!-- Logo Section -->
             <div class="flex items-center gap-2 flex-shrink-0">
                 <img src="/static/assets/logo.webp" 
@@ -21,35 +21,33 @@
             {% endif %}
             
             <!-- Action Section -->
-            <div class="flex items-center flex-shrink-0 min-w-[120px] sm:min-w-[140px] md:min-w-[160px] lg:min-w-[180px] justify-end">
+            <div class="flex items-center flex-shrink-0">
                 {% if nav_type == 'unauthenticated' %}
                     <!-- Sign In Button -->
                     <button onclick="signInWithGoogle()" 
-                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity min-w-[100px] sm:min-w-[110px] md:min-w-[120px] lg:min-w-[130px] justify-center">
+                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
                         <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
                         <i class="ph ph-sign-in text-white text-sm md:text-lg lg:text-xl"></i>
                     </button>
                 {% elif nav_type == 'chat' %}
                     <!-- Generate New Form Button -->
-                    <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity min-w-[100px] sm:min-w-[110px] md:min-w-[120px] lg:min-w-[130px] justify-center">
+                    <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
                         <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
                         <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">New form</span>
                         <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
                     </a>
                 {% elif nav_type == 'responses' %}
                     <!-- Generate New Form Button -->
-                    <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity min-w-[100px] sm:min-w-[110px] md:min-w-[120px] lg:min-w-[130px] justify-center">
+                    <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
                         <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
                         <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">New form</span>
                         <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
                     </a>
                 {% else %}
-                    <!-- Sign Out Button - Consistent Container -->
-                    <div class="min-w-[100px] sm:min-w-[110px] md:min-w-[120px] lg:min-w-[130px] flex justify-center">
-                        <button onclick="signOut()" class="w-8 md:w-10 h-8 md:h-10 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center rounded-full hover:bg-gray-50">
-                            <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
-                        </button>
-                    </div>
+                    <!-- Sign Out Button -->
+                    <button onclick="signOut()" class="w-8 md:w-10 h-8 md:h-10 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center rounded-full hover:bg-gray-50">
+                        <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
+                    </button>
                 {% endif %}
             </div>
         </div>
