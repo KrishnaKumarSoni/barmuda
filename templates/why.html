@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Why Barmuda - The Science Behind Conversational Surveys</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fff5e0',
+                        'bermuda-light-cream': '#fffcf4',
+                        'bermuda-border': '#fb9a9a',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#c3c3c3'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        {% set nav_type = 'why' %}
+        {% include 'partials/nav.html' %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 px-4 md:px-8 pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-24">
+            <div class="max-w-4xl mx-auto">
+                
+                <!-- Header -->
+                <div class="text-center mb-12 md:mb-16">
+                    <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15] mb-4 sm:mb-6">
+                        Why Barmuda exists
+                    </h1>
+                    <p class="font-['DM_Sans'] text-base sm:text-lg md:text-xl text-[#6b7280] max-w-2xl mx-auto leading-relaxed">
+                        People hate forms. The data proves it. Here's why we built something different.
+                    </p>
+                </div>
+
+                <!-- The Problem Section -->
+                <section class="mb-12 md:mb-16">
+                    <div class="bg-white rounded-2xl p-6 sm:p-8 md:p-10 border border-[#fff0cf] mb-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <i class="ph ph-warning-circle text-red-500 text-2xl md:text-3xl"></i>
+                            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl sm:text-2xl md:text-3xl text-[#1e1e1e]">
+                                Traditional surveys are dying
+                            </h2>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div class="grid md:grid-cols-2 gap-6 sm:gap-8">
+                                <div class="bg-[#fff5e0] rounded-xl p-6">
+                                    <div class="text-3xl md:text-4xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-2">67%</div>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base text-[#666]">of people abandon surveys due to fatigue</p>
+                                </div>
+                                <div class="bg-[#fff5e0] rounded-xl p-6">
+                                    <div class="text-3xl md:text-4xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-2">70%</div>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base text-[#666]">average cart abandonment rate online</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-[#fff5e0] rounded-xl p-6">
+                                <div class="text-2xl md:text-3xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-2">Response rates dropped</div>
+                                <p class="font-['DM_Sans'] text-sm md:text-base text-[#666]">from 60% to under 45% since the pandemic. Government surveys that used to get 90% now get 70%.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="prose max-w-none">
+                        <p class="font-['DM_Sans'] text-base md:text-lg text-[#4b5563] leading-relaxed mb-4">
+                            Here's what happens: You send a survey link. People see 15 questions on one page. They think "this will take forever" and close it immediately.
+                        </p>
+                        <p class="font-['DM_Sans'] text-base md:text-lg text-[#4b5563] leading-relaxed">
+                            Even if they start, <strong>increasing from 3 to 4 questions drops completion rates by 18%</strong>. Add more questions? Forget about it.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Why This Matters Section -->
+                <section class="mb-12 md:mb-16">
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-[#1e1e1e] mb-6 md:mb-8">
+                        Why this matters for your business
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
+                            <i class="ph ph-chart-line-down text-[#cc5500] text-3xl mb-4"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#1e1e1e] mb-3">Bad data</h3>
+                            <p class="font-['DM_Sans'] text-sm md:text-base text-[#666] leading-relaxed">
+                                Only your most satisfied or most angry customers respond. Everyone else ignores your surveys.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
+                            <i class="ph ph-money text-[#cc5500] text-3xl mb-4"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#1e1e1e] mb-3">Wasted money</h3>
+                            <p class="font-['DM_Sans'] text-sm md:text-base text-[#666] leading-relaxed">
+                                You pay for survey tools and get incomplete data. It's like buying expensive ingredients for a meal nobody eats.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
+                            <i class="ph ph-clock text-[#cc5500] text-3xl mb-4"></i>
+                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#1e1e1e] mb-3">Slow decisions</h3>
+                            <p class="font-['DM_Sans'] text-sm md:text-base text-[#666] leading-relaxed">
+                                Without good feedback, you guess what customers want. Competitors who know their customers win.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- The Solution Section -->
+                <section class="mb-12 md:mb-16">
+                    <div class="bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <i class="ph ph-chat-circle-dots text-white text-2xl md:text-3xl"></i>
+                            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl sm:text-2xl md:text-3xl">
+                                Chat feels different
+                            </h2>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <p class="font-['DM_Sans'] text-base md:text-lg leading-relaxed">
+                                When people chat, they share more. They're honest. They don't feel like they're filling out paperwork.
+                            </p>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="bg-white/10 rounded-xl p-6">
+                                    <div class="text-3xl md:text-4xl font-['Plus_Jakarta_Sans'] font-bold mb-2">3x</div>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base">higher response rates with conversational interfaces</p>
+                                </div>
+                                <div class="bg-white/10 rounded-xl p-6">
+                                    <div class="text-3xl md:text-4xl font-['Plus_Jakarta_Sans'] font-bold mb-2">40%</div>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base">improvement in completion rates vs traditional forms</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="prose max-w-none">
+                        <p class="font-['DM_Sans'] text-base md:text-lg text-[#4b5563] leading-relaxed">
+                            Think about it: Would you rather fill out a 10-question form or have a quick chat? 
+                            Same information, completely different experience.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- How It Works Section -->
+                <section class="mb-12 md:mb-16">
+                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-[#1e1e1e] mb-6 md:mb-8">
+                        How we're different
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 bg-[#cc5500]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-sm">1</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#1e1e1e] mb-2">One question at a time</h3>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base text-[#666] leading-relaxed">
+                                        No overwhelming forms. Just a conversation where each question flows naturally from the last answer.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 bg-[#cc5500]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-sm">2</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#1e1e1e] mb-2">Feels like texting</h3>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base text-[#666] leading-relaxed">
+                                        People text all day. They're comfortable with it. So we made surveys that work the same way.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 bg-[#cc5500]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-sm">3</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#1e1e1e] mb-2">Smart and adaptive</h3>
+                                    <p class="font-['DM_Sans'] text-sm md:text-base text-[#666] leading-relaxed">
+                                        The AI asks follow-up questions based on answers. No irrelevant questions, no wasted time.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- The Bottom Line Section -->
+                <section class="mb-12 md:mb-16">
+                    <div class="bg-[#fff5e0] rounded-2xl p-6 sm:p-8 md:p-10 border border-[#fff0cf] text-center">
+                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-[#1e1e1e] mb-4 md:mb-6">
+                            The bottom line
+                        </h2>
+                        <p class="font-['DM_Sans'] text-base md:text-lg text-[#4b5563] leading-relaxed mb-6">
+                            Traditional surveys are broken. Response rates keep falling. People are tired of boring forms.
+                        </p>
+                        <p class="font-['DM_Sans'] text-base md:text-lg text-[#4b5563] leading-relaxed mb-8">
+                            We built Barmuda because conversations work better than questionnaires. 
+                            It's that simple.
+                        </p>
+                        
+                        <a href="/" class="inline-flex items-center gap-2 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl font-['Plus_Jakarta_Sans'] font-medium hover:opacity-90 transition-opacity">
+                            Try it yourself
+                            <i class="ph ph-arrow-right text-lg"></i>
+                        </a>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Footer -->
+    {% include 'partials/footer.html' %}
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Authentication functions
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Get Firebase ID token
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend for verification and session creation
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idToken: idToken
+                    }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    console.error('Backend authentication failed:', data.error);
+                    alert('Authentication failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            }
+        }
+
+        // Sign out function
+        async function signOut() {
+            try {
+                await auth.signOut();
+                console.log('User signed out');
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign-out error:', error);
+                alert('Sign-out failed. Please try again.');
+            }
+        }
+
+        // Check authentication state and update nav button
+        auth.onAuthStateChanged(user => {
+            console.log('Auth state changed:', user?.email || 'Not signed in');
+            
+            const authActionButton = document.getElementById('auth-action-button');
+            if (authActionButton) {
+                if (user) {
+                    // User is signed in - show sign out button
+                    authActionButton.innerHTML = `
+                        <button onclick="signOut()" class="w-8 md:w-10 h-8 md:h-10 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center rounded-full hover:bg-gray-50">
+                            <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
+                        </button>
+                    `;
+                } else {
+                    // User is not signed in - show sign in button
+                    authActionButton.innerHTML = `
+                        <button onclick="signInWithGoogle()" 
+                                class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                            <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
+                            <i class="ph ph-sign-in text-white text-sm md:text-lg lg:text-xl"></i>
+                        </button>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

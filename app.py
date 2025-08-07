@@ -1139,6 +1139,12 @@ def terms():
     return render_template("terms.html")
 
 
+@app.route("/why")
+def why():
+    """Why Barmuda page - explains the science and research behind conversational surveys"""
+    return render_template("why.html")
+
+
 @app.route("/edit-form")
 @login_required
 def edit_form():
