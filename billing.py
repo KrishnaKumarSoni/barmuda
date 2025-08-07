@@ -28,16 +28,18 @@ def init_billing(firestore_client):
 class DodoClient:
     """Dodo Payments API client"""
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, test_mode: bool = True):
         self.api_key = api_key
-        self.base_url = "https://api.dodopayments.com/v1"
+        self.test_mode = test_mode
+        # Use correct base URLs from official documentation
+        self.base_url = "https://test.dodopayments.com" if test_mode else "https://live.dodopayments.com"
         self.headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
     
     def create_subscription_link(self, plan: str, customer_email: str, success_url: str, cancel_url: str) -> Dict[str, Any]:
-        """Create a subscription payment link"""
+        """Create a subscription with payment link using correct Dodo API format"""
         try:
             # Map internal plan names to Dodo product IDs
             plan_mapping = {
@@ -53,40 +55,59 @@ class DodoClient:
             if plan_mapping[plan] == "contact_sales":
                 return {"success": False, "error": "Business plan requires sales contact"}
             
+            # Create subscription payload according to official API documentation
             payload = {
+                "customer": {
+                    "email": customer_email
+                },
                 "product_id": plan_mapping[plan],
-                "customer_email": customer_email,
-                "success_url": success_url,
-                "cancel_url": cancel_url,
+                "payment_link": True,  # Generate payment link
+                "return_url": success_url,
+                "quantity": 1,
                 "metadata": {
                     "plan": plan,
-                    "source": "barmuda"
+                    "source": "barmuda",
+                    "cancel_url": cancel_url
                 }
             }
             
+            # Use correct endpoint: POST /subscriptions (not /payment-links)
             response = requests.post(
-                f"{self.base_url}/payment-links",
+                f"{self.base_url}/subscriptions",
                 headers=self.headers,
                 json=payload,
                 timeout=30
             )
             
-            if response.status_code == 201:
-                return {"success": True, "data": response.json()}
+            if response.status_code == 200:
+                data = response.json()
+                # Extract payment link from response
+                payment_link = data.get("payment_link")
+                if payment_link:
+                    return {
+                        "success": True, 
+                        "checkout_url": payment_link,
+                        "subscription_id": data.get("subscription_id"),
+                        "data": data
+                    }
+                else:
+                    return {"success": False, "error": "No payment link returned"}
             else:
                 logger.error(f"Dodo API error: {response.status_code} - {response.text}")
-                return {"success": False, "error": response.text}
+                return {"success": False, "error": f"API Error: {response.status_code} - {response.text}"}
                 
         except Exception as e:
             logger.error(f"Error creating subscription link: {str(e)}")
             return {"success": False, "error": str(e)}
     
     def cancel_subscription(self, subscription_id: str) -> Dict[str, Any]:
-        """Cancel a subscription"""
+        """Cancel a subscription using correct Dodo API format"""
         try:
-            response = requests.post(
-                f"{self.base_url}/subscriptions/{subscription_id}/cancel",
+            # Use correct endpoint format - PUT request to update subscription status
+            response = requests.put(
+                f"{self.base_url}/subscriptions/{subscription_id}",
                 headers=self.headers,
+                json={"status": "cancelled"},
                 timeout=30
             )
             
@@ -100,18 +121,29 @@ class DodoClient:
             logger.error(f"Error canceling subscription: {str(e)}")
             return {"success": False, "error": str(e)}
     
-    def verify_webhook(self, payload: str, signature: str, webhook_secret: str) -> bool:
-        """Verify webhook signature"""
+    def verify_webhook(self, payload: str, signature: str, webhook_secret: str, timestamp: str = None, webhook_id: str = None) -> bool:
+        """Verify webhook signature using Dodo's standard webhook format"""
         try:
+            # Dodo uses standard webhook format: webhook-id + webhook-timestamp + payload
+            if timestamp and webhook_id:
+                # Standard webhooks format: concatenate with periods
+                message_to_sign = f"{webhook_id}.{timestamp}.{payload}"
+            else:
+                # Fallback to just payload if headers not available
+                message_to_sign = payload
+            
             expected_signature = hmac.new(
                 webhook_secret.encode(),
-                payload.encode(),
+                message_to_sign.encode(),
                 hashlib.sha256
             ).hexdigest()
             
-            # Dodo uses "sha256=" prefix
+            # Handle different signature formats
             if signature.startswith("sha256="):
                 signature = signature[7:]
+            elif signature.startswith("v1,"):
+                # Standard webhooks format
+                signature = signature[3:]
                 
             return hmac.compare_digest(expected_signature, signature)
             
@@ -536,7 +568,9 @@ def get_dodo_client() -> Optional[DodoClient]:
         logger.warning("DODO_API_KEY not configured")
         return None
     
-    return DodoClient(api_key)
+    # Use test mode unless explicitly set to live mode
+    test_mode = os.environ.get("DODO_TEST_MODE", "true").lower() == "true"
+    return DodoClient(api_key, test_mode=test_mode)
 
 
 # Initialize subscription manager

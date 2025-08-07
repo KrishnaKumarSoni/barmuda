@@ -1673,10 +1673,12 @@ def get_user_invoices():
 
 @app.route("/webhooks/dodo", methods=["POST"])
 def dodo_webhook():
-    """Handle Dodo payment webhooks"""
+    """Handle Dodo payment webhooks with correct signature verification"""
     try:
-        # Verify webhook signature
-        signature = request.headers.get("X-Signature")
+        # Get webhook headers - check both possible header formats
+        signature = request.headers.get("webhook-signature") or request.headers.get("dodo-signature") or request.headers.get("X-Signature")
+        webhook_id = request.headers.get("webhook-id")
+        webhook_timestamp = request.headers.get("webhook-timestamp")
         webhook_secret = os.environ.get("DODO_WEBHOOK_SECRET")
         
         if not webhook_secret or not signature:
@@ -1686,7 +1688,7 @@ def dodo_webhook():
         payload = request.get_data(as_text=True)
         dodo_client = get_dodo_client()
         
-        if not dodo_client or not dodo_client.verify_webhook(payload, signature, webhook_secret):
+        if not dodo_client or not dodo_client.verify_webhook(payload, signature, webhook_secret, webhook_timestamp, webhook_id):
             logger.warning("Invalid webhook signature")
             return jsonify({"error": "Invalid signature"}), 401
         
