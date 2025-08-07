@@ -690,6 +690,8 @@
             const buttonText = document.getElementById('buttonText');
             const buttonSpinner = document.getElementById('buttonSpinner');
             
+            if (!generateBtn || !buttonText || !buttonSpinner) return;
+            
             switch(state) {
                 case 'validating':
                     generateBtn.disabled = true;
