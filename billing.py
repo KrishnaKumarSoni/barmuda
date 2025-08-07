@@ -41,7 +41,7 @@ class DodoClient:
         logger.info(f"DodoClient initialized with base_url: {self.base_url}")
     
     def create_subscription_link(self, plan: str, customer_email: str, success_url: str, cancel_url: str) -> Dict[str, Any]:
-        """Create a subscription with payment link using correct Dodo API format"""
+        """Create a subscription payment link using Dodo's static checkout URL format"""
         try:
             # Map internal plan names to Dodo product IDs
             plan_mapping = {
@@ -57,60 +57,37 @@ class DodoClient:
             if plan_mapping[plan] == "contact_sales":
                 return {"success": False, "error": "Business plan requires sales contact"}
             
-            # Create subscription payload according to official API documentation
-            payload = {
-                "customer": {
-                    "email": customer_email
-                },
-                "product_id": plan_mapping[plan],
-                "payment_link": True,  # Generate payment link
-                "return_url": success_url,
-                "quantity": 1,
-                "metadata": {
-                    "plan": plan,
-                    "source": "barmuda",
-                    "cancel_url": cancel_url
-                }
+            product_id = plan_mapping[plan]
+            
+            # Use Dodo's static checkout link format
+            # Format: https://checkout.dodopayments.com/buy/{productid}
+            base_checkout_url = "https://checkout.dodopayments.com/buy"
+            
+            # Build the checkout URL with query parameters
+            import urllib.parse
+            query_params = {
+                "email": customer_email,
+                "success_url": success_url,
+                "cancel_url": cancel_url,
+                "metadata[plan]": plan,
+                "metadata[source]": "barmuda"
             }
             
-            # Log request details for debugging
-            logger.info(f"Making request to: {self.base_url}/subscriptions")
-            logger.info(f"Request payload: {json.dumps(payload, indent=2)}")
+            # Construct the full checkout URL
+            checkout_url = f"{base_checkout_url}/{product_id}?{urllib.parse.urlencode(query_params)}"
             
-            # Use correct endpoint: POST /subscriptions (not /payment-links)
-            response = requests.post(
-                f"{self.base_url}/subscriptions",
-                headers=self.headers,
-                json=payload,
-                timeout=30
-            )
+            logger.info(f"Generated static checkout URL: {checkout_url}")
             
-            logger.info(f"Response status: {response.status_code}")
-            
-            if response.status_code == 200 or response.status_code == 201:
-                data = response.json()
-                # Extract payment link from response
-                payment_link = data.get("payment_link") or data.get("url") or data.get("checkout_url")
-                if payment_link:
-                    return {
-                        "success": True, 
-                        "checkout_url": payment_link,
-                        "subscription_id": data.get("subscription_id") or data.get("id"),
-                        "data": data
-                    }
-                else:
-                    logger.error(f"No payment link in response: {json.dumps(data, indent=2)}")
-                    return {"success": False, "error": "No payment link returned"}
-            else:
-                error_msg = f"API Error: {response.status_code}"
-                try:
-                    error_data = response.json()
-                    error_msg = f"{error_msg} - {error_data.get('message', response.text)}"
-                except:
-                    error_msg = f"{error_msg} - {response.text}"
-                
-                logger.error(f"Dodo API error: {error_msg}")
-                return {"success": False, "error": error_msg}
+            return {
+                "success": True,
+                "checkout_url": checkout_url,
+                "subscription_id": None,  # Will be created after payment
+                "data": {
+                    "payment_link": checkout_url,
+                    "product_id": product_id,
+                    "email": customer_email
+                }
+            }
                 
         except Exception as e:
             logger.error(f"Error creating subscription link: {str(e)}")

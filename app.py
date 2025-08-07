@@ -1605,7 +1605,7 @@ def create_subscription():
         if result["success"]:
             return jsonify({
                 "success": True,
-                "checkout_url": result["data"]["url"],
+                "checkout_url": result.get("checkout_url") or result.get("data", {}).get("payment_link"),
                 "plan": plan
             })
         else:
