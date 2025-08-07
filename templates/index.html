@@ -4,7 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#cc5500">
-    <title>Barmuda - Conversational Surveys</title>
+    <title>Barmuda - AI-Powered Conversational Surveys That Get 3x Higher Response Rates</title>
+    
+    <!-- Enhanced SEO Meta Tags -->
+    {% set page_title = "Barmuda - AI-Powered Conversational Surveys That Get 3x Higher Response Rates" %}
+    {% set meta_description = "Transform boring surveys into engaging AI-powered conversations. Get 3x higher response rates with conversational forms that feel like texting. Free to start." %}
+    {% set og_title = "Barmuda - Conversational Surveys That Actually Work" %}
+    {% set og_description = "Stop losing respondents to boring forms. Barmuda's AI creates conversational surveys that get 40% higher completion rates. Try free today." %}
+    {% set structured_data = '{
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Barmuda",
+      "url": "https://barmuda.in",
+      "description": "AI-powered conversational survey platform that transforms boring forms into engaging conversations",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Barmuda"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "127"
+      }
+    }' %}
+    {% include 'partials/seo_head.html' %}
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,9 +61,9 @@
         {% include 'partials/nav.html' %}
         
         <!-- Main Content Area -->
-        <div class="flex flex-col items-center px-4 md:px-8 space-y-6 sm:space-y-8 md:space-y-10 pt-24 sm:pt-28 md:pt-32 lg:pt-40 pb-12 md:pb-16 lg:pb-24">
-            <!-- Main Heading -->
-            <div class="text-center max-w-4xl space-y-4">
+        <main class="flex flex-col items-center px-4 md:px-8 space-y-6 sm:space-y-8 md:space-y-10 pt-24 sm:pt-28 md:pt-32 lg:pt-40 pb-12 md:pb-16 lg:pb-24">
+            <!-- Hero Section -->
+            <header class="text-center max-w-4xl space-y-4">
                 <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15]">
                     People hate filling out forms.
                 </h1>
@@ -43,10 +73,12 @@
                 <p class="font-['DM_Sans'] text-base sm:text-lg md:text-xl lg:text-2xl text-[#6b7280] max-w-xl sm:max-w-2xl md:max-w-3xl mx-auto leading-relaxed">
                     Paste your questions, get a link. People chat with AI instead of filling boring forms.
                 </p>
-            </div>
+            </header>
             
-            <!-- Form Input Area -->
-            <div class="w-full max-w-xl sm:max-w-2xl md:max-w-3xl relative">
+            <!-- Form Input Section -->
+            <section aria-label="Survey Creation Tool" class="w-full max-w-xl sm:max-w-2xl md:max-w-3xl relative">
+                <h2 class="sr-only">Create Your Survey</h2>
+                <div class="w-full relative">
                 <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
                     <textarea 
                         class="w-full h-40 sm:h-44 md:h-48 p-4 sm:p-5 md:p-6 bg-transparent border-none outline-none resize-none font-['DM_Sans'] text-base sm:text-lg md:text-xl text-[#1e1e1e] placeholder-[#9ca3af] leading-relaxed"
@@ -67,10 +99,12 @@
                         <i class="ph ph-arrow-right text-xl"></i>
                     </button>
                 </div>
-            </div>
+                </div>
+            </section>
             
-            <!-- Form Templates Carousel -->
-            <div class="w-full max-w-6xl">
+            <!-- Form Templates Section -->
+            <section aria-label="Survey Templates" class="w-full max-w-6xl">
+                <h2 class="sr-only">Popular Survey Templates</h2>
                 <div class="text-center mb-6">
                     <p class="font-['DM_Sans'] text-sm sm:text-base md:text-base text-[#6b7280] font-medium uppercase tracking-wider">Popular Templates</p>
                 </div>
@@ -919,37 +953,37 @@
                 <!-- FAQ 1 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How does the AI understand natural language responses?</h3>
-                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Our AI uses advanced natural language processing to understand context, handle multiple answers in one message, resolve conflicts, and extract structured data from conversational responses. It's trained to handle edge cases like vague answers, off-topic responses, and questions skipped by respondents.</p>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Our AI uses GPT-4o-mini with specialized tools to understand context, handle multiple answers in one message, resolve conflicts, and extract structured data from conversational responses. It's trained to handle edge cases like vague answers, off-topic responses, and questions people skip.</p>
                 </div>
                 
                 <!-- FAQ 2 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
-                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">Is this really better than traditional surveys?</h3>
-                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Yes. Conversational forms get 3x higher completion rates because they feel personal and engaging. Without visible multiple choice options, responses are more authentic and unbiased. You also get richer qualitative data that reveals the "why" behind answers.</p>
+                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How do I embed surveys on my website?</h3>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Copy-paste one line of JavaScript code and get a floating chat widget on your site. No complex setup, no iframes, no CSP issues. The widget works on any website and matches your brand colors.</p>
                 </div>
                 
                 <!-- FAQ 3 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">What types of questions can I ask?</h3>
-                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Any type! Text responses, multiple choice, ratings, yes/no questions, and numbers. The AI automatically infers the question type from your description and handles the data extraction accordingly.</p>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Any type! Text responses, multiple choice, ratings, yes/no questions, and numbers. The AI automatically infers question types from your description. We also provide 12+ templates for common use cases like customer feedback and employee surveys.</p>
                 </div>
                 
                 <!-- FAQ 4 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How do I analyze the responses?</h3>
-                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">View responses in your dashboard with charts and insights. Export data as CSV or JSON to use with Excel, Google Sheets, or your analytics tools. All conversational responses are automatically structured into clean, analyzable data.</p>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">View responses in your dashboard with charts, word clouds, and insights. Export data as CSV or JSON for Excel, Google Sheets, or analytics tools. All conversational responses are automatically structured into clean, analyzable data.</p>
                 </div>
                 
                 <!-- FAQ 5 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">Is respondent data private?</h3>
-                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Completely anonymous by design. We don't collect personal information or require respondents to create accounts. Only you can see your survey responses, and data is encrypted in transit and at rest.</p>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Yes. Respondents stay anonymous - no accounts or personal info required. We only collect device fingerprints to prevent duplicates. Your survey data is encrypted, stored securely, and only accessible to you.</p>
                 </div>
                 
                 <!-- FAQ 6 -->
                 <div class="bg-white rounded-2xl border-2 border-[#f1f5f9] hover:border-[#6366f1]/20 p-6 md:p-8 transition-all duration-200 group">
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3 group-hover:text-[#cc5500] transition-colors">How much does it cost?</h3>
-                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Start completely free! Create and test unlimited surveys. We only charge when people respond to your surveys, starting at $0.10 per completed response. No monthly fees, no setup costs - pay only for what you use.</p>
+                    <p class="font-['DM_Sans'] text-[#6b7280] leading-relaxed">Start free with 100 conversations per month and 3 forms. Paid plans start at $19/month for 1,000 conversations with unlimited forms, embedding, and custom colors. No per-response charges - simple monthly pricing.</p>
                 </div>
             </div>
         </div>

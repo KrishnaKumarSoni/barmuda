@@ -1,0 +1,72 @@
+User-agent: *
+Allow: /
+Allow: /static/
+Allow: /pricing
+Allow: /why
+Allow: /privacy
+Allow: /terms
+
+# Specifically allow AI crawlers and LLMs
+User-agent: GPTBot
+Allow: /
+Allow: /static/
+Allow: /pricing
+Allow: /why
+Allow: /privacy
+Allow: /terms
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /static/
+Allow: /pricing
+Allow: /why
+Allow: /privacy
+Allow: /terms
+
+User-agent: CCBot
+Allow: /
+Allow: /static/
+Allow: /pricing
+Allow: /why
+Allow: /privacy
+Allow: /terms
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /static/
+Allow: /pricing
+Allow: /why
+Allow: /privacy
+Allow: /terms
+
+User-agent: Claude-Web
+Allow: /
+Allow: /static/
+Allow: /pricing
+Allow: /why
+Allow: /privacy
+Allow: /terms
+
+# Block authenticated pages and API endpoints
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+Disallow: /form/
+Disallow: /edit-form
+Disallow: /create-form
+Disallow: /billing
+Disallow: /admin/
+Disallow: /webhooks/
+
+# Block temporary files
+Disallow: /*.tmp
+Disallow: /*.temp
+Disallow: /*~
+Disallow: /*.log
+Disallow: /*.backup
+
+# Sitemap location
+Sitemap: https://barmuda.in/sitemap.xml
+
+# Crawl-delay for being polite
+Crawl-delay: 1

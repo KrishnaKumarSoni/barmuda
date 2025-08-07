@@ -1145,6 +1145,28 @@ def why():
     return render_template("why.html")
 
 
+# SEO and crawling routes
+@app.route("/robots.txt")
+def robots_txt():
+    """Serve robots.txt for search engines and AI crawlers"""
+    return app.send_static_file('robots.txt')
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    """Serve sitemap.xml for search engines"""
+    return app.send_static_file('sitemap.xml')
+
+
+@app.route("/sw.js")
+def service_worker():
+    """Serve service worker for PWA and caching"""
+    response = app.send_static_file('sw.js')
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
+
 @app.route("/edit-form")
 @login_required
 def edit_form():
