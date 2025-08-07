@@ -78,10 +78,93 @@
 }
 </script>
 
-{% if structured_data %}
 <!-- Page-specific Structured Data -->
+{% if page_type == "homepage" %}
 <script type="application/ld+json">
-{{ structured_data | safe }}
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Barmuda",
+  "url": "https://barmuda.in",
+  "description": "AI-powered conversational survey platform that transforms boring forms into engaging conversations",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "Barmuda"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "reviewCount": "127"
+  }
+}
+</script>
+{% elif page_type == "article" %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Why Conversational Surveys Get 3x Higher Response Rates",
+  "description": "Research-backed analysis of why traditional surveys are failing and how conversational interfaces achieve better results",
+  "author": {
+    "@type": "Organization",
+    "name": "Barmuda"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Barmuda",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://barmuda.in/static/assets/logo.webp"
+    }
+  },
+  "datePublished": "2025-01-07",
+  "dateModified": "2025-01-07",
+  "mainEntityOfPage": "https://barmuda.in/why"
+}
+</script>
+{% elif page_type == "pricing" %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Barmuda Conversational Surveys",
+  "provider": {
+    "@type": "Organization",
+    "name": "Barmuda"
+  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free Plan",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "100 conversations per month, 3 surveys"
+    },
+    {
+      "@type": "Offer",
+      "name": "Starter Plan",
+      "price": "19",
+      "priceCurrency": "USD",
+      "billingIncrement": "monthly",
+      "description": "1,000 conversations per month, unlimited surveys"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro Plan",
+      "price": "49",
+      "priceCurrency": "USD",
+      "billingIncrement": "monthly",
+      "description": "10,000 conversations per month, advanced features"
+    }
+  ]
+}
 </script>
 {% endif %}
 

@@ -14,29 +14,7 @@
     {% set canonical_url = "https://barmuda.in/" %}
     {% set og_url = "https://barmuda.in/" %}
     {% set hreflang_url = "https://barmuda.in/" %}
-    {% set structured_data = '{
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Barmuda",
-      "url": "https://barmuda.in",
-      "description": "AI-powered conversational survey platform that transforms boring forms into engaging conversations",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "author": {
-        "@type": "Organization",
-        "name": "Barmuda"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "reviewCount": "127"
-      }
-    }' %}
+    {% set page_type = "homepage" %}
     {% include 'partials/seo_head.html' %}
     
     <!-- Tailwind CSS -->

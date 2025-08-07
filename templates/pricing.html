@@ -14,40 +14,7 @@
     {% set canonical_url = "https://barmuda.in/pricing" %}
     {% set og_url = "https://barmuda.in/pricing" %}
     {% set hreflang_url = "https://barmuda.in/pricing" %}
-    {% set structured_data = '{
-      "@context": "https://schema.org",
-      "@type": "Service",
-      "name": "Barmuda Conversational Surveys",
-      "provider": {
-        "@type": "Organization",
-        "name": "Barmuda"
-      },
-      "offers": [
-        {
-          "@type": "Offer",
-          "name": "Free Plan",
-          "price": "0",
-          "priceCurrency": "USD",
-          "description": "100 conversations per month, 3 surveys"
-        },
-        {
-          "@type": "Offer",
-          "name": "Starter Plan",
-          "price": "19",
-          "priceCurrency": "USD",
-          "billingIncrement": "monthly",
-          "description": "1,000 conversations per month, unlimited surveys"
-        },
-        {
-          "@type": "Offer",
-          "name": "Pro Plan",
-          "price": "49",
-          "priceCurrency": "USD",
-          "billingIncrement": "monthly",
-          "description": "10,000 conversations per month, advanced features"
-        }
-      ]
-    }' %}
+    {% set page_type = "pricing" %}
     {% include 'partials/seo_head.html' %}
     
     <!-- Tailwind CSS -->
