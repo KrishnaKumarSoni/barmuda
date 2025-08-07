@@ -44,10 +44,9 @@ class DodoClient:
         """Create a subscription payment link using Dodo's static checkout URL format"""
         try:
             # Map internal plan names to Dodo product IDs
-            # TODO: Update these with actual product IDs from Dodo dashboard
             plan_mapping = {
-                "starter": "PLACEHOLDER_STARTER_PRODUCT_ID",    # Barmuda Starter - UPDATE NEEDED
-                "pro": "PLACEHOLDER_PRO_PRODUCT_ID",        # Barmuda Professional - UPDATE NEEDED  
+                "starter": "pdt_6ItgPfxb3pNXVi0t6wCGt",    # Barmuda Starter
+                "pro": "pdt_KjvNtH91A9YySlSeurvT7",        # Barmuda Professional
                 "business": "contact_sales"                 # Business plan handled via sales
             }
             
