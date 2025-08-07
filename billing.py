@@ -43,12 +43,21 @@ class DodoClient:
     def create_subscription_link(self, plan: str, customer_email: str, success_url: str, cancel_url: str) -> Dict[str, Any]:
         """Create a subscription payment link using Dodo's static checkout URL format"""
         try:
-            # Map internal plan names to Dodo product IDs
-            plan_mapping = {
-                "starter": "pdt_6ItgPfxb3pNXVi0t6wCGt",    # Barmuda Starter
-                "pro": "pdt_KjvNtH91A9YySlSeurvT7",        # Barmuda Professional
-                "business": "contact_sales"                 # Business plan handled via sales
-            }
+            # Map internal plan names to Dodo product IDs (different for test vs live)
+            if self.test_mode:
+                # Test mode product IDs
+                plan_mapping = {
+                    "starter": "pdt_6ItgPfxb3pNXVi0t6wCGt",    # Test Barmuda Starter
+                    "pro": "pdt_KjvNtH91A9YySlSeurvT7",        # Test Barmuda Professional
+                    "business": "contact_sales"                 # Business plan handled via sales
+                }
+            else:
+                # Live mode product IDs
+                plan_mapping = {
+                    "starter": "pdt_p9coOTMgXQm18Q73MUoZF",    # Live Barmuda Starter
+                    "pro": "pdt_WlbiX1zmYKuIx5Y8XNDs0",        # Live Barmuda Professional
+                    "business": "contact_sales"                 # Business plan handled via sales
+                }
             
             if plan not in plan_mapping:
                 raise ValueError(f"Invalid plan: {plan}")
