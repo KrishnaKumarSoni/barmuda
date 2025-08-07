@@ -65,8 +65,12 @@ class DodoClient:
                 return {"success": False, "error": "Payment system not fully configured. Please contact support."}
             
             # Use Dodo's static checkout link format
-            # Format: https://checkout.dodopayments.com/buy/{productid}
-            base_checkout_url = "https://checkout.dodopayments.com/buy"
+            # Format: https://checkout.dodopayments.com/buy/{productid} (live)
+            # Format: https://test.checkout.dodopayments.com/buy/{productid} (test)
+            if self.test_mode:
+                base_checkout_url = "https://test.checkout.dodopayments.com/buy"
+            else:
+                base_checkout_url = "https://checkout.dodopayments.com/buy"
             
             # Build the checkout URL with query parameters
             import urllib.parse
