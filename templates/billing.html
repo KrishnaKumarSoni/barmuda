@@ -51,10 +51,13 @@
                 
                 <!-- Plan Info -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center p-6 bg-[#fff5e0] rounded-lg">
+                    <div class="text-center p-6 bg-[#fff5e0] rounded-lg relative">
                         <div id="current-plan" class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#cc5500] mb-2">Free</div>
                         <div class="font-['DM_Sans'] text-sm text-[#666]">Current Plan</div>
                         <div id="plan-price" class="font-['DM_Sans'] text-lg font-medium text-black mt-2">$0/month</div>
+                        <div id="grandfathered-badge" class="hidden absolute -top-2 -right-2 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white text-xs px-2 py-1 rounded-full font-medium">
+                            Grandfathered
+                        </div>
                     </div>
                     <div class="text-center p-6 bg-[#fff5e0] rounded-lg">
                         <div id="conversations-usage" class="font-['Plus_Jakarta_Sans'] font-bold text-2xl text-[#cc5500] mb-2">0 / 100</div>
@@ -188,28 +191,75 @@
         function updateBillingDisplay(data) {
             const { subscription, usage, limits, plan_features } = data;
             
-            // Update plan name
-            const planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1);
-            document.getElementById('current-plan').textContent = planName;
+            // Handle grandfathered users
+            let planName = subscription.plan;
+            let planPrice = '$0/month';
+            let isGrandfathered = subscription.is_grandfathered || false;
             
-            // Update plan price
-            const prices = {
-                'free': '$0/month',
-                'starter': '$19/month',
-                'pro': '$49/month',
-                'business': 'Custom'
-            };
-            document.getElementById('plan-price').textContent = prices[subscription.plan] || 'Custom';
+            if (isGrandfathered) {
+                // Handle grandfathered plans
+                if (subscription.plan === 'grandfathered_pro') {
+                    planName = 'Pro (Grandfathered)';
+                    planPrice = `$${subscription.grandfathered_price}/month`;
+                } else if (subscription.plan === 'grandfathered_business') {
+                    planName = 'Business (Grandfathered)';
+                    planPrice = `$${subscription.grandfathered_price}/month`;
+                }
+            } else {
+                // Regular plans
+                planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1);
+                const prices = {
+                    'free': '$0/month',
+                    'starter': '$19/month',
+                    'pro': '$49/month',
+                    'business': 'Custom'
+                };
+                planPrice = prices[subscription.plan] || 'Custom';
+            }
+            
+            document.getElementById('current-plan').textContent = planName;
+            document.getElementById('plan-price').textContent = planPrice;
+            
+            // Show/hide grandfathered badge
+            const grandfatheredBadge = document.getElementById('grandfathered-badge');
+            if (isGrandfathered) {
+                grandfatheredBadge.classList.remove('hidden');
+            } else {
+                grandfatheredBadge.classList.add('hidden');
+            }
+            
+            // Update manage subscription button for grandfathered users
+            const manageBtn = document.getElementById('manage-subscription');
+            if (isGrandfathered) {
+                manageBtn.textContent = 'Manage';
+                manageBtn.onclick = () => showGrandfatheredMessage();
+            } else if (subscription.plan === 'free') {
+                manageBtn.textContent = 'Upgrade';
+                manageBtn.onclick = () => manageSubscription();
+            } else {
+                manageBtn.textContent = 'Manage';
+                manageBtn.onclick = () => manageSubscription();
+            }
             
             // Update usage counters
             const conversationsUsage = document.getElementById('conversations-usage');
             const formsUsage = document.getElementById('forms-usage');
             
-            const conversationsLimit = limits.conversations_per_month === -1 ? '∞' : limits.conversations_per_month;
-            const formsLimit = limits.max_forms === -1 ? '∞' : limits.max_forms;
+            const conversationsLimit = limits.conversations_per_month === -1 ? '∞' : limits.conversations_per_month.toLocaleString();
+            const formsLimit = limits.max_forms === -1 ? '∞' : limits.max_forms.toLocaleString();
             
-            conversationsUsage.textContent = `${usage.conversations_count} / ${conversationsLimit}`;
-            formsUsage.textContent = `${usage.forms_count} / ${formsLimit}`;
+            conversationsUsage.textContent = `${usage.conversations_count.toLocaleString()} / ${conversationsLimit}`;
+            formsUsage.textContent = `${usage.forms_count.toLocaleString()} / ${formsLimit}`;
+            
+            // Update reset date
+            const resetElement = document.getElementById('conversations-reset');
+            if (usage.current_month) {
+                const nextMonth = new Date();
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                nextMonth.setDate(1);
+                const resetDate = nextMonth.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                resetElement.textContent = `Resets ${resetDate}`;
+            }
             
             // Update progress bars
             updateProgressBar('conversation-progress', 'conversation-percentage', 
@@ -386,6 +436,10 @@
         function downloadInvoices() {
             // This would implement invoice downloading functionality
             showNotification('Invoice download feature coming soon', 'info');
+        }
+
+        function showGrandfatheredMessage() {
+            showNotification('You have a special grandfathered plan with exclusive pricing. Contact support if you need to make changes.', 'info');
         }
 
         function showNotification(message, type = 'info') {

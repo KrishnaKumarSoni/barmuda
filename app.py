@@ -1677,6 +1677,52 @@ def get_user_invoices():
         return jsonify({"success": False, "error": "Failed to get invoices"}), 500
 
 
+# Admin endpoint for grandfathering users
+@app.route("/admin/grandfather", methods=["POST"])
+@login_required
+def grandfather_user_admin():
+    """Admin endpoint to grandfather existing users"""
+    try:
+        # Simple admin auth check - you might want to make this more robust
+        admin_emails = ["krishnaaimaddy@gmail.com", "admin@barmuda.in"]
+        if request.user["email"] not in admin_emails:
+            return jsonify({"success": False, "error": "Admin access required"}), 403
+        
+        data = request.get_json()
+        target_email = data.get("email")
+        plan_type = data.get("plan_type", "pro")  # 'pro' or 'business'
+        
+        if not target_email:
+            return jsonify({"success": False, "error": "User email is required"}), 400
+        
+        # Find user by email
+        users_ref = db.collection("users").where("email", "==", target_email)
+        users = list(users_ref.stream())
+        
+        if not users:
+            return jsonify({"success": False, "error": "User not found"}), 404
+        
+        user_id = users[0].id
+        
+        # Grandfather the user
+        subscription_manager = get_subscription_manager()
+        success = subscription_manager.grandfather_user(user_id, plan_type)
+        
+        if success:
+            return jsonify({
+                "success": True,
+                "message": f"User {target_email} successfully grandfathered to {plan_type} plan"
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Failed to grandfather user"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error in admin grandfather endpoint: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/webhooks/dodo", methods=["POST"])
 def dodo_webhook():
     """Handle Dodo payment webhooks with correct signature verification"""

@@ -523,7 +523,7 @@ ALWAYS respond to their actual message first. Never generic "welcome back".
 Good: ✅ Stories, emotional language, elaboration
 Probe: ⚠️ All positive/negative, very short, rushing
 
-React first, then guide. Be human, not a data collector."""
+Be human, not a data collector."""
 
 
     def create_session(

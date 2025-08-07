@@ -307,4 +307,37 @@ Prioritize these (handle via prompts):
 **Edge Cases:** Refer to @EdgeCases.md for chat conversation handling
 **Design System:** Refer to @DesignLinks.md for Figma design references 
 
+## Brand Voice & Tone (Memorized from Landing Page)
+
+**Barmuda Brand Voice Characteristics:**
+
+**Tone & Style:**
+- Direct, conversational, and relatable
+- Problem-focused with clear solutions  
+- Uses natural, everyday language ("People hate filling out forms")
+- Friendly but professional
+- Action-oriented with clear calls-to-action
+
+**Key Voice Elements:**
+- **Pain Point Recognition**: "People hate filling out forms" - acknowledges user frustration upfront
+- **Simple Solution Positioning**: "So we made surveys that feel like texting" - clear, relatable analogy  
+- **Benefit-Focused**: "People chat with AI instead of filling boring forms" - emphasizes user experience
+- **Conversational Copy**: "Paste your questions, get a link" - simple, direct instructions
+- **Human-Centered**: Focuses on making interactions feel natural and effortless
+
+**Writing Patterns:**
+- Short, punchy sentences
+- Avoids jargon or technical terms
+- Uses "people" instead of "users" (more human)
+- Present tense, active voice
+- Clear value propositions without overselling
+
+**Emotional Approach:**
+- Empathetic to user pain points
+- Optimistic about solutions
+- Casual but confident  
+- Not pushy or salesy
+
+This voice positions Barmuda as approachable, user-focused, and genuinely solving a real problem people face.
+
 * Memorise this please as a backlog item

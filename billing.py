@@ -170,6 +170,33 @@ class SubscriptionManager:
             'priority_support': False,
             'team_members': False
         },
+        # Grandfathered users - special pricing from early launch
+        'grandfathered_pro': {
+            'conversations_per_month': 10000,
+            'max_forms': -1,  # unlimited
+            'remove_branding': True,
+            'custom_widget_colors': True,
+            'template_library': True,
+            'word_cloud': True,
+            'advanced_export': True,
+            'priority_support': True,
+            'team_members': False,
+            'grandfathered_price': 19,  # Special $19/month price
+            'grandfathered': True
+        },
+        'grandfathered_business': {
+            'conversations_per_month': -1,  # unlimited
+            'max_forms': -1,
+            'remove_branding': True,
+            'custom_widget_colors': True,
+            'template_library': True,
+            'word_cloud': True,
+            'advanced_export': True,
+            'priority_support': True,
+            'team_members': True,
+            'grandfathered_price': 39,  # Special $39/month price
+            'grandfathered': True
+        },
         'starter': {
             'conversations_per_month': 1000,
             'max_forms': -1,  # unlimited
@@ -227,6 +254,14 @@ class SubscriptionManager:
             if not subscription or "plan" not in subscription:
                 self._create_default_subscription(user_id)
                 return self._get_default_subscription()
+            
+            # Add grandfathered status information
+            plan = subscription.get("plan", "free")
+            if plan in ['grandfathered_pro', 'grandfathered_business']:
+                subscription['is_grandfathered'] = True
+                subscription['grandfathered_price'] = self.PLAN_LIMITS[plan].get('grandfathered_price')
+            else:
+                subscription['is_grandfathered'] = False
             
             return subscription
             
@@ -560,6 +595,57 @@ class SubscriptionManager:
             
         except Exception as e:
             logger.error(f"Error saving invoice: {str(e)}")
+    
+    def grandfather_user(self, user_id: str, plan_type: str = 'pro') -> bool:
+        """Convert existing user to grandfathered plan"""
+        try:
+            if plan_type not in ['pro', 'business']:
+                raise ValueError("Invalid grandfathered plan type. Use 'pro' or 'business'")
+            
+            grandfathered_plan = f"grandfathered_{plan_type}"
+            
+            # Check if plan exists
+            if grandfathered_plan not in self.PLAN_LIMITS:
+                raise ValueError(f"Grandfathered plan '{grandfathered_plan}' not configured")
+            
+            user_ref = db.collection("users").document(user_id)
+            user_doc = user_ref.get()
+            
+            if not user_doc.exists:
+                raise ValueError("User not found")
+            
+            # Update subscription to grandfathered plan
+            update_data = {
+                "subscription.plan": grandfathered_plan,
+                "subscription.status": "active",
+                "subscription.grandfathered_at": datetime.now(),
+                "subscription.updated_at": datetime.now()
+            }
+            
+            user_ref.update(update_data)
+            
+            # Log grandfathering event
+            self._log_subscription_event(user_id, "user_grandfathered", {
+                "grandfathered_plan": grandfathered_plan,
+                "grandfathered_price": self.PLAN_LIMITS[grandfathered_plan].get('grandfathered_price')
+            })
+            
+            logger.info(f"Successfully grandfathered user {user_id} to {grandfathered_plan}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error grandfathering user {user_id}: {str(e)}")
+            return False
+    
+    def is_user_grandfathered(self, user_id: str) -> bool:
+        """Check if user has grandfathered status"""
+        try:
+            subscription = self.get_user_subscription(user_id)
+            plan = subscription.get("plan", "free")
+            return plan in ['grandfathered_pro', 'grandfathered_business']
+        except Exception as e:
+            logger.error(f"Error checking grandfathered status: {str(e)}")
+            return False
 
 
 # Initialize Dodo client
