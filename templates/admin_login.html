@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Admin Login - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#fff5e0] min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full mx-4">
+        <!-- Logo/Header -->
+        <div class="text-center mb-8">
+            <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-3xl text-[#cc5500] mb-2">🅱️ Barmuda</h1>
+            <p class="font-['DM_Sans'] text-sm text-[#6b7280]">Admin Dashboard</p>
+        </div>
+        
+        <!-- Login Form -->
+        <div class="bg-white border border-[#fff0cf] rounded-2xl p-8 shadow-sm">
+            <div class="mb-6">
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-[#1e1e1e] mb-2">Administrator Access</h2>
+                <p class="font-['DM_Sans'] text-sm text-[#6b7280]">Enter your admin password to continue</p>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <i class="ph ph-warning-circle text-red-500"></i>
+                    <span class="font-['DM_Sans'] text-sm text-red-700" id="error-text">Invalid password</span>
+                </div>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="mb-6">
+                    <label for="password" class="block font-['DM_Sans'] font-medium text-sm text-[#1e1e1e] mb-2">
+                        Password
+                    </label>
+                    <div class="relative">
+                        <input type="password" 
+                               id="password" 
+                               name="password"
+                               required
+                               class="w-full px-4 py-3 border border-[#e5e7eb] rounded-lg font-['DM_Sans'] text-sm focus:outline-none focus:border-[#cc5500] focus:ring-2 focus:ring-[#cc5500]/20 transition-all"
+                               placeholder="Enter admin password">
+                        <button type="button" 
+                                onclick="togglePassword()" 
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6b7280] hover:text-[#1e1e1e] transition-colors">
+                            <i id="password-icon" class="ph ph-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" 
+                        id="login-btn"
+                        class="w-full bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white font-['Plus_Jakarta_Sans'] font-medium text-sm py-3 px-4 rounded-lg hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-2">
+                    <span id="login-text">Access Dashboard</span>
+                    <i id="login-icon" class="ph ph-arrow-right"></i>
+                    <div id="login-spinner" class="hidden">
+                        <div class="flex space-x-1">
+                            <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                            <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                            <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                        </div>
+                    </div>
+                </button>
+            </form>
+            
+            <!-- Security Notice -->
+            <div class="mt-6 p-3 bg-[#fff5e0] border border-[#fff0cf] rounded-lg">
+                <div class="flex items-start gap-2">
+                    <i class="ph ph-shield-check text-[#cc5500] text-sm mt-0.5"></i>
+                    <div>
+                        <p class="font-['DM_Sans'] font-medium text-xs text-[#1e1e1e] mb-1">Secure Access</p>
+                        <p class="font-['DM_Sans'] text-xs text-[#6b7280]">This area is restricted to authorized administrators only. All access attempts are logged.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6">
+            <p class="font-['DM_Sans'] text-xs text-[#6b7280]">
+                © 2025 Barmuda. All rights reserved.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let loginAttempts = 0;
+        const maxAttempts = 5;
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            if (loginAttempts >= maxAttempts) {
+                showError('Too many failed attempts. Please try again later.');
+                return;
+            }
+            
+            const password = document.getElementById('password').value;
+            if (!password) {
+                showError('Please enter a password');
+                return;
+            }
+            
+            setLoading(true);
+            hideError();
+            
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password: password }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Successful login
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    // Failed login
+                    loginAttempts++;
+                    const attemptsLeft = maxAttempts - loginAttempts;
+                    
+                    if (attemptsLeft > 0) {
+                        showError(`Invalid password. ${attemptsLeft} attempts remaining.`);
+                    } else {
+                        showError('Too many failed attempts. Access temporarily blocked.');
+                        document.getElementById('login-btn').disabled = true;
+                        document.getElementById('password').disabled = true;
+                    }
+                    
+                    // Clear password field
+                    document.getElementById('password').value = '';
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Login failed. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        function setLoading(loading) {
+            const btn = document.getElementById('login-btn');
+            const text = document.getElementById('login-text');
+            const icon = document.getElementById('login-icon');
+            const spinner = document.getElementById('login-spinner');
+            
+            if (loading) {
+                btn.disabled = true;
+                text.textContent = 'Verifying...';
+                icon.classList.add('hidden');
+                spinner.classList.remove('hidden');
+            } else {
+                btn.disabled = false;
+                text.textContent = 'Access Dashboard';
+                icon.classList.remove('hidden');
+                spinner.classList.add('hidden');
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            // Shake animation
+            errorDiv.classList.add('animate-pulse');
+            setTimeout(() => errorDiv.classList.remove('animate-pulse'), 1000);
+        }
+        
+        function hideError() {
+            document.getElementById('error-message').classList.add('hidden');
+        }
+        
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('password-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('ph-eye');
+                icon.classList.add('ph-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('ph-eye-slash');
+                icon.classList.add('ph-eye');
+            }
+        }
+        
+        // Focus password field on load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('password').focus();
+        });
+        
+        // Handle Enter key in password field
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin(e);
+            }
+        });
+    </script>
+</body>
+</html>

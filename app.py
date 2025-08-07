@@ -114,6 +114,11 @@ openai_client = OpenAI(api_key=openai_api_key)
 from billing import init_billing, get_subscription_manager, get_dodo_client, is_test_mode
 init_billing(db)
 
+# Initialize admin system
+from admin import init_admin, admin_required, verify_admin_password, log_admin_login, AdminMetrics, ADMIN_SESSION_KEY
+init_admin(db)
+admin_metrics = AdminMetrics()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -2784,6 +2789,157 @@ def test_extraction_endpoint(session_id):
             "session_id": session_id,
             "extraction_found": False
         }), 500
+
+
+# =================
+# ADMIN ROUTES
+# =================
+
+@app.route("/admin")
+def admin_login():
+    """Admin login page"""
+    if session.get(ADMIN_SESSION_KEY):
+        return redirect(url_for('admin_dashboard'))
+    return render_template("admin_login.html")
+
+@app.route("/admin/login", methods=["POST"])
+def admin_login_post():
+    """Handle admin login"""
+    try:
+        data = request.get_json()
+        password = data.get("password")
+        
+        if not password:
+            return jsonify({"success": False, "error": "Password required"}), 400
+        
+        # Get client IP
+        client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+        
+        if verify_admin_password(password):
+            session[ADMIN_SESSION_KEY] = True
+            session['admin_last_activity'] = datetime.now().timestamp()
+            log_admin_login(True, client_ip)
+            
+            logger.info(f"Admin login successful from IP: {client_ip}")
+            return jsonify({"success": True})
+        else:
+            log_admin_login(False, client_ip)
+            logger.warning(f"Admin login failed from IP: {client_ip}")
+            return jsonify({"success": False, "error": "Invalid password"}), 401
+            
+    except Exception as e:
+        logger.error(f"Admin login error: {str(e)}")
+        return jsonify({"success": False, "error": "Login failed"}), 500
+
+@app.route("/admin/logout", methods=["POST"])
+def admin_logout():
+    """Handle admin logout"""
+    session.pop(ADMIN_SESSION_KEY, None)
+    session.pop('admin_last_activity', None)
+    return jsonify({"success": True})
+
+@app.route("/admin/dashboard")
+@admin_required
+def admin_dashboard():
+    """Admin dashboard page"""
+    return render_template("admin_dashboard.html")
+
+@app.route("/admin/api/dashboard")
+@admin_required
+def admin_api_dashboard():
+    """API endpoint for dashboard metrics"""
+    try:
+        data = admin_metrics.get_dashboard_summary()
+        return jsonify(data)
+    except Exception as e:
+        logger.error(f"Error fetching dashboard data: {str(e)}")
+        return jsonify({"error": "Failed to fetch dashboard data"}), 500
+
+@app.route("/admin/api/users/search")
+@admin_required
+def admin_search_users():
+    """Search users by email"""
+    try:
+        query = request.args.get("q", "").strip()
+        if not query:
+            return jsonify([])
+        
+        users = admin_metrics.search_users(query)
+        return jsonify(users)
+    except Exception as e:
+        logger.error(f"Error searching users: {str(e)}")
+        return jsonify({"error": "Search failed"}), 500
+
+@app.route("/admin/api/users/<user_id>")
+@admin_required
+def admin_get_user_details(user_id):
+    """Get detailed user information"""
+    try:
+        details = admin_metrics.get_user_details(user_id)
+        if not details:
+            return jsonify({"error": "User not found"}), 404
+        
+        return jsonify(details)
+    except Exception as e:
+        logger.error(f"Error fetching user details: {str(e)}")
+        return jsonify({"error": "Failed to fetch user details"}), 500
+
+@app.route("/admin/api/users/<user_id>/grandfather", methods=["POST"])
+@admin_required
+def admin_grant_grandfather(user_id):
+    """Grant grandfathered status to a user"""
+    try:
+        data = request.get_json()
+        plan_type = data.get("plan_type", "pro")
+        
+        success = admin_metrics.grant_grandfather_status(user_id, plan_type)
+        if success:
+            logger.info(f"Admin granted grandfather status to user: {user_id}")
+            return jsonify({"success": True})
+        else:
+            return jsonify({"error": "Failed to grant grandfather status"}), 400
+    except Exception as e:
+        logger.error(f"Error granting grandfather status: {str(e)}")
+        return jsonify({"error": "Operation failed"}), 500
+
+@app.route("/admin/api/users/<user_id>/reset-usage", methods=["POST"])
+@admin_required
+def admin_reset_user_usage(user_id):
+    """Reset usage limits for a user"""
+    try:
+        success = admin_metrics.reset_user_usage(user_id)
+        if success:
+            logger.info(f"Admin reset usage for user: {user_id}")
+            return jsonify({"success": True})
+        else:
+            return jsonify({"error": "Failed to reset usage"}), 400
+    except Exception as e:
+        logger.error(f"Error resetting user usage: {str(e)}")
+        return jsonify({"error": "Operation failed"}), 500
+
+@app.route("/admin/api/users/<user_id>/export")
+@admin_required
+def admin_export_user_data(user_id):
+    """Export user data"""
+    try:
+        details = admin_metrics.get_user_details(user_id)
+        if not details:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Add export metadata
+        export_data = {
+            "export_info": {
+                "user_id": user_id,
+                "exported_at": datetime.now().isoformat(),
+                "exported_by": "admin"
+            },
+            "user_data": details
+        }
+        
+        return jsonify(export_data)
+    except Exception as e:
+        logger.error(f"Error exporting user data: {str(e)}")
+        return jsonify({"error": "Export failed"}), 500
 
 
 if __name__ == "__main__":

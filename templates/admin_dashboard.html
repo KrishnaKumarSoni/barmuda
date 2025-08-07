@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Admin Dashboard - Barmuda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .metric-card { @apply bg-white border border-[#fff0cf] rounded-lg p-3; }
+        .metric-value { @apply font-['Plus_Jakarta_Sans'] font-bold text-xl text-[#1e1e1e]; }
+        .metric-label { @apply font-['DM_Sans'] text-xs text-[#6b7280] mt-1; }
+        .metric-change { @apply text-xs font-medium mt-1; }
+        .metric-positive { @apply text-green-600; }
+        .metric-negative { @apply text-red-600; }
+        .section-title { @apply font-['Plus_Jakarta_Sans'] font-bold text-sm text-[#1e1e1e] mb-3; }
+        .data-table { @apply text-xs; }
+        .chart-container { height: 200px; }
+    </style>
+</head>
+<body class="bg-[#fff5e0] min-h-screen">
+    <!-- Header -->
+    <div class="bg-white border-b border-[#fff0cf] px-4 py-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#cc5500]">Admin Dashboard</h1>
+                <span class="text-xs text-[#6b7280]">Last updated: <span id="last-updated">--</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="refreshDashboard()" class="text-xs bg-[#cc5500] text-white px-3 py-1.5 rounded-lg hover:bg-[#d12b2e] transition-colors flex items-center gap-1">
+                    <i class="ph ph-arrow-clockwise text-sm"></i>
+                    Refresh
+                </button>
+                <button onclick="logout()" class="text-xs text-[#6b7280] hover:text-[#cc5500] px-3 py-1.5">
+                    <i class="ph ph-sign-out text-sm"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="p-4">
+        <div class="grid grid-cols-12 gap-4">
+            
+            <!-- Revenue & Growth Section -->
+            <div class="col-span-12 lg:col-span-4">
+                <h2 class="section-title flex items-center gap-1">
+                    <i class="ph ph-currency-dollar text-[#cc5500]"></i>
+                    Revenue & Growth
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="metric-card">
+                        <div class="metric-value">$<span id="mrr">--</span></div>
+                        <div class="metric-label">MRR</div>
+                        <div id="mrr-change" class="metric-change">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">$<span id="total-revenue">--</span></div>
+                        <div class="metric-label">Total Revenue</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="paying-customers">--</div>
+                        <div class="metric-label">Paying Customers</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="grandfathered-users">--</div>
+                        <div class="metric-label">Grandfathered</div>
+                    </div>
+                </div>
+                
+                <!-- Revenue Chart -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">Revenue by Plan</h3>
+                    <div class="chart-container">
+                        <canvas id="revenue-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Retention Metrics -->
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-[#6b7280]">Churn Rate</span>
+                            <span class="text-sm font-bold text-red-600" id="churn-rate">--%</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-[#6b7280]">Retention</span>
+                            <span class="text-sm font-bold text-green-600" id="retention-rate">--%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Analytics Section -->
+            <div class="col-span-12 lg:col-span-4">
+                <h2 class="section-title flex items-center gap-1">
+                    <i class="ph ph-chart-line text-[#cc5500]"></i>
+                    Usage Analytics
+                </h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="metric-card">
+                        <div class="metric-value text-base" id="conversations-today">--</div>
+                        <div class="metric-label">Today</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value text-base" id="conversations-week">--</div>
+                        <div class="metric-label">Week</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value text-base" id="conversations-month">--</div>
+                        <div class="metric-label">Month</div>
+                    </div>
+                </div>
+                
+                <!-- Forms Metrics -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">Forms Overview</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <div class="text-lg font-bold text-green-600" id="active-forms">--</div>
+                            <div class="text-xs text-[#6b7280]">Active</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-gray-400" id="inactive-forms">--</div>
+                            <div class="text-xs text-[#6b7280]">Inactive</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-[#cc5500]" id="avg-conversations">--</div>
+                            <div class="text-xs text-[#6b7280]">Avg/Form</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Completion Rate -->
+                <div class="metric-card mt-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-[#6b7280]">Completion Rate</span>
+                        <span class="text-sm font-bold" id="completion-rate">--%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="completion-bar" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- Peak Usage -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">Peak Usage</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-xs text-[#6b7280]">Peak Hours</div>
+                            <div class="text-xs font-medium" id="peak-hours">--</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-[#6b7280]">Peak Days</div>
+                            <div class="text-xs font-medium" id="peak-days">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Metrics Section -->
+            <div class="col-span-12 lg:col-span-4">
+                <h2 class="section-title flex items-center gap-1">
+                    <i class="ph ph-users text-[#cc5500]"></i>
+                    User Metrics
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-users">--</div>
+                        <div class="metric-label">Total Users</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="text-sm font-bold text-gray-500" id="free-users">--</div>
+                                <div class="text-xs text-[#6b7280]">Free</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-green-600" id="paid-users">--</div>
+                                <div class="text-xs text-[#6b7280]">Paid</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Signups -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">New Signups</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <div class="text-lg font-bold text-[#cc5500]" id="signups-today">--</div>
+                            <div class="text-xs text-[#6b7280]">Today</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold" id="signups-week">--</div>
+                            <div class="text-xs text-[#6b7280]">Week</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold" id="signups-month">--</div>
+                            <div class="text-xs text-[#6b7280]">Month</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conversion Funnel -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">Conversion Funnel</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-[#6b7280]">Visits → Signup</span>
+                            <span class="text-xs font-bold" id="visit-to-signup">--%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-[#6b7280]">Signup → Paid</span>
+                            <span class="text-xs font-bold text-green-600" id="signup-to-paid">--%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Most Active Users -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">Most Active Users</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full data-table">
+                            <thead>
+                                <tr class="border-b border-gray-100">
+                                    <th class="text-left py-1 text-[#6b7280]">Email</th>
+                                    <th class="text-right py-1 text-[#6b7280]">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="active-users-table">
+                                <!-- Will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management Section -->
+            <div class="col-span-12 lg:col-span-6">
+                <h2 class="section-title flex items-center gap-1">
+                    <i class="ph ph-user-gear text-[#cc5500]"></i>
+                    User Management
+                </h2>
+                
+                <!-- Search -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3">
+                    <div class="flex gap-2">
+                        <input type="text" id="user-search" 
+                               placeholder="Search by email..." 
+                               class="flex-1 px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#cc5500]">
+                        <button onclick="searchUsers()" class="px-3 py-2 bg-[#cc5500] text-white text-xs rounded-lg hover:bg-[#d12b2e] transition-colors">
+                            <i class="ph ph-magnifying-glass"></i>
+                            Search
+                        </button>
+                    </div>
+                    
+                    <!-- Search Results -->
+                    <div id="search-results" class="mt-3 hidden">
+                        <table class="w-full data-table">
+                            <thead>
+                                <tr class="border-b border-gray-100">
+                                    <th class="text-left py-1 text-[#6b7280]">Email</th>
+                                    <th class="text-left py-1 text-[#6b7280]">Plan</th>
+                                    <th class="text-right py-1 text-[#6b7280]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="search-results-table">
+                                <!-- Will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- User Details Modal (hidden by default) -->
+                <div id="user-details-modal" class="hidden bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-semibold">User Details</h3>
+                        <button onclick="closeUserDetails()" class="text-gray-400 hover:text-gray-600">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
+                    <div id="user-details-content">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Health Section -->
+            <div class="col-span-12 lg:col-span-6">
+                <h2 class="section-title flex items-center gap-1">
+                    <i class="ph ph-heartbeat text-[#cc5500]"></i>
+                    System Health
+                </h2>
+                
+                <!-- API Performance -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3">
+                    <h3 class="text-xs font-semibold mb-2">API Performance</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <div class="text-sm font-bold" id="api-avg">-- ms</div>
+                            <div class="text-xs text-[#6b7280]">Avg Response</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold" id="api-p95">-- ms</div>
+                            <div class="text-xs text-[#6b7280]">P95</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold" id="api-p99">-- ms</div>
+                            <div class="text-xs text-[#6b7280]">P99</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Error Rates -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2">Error Rates</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <div class="text-sm font-bold text-orange-600" id="api-errors">--%</div>
+                            <div class="text-xs text-[#6b7280]">API</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-orange-600" id="chat-errors">--%</div>
+                            <div class="text-xs text-[#6b7280]">Chat</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-red-600" id="payment-errors">--%</div>
+                            <div class="text-xs text-[#6b7280]">Payments</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service Usage & Costs -->
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <!-- Firebase Usage -->
+                    <div class="bg-white border border-[#fff0cf] rounded-lg p-3">
+                        <h3 class="text-xs font-semibold mb-2 flex items-center gap-1">
+                            <i class="ph ph-database text-[#cc5500] text-xs"></i>
+                            Firebase Today
+                        </h3>
+                        <div class="space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-xs text-[#6b7280]">Reads</span>
+                                <span class="text-xs font-medium" id="firebase-reads">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-xs text-[#6b7280]">Writes</span>
+                                <span class="text-xs font-medium" id="firebase-writes">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-xs text-[#6b7280]">Storage</span>
+                                <span class="text-xs font-medium" id="firebase-storage">-- GB</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-1">
+                                <span class="text-xs text-[#6b7280]">Est. Cost</span>
+                                <span class="text-xs font-bold text-[#cc5500]">$<span id="firebase-cost">--</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- OpenAI Usage -->
+                    <div class="bg-white border border-[#fff0cf] rounded-lg p-3">
+                        <h3 class="text-xs font-semibold mb-2 flex items-center gap-1">
+                            <i class="ph ph-robot text-[#cc5500] text-xs"></i>
+                            OpenAI Today
+                        </h3>
+                        <div class="space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-xs text-[#6b7280]">Tokens</span>
+                                <span class="text-xs font-medium" id="openai-tokens">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-xs text-[#6b7280]">API Calls</span>
+                                <span class="text-xs font-medium" id="openai-calls">--</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-1">
+                                <span class="text-xs text-[#6b7280]">Est. Cost</span>
+                                <span class="text-xs font-bold text-[#cc5500]">$<span id="openai-cost">--</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dodo Payments Status -->
+                <div class="bg-white border border-[#fff0cf] rounded-lg p-3 mt-3">
+                    <h3 class="text-xs font-semibold mb-2 flex items-center gap-1">
+                        <i class="ph ph-credit-card text-[#cc5500] text-xs"></i>
+                        Dodo Payments
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="flex items-center gap-1">
+                                <span id="dodo-status-icon" class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                <span class="text-xs font-medium" id="dodo-status">Operational</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs text-[#6b7280]">Last webhook: </span>
+                            <span class="text-xs font-medium" id="dodo-webhook">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dashboardData = null;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshDashboard();
+            setInterval(refreshDashboard, 30000); // Auto-refresh every 30 seconds
+        });
+        
+        async function refreshDashboard() {
+            try {
+                const response = await fetch('/admin/api/dashboard');
+                if (!response.ok) throw new Error('Failed to fetch dashboard data');
+                
+                dashboardData = await response.json();
+                updateDashboard(dashboardData);
+                
+                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                showNotification('Failed to load dashboard data', 'error');
+            }
+        }
+        
+        function updateDashboard(data) {
+            // Revenue Metrics
+            const revenue = data.revenue || {};
+            document.getElementById('mrr').textContent = revenue.mrr?.toFixed(0) || '0';
+            document.getElementById('total-revenue').textContent = revenue.total_revenue?.toFixed(0) || '0';
+            document.getElementById('paying-customers').textContent = revenue.paying_customers || '0';
+            document.getElementById('grandfathered-users').textContent = revenue.grandfathered_users || '0';
+            document.getElementById('churn-rate').textContent = (revenue.churn_rate || 0) + '%';
+            document.getElementById('retention-rate').textContent = (revenue.retention_rate || 0) + '%';
+            
+            // MRR Change
+            const mrrChange = revenue.mrr_growth || 0;
+            const mrrChangeEl = document.getElementById('mrr-change');
+            mrrChangeEl.textContent = (mrrChange >= 0 ? '+' : '') + mrrChange.toFixed(1) + '%';
+            mrrChangeEl.className = mrrChange >= 0 ? 'metric-change metric-positive' : 'metric-change metric-negative';
+            
+            // Usage Analytics
+            const usage = data.usage || {};
+            document.getElementById('conversations-today').textContent = usage.conversations_today || '0';
+            document.getElementById('conversations-week').textContent = usage.conversations_week || '0';
+            document.getElementById('conversations-month').textContent = usage.conversations_month || '0';
+            document.getElementById('active-forms').textContent = usage.active_forms || '0';
+            document.getElementById('inactive-forms').textContent = usage.inactive_forms || '0';
+            document.getElementById('avg-conversations').textContent = usage.avg_conversations_per_form?.toFixed(1) || '0';
+            document.getElementById('completion-rate').textContent = (usage.completion_rate || 0) + '%';
+            document.getElementById('completion-bar').style.width = (usage.completion_rate || 0) + '%';
+            
+            // Peak usage
+            document.getElementById('peak-hours').textContent = usage.peak_hours?.map(h => h + ':00').join(', ') || '--';
+            document.getElementById('peak-days').textContent = usage.peak_days?.slice(0, 3).join(', ') || '--';
+            
+            // User Metrics
+            const users = data.users || {};
+            document.getElementById('total-users').textContent = users.total_users || '0';
+            document.getElementById('free-users').textContent = users.free_users || '0';
+            document.getElementById('paid-users').textContent = users.paid_users || '0';
+            document.getElementById('signups-today').textContent = users.signups_today || '0';
+            document.getElementById('signups-week').textContent = users.signups_week || '0';
+            document.getElementById('signups-month').textContent = users.signups_month || '0';
+            
+            // Conversion funnel
+            const funnel = users.conversion_funnel || {};
+            document.getElementById('visit-to-signup').textContent = (funnel.visit_to_signup || 0) + '%';
+            document.getElementById('signup-to-paid').textContent = (funnel.signup_to_paid || 0).toFixed(1) + '%';
+            
+            // Most active users table
+            const activeUsersTable = document.getElementById('active-users-table');
+            activeUsersTable.innerHTML = '';
+            (users.most_active_users || []).slice(0, 5).forEach(user => {
+                activeUsersTable.innerHTML += `
+                    <tr class="border-b border-gray-50">
+                        <td class="py-1 text-xs truncate max-w-[150px]">${user.email}</td>
+                        <td class="py-1 text-xs text-right font-medium">${user.activity_score}</td>
+                    </tr>
+                `;
+            });
+            
+            // System Health
+            const health = data.health || {};
+            document.getElementById('api-avg').textContent = (health.api_response_time?.avg || 0) + ' ms';
+            document.getElementById('api-p95').textContent = (health.api_response_time?.p95 || 0) + ' ms';
+            document.getElementById('api-p99').textContent = (health.api_response_time?.p99 || 0) + ' ms';
+            
+            document.getElementById('api-errors').textContent = (health.error_rates?.api_errors || 0) + '%';
+            document.getElementById('chat-errors').textContent = (health.error_rates?.chat_errors || 0) + '%';
+            document.getElementById('payment-errors').textContent = (health.error_rates?.payment_errors || 0) + '%';
+            
+            // Firebase usage
+            document.getElementById('firebase-reads').textContent = (health.firebase_usage?.reads_today || 0).toLocaleString();
+            document.getElementById('firebase-writes').textContent = (health.firebase_usage?.writes_today || 0).toLocaleString();
+            document.getElementById('firebase-storage').textContent = (health.firebase_usage?.storage_gb || 0).toFixed(2);
+            document.getElementById('firebase-cost').textContent = (health.firebase_usage?.estimated_cost || 0).toFixed(2);
+            
+            // OpenAI usage
+            document.getElementById('openai-tokens').textContent = (health.openai_usage?.tokens_today || 0).toLocaleString();
+            document.getElementById('openai-calls').textContent = (health.openai_usage?.api_calls || 0).toLocaleString();
+            document.getElementById('openai-cost').textContent = (health.openai_usage?.estimated_cost || 0).toFixed(2);
+            
+            // Dodo status
+            const dodoStatus = health.dodo_status || {};
+            document.getElementById('dodo-status').textContent = dodoStatus.status || 'Unknown';
+            const statusIcon = document.getElementById('dodo-status-icon');
+            statusIcon.className = dodoStatus.status === 'operational' ? 'w-2 h-2 bg-green-500 rounded-full' : 'w-2 h-2 bg-red-500 rounded-full';
+            
+            // Update revenue chart
+            updateRevenueChart(revenue);
+        }
+        
+        function updateRevenueChart(revenue) {
+            const ctx = document.getElementById('revenue-chart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.revenueChart) {
+                window.revenueChart.destroy();
+            }
+            
+            window.revenueChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Free', 'Starter', 'Pro', 'Business'],
+                    datasets: [{
+                        data: [
+                            revenue.user_count_by_plan?.free || 0,
+                            revenue.user_count_by_plan?.starter || 0,
+                            revenue.user_count_by_plan?.pro || 0,
+                            revenue.user_count_by_plan?.business || 0
+                        ],
+                        backgroundColor: ['#e5e7eb', '#22c55e', '#cc5500', '#d12b2e']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 10 },
+                                padding: 8
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function searchUsers() {
+            const query = document.getElementById('user-search').value;
+            if (!query) return;
+            
+            try {
+                const response = await fetch(`/admin/api/users/search?q=${encodeURIComponent(query)}`);
+                const users = await response.json();
+                
+                const resultsDiv = document.getElementById('search-results');
+                const resultsTable = document.getElementById('search-results-table');
+                
+                resultsDiv.classList.remove('hidden');
+                resultsTable.innerHTML = '';
+                
+                users.forEach(user => {
+                    resultsTable.innerHTML += `
+                        <tr class="border-b border-gray-50">
+                            <td class="py-2 text-xs">${user.email}</td>
+                            <td class="py-2 text-xs">${user.subscription?.plan || 'free'}</td>
+                            <td class="py-2 text-xs text-right">
+                                <button onclick="viewUserDetails('${user.id}')" class="text-[#cc5500] hover:underline mr-2">View</button>
+                                <button onclick="grantGrandfather('${user.id}')" class="text-green-600 hover:underline">Grandfather</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                if (users.length === 0) {
+                    resultsTable.innerHTML = '<tr><td colspan="3" class="py-2 text-xs text-center text-gray-400">No users found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error searching users:', error);
+                showNotification('Failed to search users', 'error');
+            }
+        }
+        
+        async function viewUserDetails(userId) {
+            try {
+                const response = await fetch(`/admin/api/users/${userId}`);
+                const data = await response.json();
+                
+                const modal = document.getElementById('user-details-modal');
+                const content = document.getElementById('user-details-content');
+                
+                modal.classList.remove('hidden');
+                content.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-xs text-[#6b7280]">Email</p>
+                            <p class="text-sm font-medium">${data.user.email}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-[#6b7280]">Plan</p>
+                            <p class="text-sm font-medium">${data.user.subscription?.plan || 'free'}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-[#6b7280]">Usage This Month</p>
+                            <p class="text-sm">Conversations: ${data.usage?.conversations_count || 0}</p>
+                            <p class="text-sm">Forms: ${data.usage?.forms_count || 0}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-[#6b7280]">Forms Created</p>
+                            <p class="text-sm">${data.forms?.length || 0} forms</p>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="resetUsage('${userId}')" class="px-3 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600">
+                                Reset Usage
+                            </button>
+                            <button onclick="exportUserData('${userId}')" class="px-3 py-1.5 bg-gray-500 text-white text-xs rounded-lg hover:bg-gray-600">
+                                Export Data
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                showNotification('Failed to load user details', 'error');
+            }
+        }
+        
+        function closeUserDetails() {
+            document.getElementById('user-details-modal').classList.add('hidden');
+        }
+        
+        async function grantGrandfather(userId) {
+            if (!confirm('Grant grandfathered status to this user?')) return;
+            
+            try {
+                const response = await fetch(`/admin/api/users/${userId}/grandfather`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan_type: 'pro' })
+                });
+                
+                if (response.ok) {
+                    showNotification('Grandfathered status granted', 'success');
+                    searchUsers(); // Refresh search results
+                } else {
+                    throw new Error('Failed to grant status');
+                }
+            } catch (error) {
+                console.error('Error granting grandfather status:', error);
+                showNotification('Failed to grant grandfather status', 'error');
+            }
+        }
+        
+        async function resetUsage(userId) {
+            if (!confirm('Reset usage limits for this user?')) return;
+            
+            try {
+                const response = await fetch(`/admin/api/users/${userId}/reset-usage`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Usage reset successfully', 'success');
+                    viewUserDetails(userId); // Refresh details
+                } else {
+                    throw new Error('Failed to reset usage');
+                }
+            } catch (error) {
+                console.error('Error resetting usage:', error);
+                showNotification('Failed to reset usage', 'error');
+            }
+        }
+        
+        async function exportUserData(userId) {
+            try {
+                const response = await fetch(`/admin/api/users/${userId}/export`);
+                const data = await response.json();
+                
+                // Download as JSON
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `user_${userId}_export.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('User data exported', 'success');
+            } catch (error) {
+                console.error('Error exporting user data:', error);
+                showNotification('Failed to export user data', 'error');
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Simple notification (could be enhanced)
+            const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500';
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg text-sm z-50`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+        
+        async function logout() {
+            try {
+                await fetch('/admin/logout', { method: 'POST' });
+                window.location.href = '/admin';
+            } catch (error) {
+                console.error('Error logging out:', error);
+            }
+        }
+    </script>
+</body>
+</html>
