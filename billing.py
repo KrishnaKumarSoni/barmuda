@@ -44,9 +44,10 @@ class DodoClient:
         """Create a subscription payment link using Dodo's static checkout URL format"""
         try:
             # Map internal plan names to Dodo product IDs
+            # TODO: Update these with actual product IDs from Dodo dashboard
             plan_mapping = {
-                "starter": "pdt_6ItgPfxb3pNXVi0t6wCGt",    # Barmuda Starter
-                "pro": "pdt_KjvNtH91A9YySlSeurvT7",        # Barmuda Professional
+                "starter": "PLACEHOLDER_STARTER_PRODUCT_ID",    # Barmuda Starter - UPDATE NEEDED
+                "pro": "PLACEHOLDER_PRO_PRODUCT_ID",        # Barmuda Professional - UPDATE NEEDED  
                 "business": "contact_sales"                 # Business plan handled via sales
             }
             
@@ -58,6 +59,11 @@ class DodoClient:
                 return {"success": False, "error": "Business plan requires sales contact"}
             
             product_id = plan_mapping[plan]
+            
+            # Check for placeholder values
+            if product_id.startswith("PLACEHOLDER_"):
+                logger.error(f"Product ID not configured for plan: {plan}")
+                return {"success": False, "error": "Payment system not fully configured. Please contact support."}
             
             # Use Dodo's static checkout link format
             # Format: https://checkout.dodopayments.com/buy/{productid}

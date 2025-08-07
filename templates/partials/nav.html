@@ -1,13 +1,13 @@
 <!-- Responsive Navigation Component -->
 <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-4">
-    <div class="bg-white rounded-full border border-[#fff0cf] px-3 sm:px-4 md:px-6 py-2.5 md:py-3 shadow-sm max-w-fit">
-        <div class="flex items-center gap-2 sm:gap-4 md:gap-6">
+    <div class="bg-white rounded-full border border-[#fff0cf] px-4 sm:px-5 md:px-6 py-3 md:py-3 shadow-sm w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-fit">
+        <div class="flex items-center justify-between gap-3 sm:gap-4 md:gap-6">
             <!-- Logo Section -->
             <div class="flex items-center gap-2 flex-shrink-0">
                 <img src="/static/assets/logo.webp" 
                      alt="Barmuda Logo" 
-                     class="h-6 sm:h-7 md:h-9 lg:h-11 w-auto object-contain">
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-sm sm:text-base md:text-lg lg:text-[24px] text-[#cc5500] tracking-[-0.24px] whitespace-nowrap">
+                     class="h-7 sm:h-8 md:h-9 lg:h-11 w-auto object-contain">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-base sm:text-lg md:text-xl lg:text-[24px] text-[#cc5500] tracking-[-0.24px] whitespace-nowrap">
                     Barmuda
                 </h1>
             </div>
@@ -26,23 +26,23 @@
                 {% if nav_type == 'unauthenticated' %}
                     <!-- Sign In Button -->
                     <button onclick="signInWithGoogle()" 
-                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
-                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
-                        <i class="ph ph-sign-in text-white text-sm md:text-lg lg:text-xl"></i>
+                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-4 sm:px-5 md:px-5 py-2 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-sm sm:text-base md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
+                        <i class="ph ph-sign-in text-white text-base md:text-lg lg:text-xl"></i>
                     </button>
                 {% elif nav_type == 'chat' %}
                     <!-- Generate New Form Button -->
-                    <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
-                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
-                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">New form</span>
-                        <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
+                    <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-4 sm:px-5 md:px-5 py-2 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-sm sm:text-base md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
+                        <span class="font-['DM_Sans'] text-sm text-white whitespace-nowrap sm:hidden">New form</span>
+                        <i class="ph ph-plus text-white text-base md:text-lg lg:text-xl"></i>
                     </a>
                 {% elif nav_type == 'responses' %}
                     <!-- Generate New Form Button -->
-                    <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
-                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
-                        <span class="font-['DM_Sans'] text-xs text-white whitespace-nowrap sm:hidden">New form</span>
-                        <i class="ph ph-plus text-white text-sm md:text-lg lg:text-xl"></i>
+                    <a href="/create-form" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-4 sm:px-5 md:px-5 py-2 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-sm sm:text-base md:text-base lg:text-[18px] text-white whitespace-nowrap hidden sm:inline">Generate new form</span>
+                        <span class="font-['DM_Sans'] text-sm text-white whitespace-nowrap sm:hidden">New form</span>
+                        <i class="ph ph-plus text-white text-base md:text-lg lg:text-xl"></i>
                     </a>
                 {% elif nav_type in ['pricing', 'privacy', 'terms'] %}
                     <!-- Dynamic Button for Public Pages -->
@@ -51,8 +51,8 @@
                     </div>
                 {% else %}
                     <!-- Sign Out Button -->
-                    <button onclick="signOut()" class="w-8 md:w-10 h-8 md:h-10 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center rounded-full hover:bg-gray-50">
-                        <i class="ph ph-sign-out text-lg md:text-xl lg:text-2xl"></i>
+                    <button onclick="signOut()" class="w-10 md:w-12 h-10 md:h-12 text-[#666] hover:text-[#cc5500] transition-colors flex items-center justify-center rounded-full hover:bg-gray-50">
+                        <i class="ph ph-sign-out text-xl md:text-2xl lg:text-2xl"></i>
                     </button>
                 {% endif %}
             </div>
