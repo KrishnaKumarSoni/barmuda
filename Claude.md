@@ -280,9 +280,10 @@ Prioritize these (handle via prompts):
 5. Update this file for significant changes
 
 **Deployment:**
-- Production: barmuda.in (Vercel)
+- Production: barmuda.in (Vercel) - **AUTO-DEPLOYS from main branch**
 - Repository: github.com/KrishnaKumarSoni/bermuda
 - Stack: Python Flask + HTML/CSS/JS + Tailwind + Firebase
+- **IMPORTANT**: No need to run `npx vercel --prod` manually - Vercel auto-deploys when pushing to main branch
 
 **Embed Widget Usage:**
 ```html
