@@ -38,6 +38,7 @@ class DodoClient:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+        logger.info(f"DodoClient initialized with base_url: {self.base_url}")
     
     def create_subscription_link(self, plan: str, customer_email: str, success_url: str, cancel_url: str) -> Dict[str, Any]:
         """Create a subscription with payment link using correct Dodo API format"""
@@ -583,8 +584,16 @@ def get_dodo_client() -> Optional[DodoClient]:
         logger.warning("DODO_API_KEY not configured")
         return None
     
-    # Use test mode unless explicitly set to live mode
-    test_mode = os.environ.get("DODO_TEST_MODE", "true").lower() == "true"
+    # Determine test mode based on API key format or environment variable
+    # Keys starting with numbers (like "99-") are typically test keys
+    is_test_key = api_key.startswith(("99-", "test_", "pk_test_"))
+    
+    # Use test mode if:
+    # 1. The API key looks like a test key, OR
+    # 2. DODO_TEST_MODE is not explicitly set to "false"
+    test_mode = is_test_key or os.environ.get("DODO_TEST_MODE", "true").lower() != "false"
+    
+    logger.info(f"Initializing Dodo client in {'test' if test_mode else 'live'} mode (key prefix: {api_key[:5]}...)")
     return DodoClient(api_key, test_mode=test_mode)
 
 
