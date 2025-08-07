@@ -6,14 +6,14 @@
 <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
 <!-- Canonical URL -->
-<link rel="canonical" href="{{ canonical_url or 'https://barmuda.in' + request.path }}">
+<link rel="canonical" href="{{ canonical_url or 'https://barmuda.in' }}">
 
 <!-- Open Graph Meta Tags -->
 <meta property="og:type" content="{{ og_type or 'website' }}">
 <meta property="og:site_name" content="Barmuda">
 <meta property="og:title" content="{{ og_title or page_title or 'Barmuda - Conversational Surveys That Actually Work' }}">
 <meta property="og:description" content="{{ og_description or meta_description or 'Transform boring surveys into engaging conversations. Get 3x higher response rates with AI-powered conversational forms.' }}">
-<meta property="og:url" content="{{ og_url or 'https://barmuda.in' + request.path }}">
+<meta property="og:url" content="{{ og_url or 'https://barmuda.in' }}">
 <meta property="og:image" content="{{ og_image or 'https://barmuda.in/static/assets/og-image.png' }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -100,8 +100,8 @@
 <link rel="manifest" href="/static/manifest.json">
 
 <!-- Hreflang for international SEO (if applicable) -->
-<link rel="alternate" hreflang="en" href="https://barmuda.in{{ request.path }}">
-<link rel="alternate" hreflang="x-default" href="https://barmuda.in{{ request.path }}">
+<link rel="alternate" hreflang="en" href="{{ hreflang_url or 'https://barmuda.in' }}">
+<link rel="alternate" hreflang="x-default" href="{{ hreflang_url or 'https://barmuda.in' }}">
 
 <!-- DNS Prefetch for performance -->
 <link rel="dns-prefetch" href="//fonts.googleapis.com">
