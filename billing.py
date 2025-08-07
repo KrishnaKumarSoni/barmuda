@@ -29,13 +29,14 @@ class DodoClient:
     """Dodo Payments API client"""
     
     def __init__(self, api_key: str, test_mode: bool = True):
-        self.api_key = api_key
+        self.api_key = api_key.strip()  # Remove any whitespace
         self.test_mode = test_mode
         # Use correct base URLs from official documentation
         self.base_url = "https://test.dodopayments.com" if test_mode else "https://live.dodopayments.com"
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
         }
     
     def create_subscription_link(self, plan: str, customer_email: str, success_url: str, cancel_url: str) -> Dict[str, Any]:
@@ -71,6 +72,10 @@ class DodoClient:
                 }
             }
             
+            # Log request details for debugging
+            logger.info(f"Making request to: {self.base_url}/subscriptions")
+            logger.info(f"Request payload: {json.dumps(payload, indent=2)}")
+            
             # Use correct endpoint: POST /subscriptions (not /payment-links)
             response = requests.post(
                 f"{self.base_url}/subscriptions",
@@ -79,22 +84,32 @@ class DodoClient:
                 timeout=30
             )
             
-            if response.status_code == 200:
+            logger.info(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200 or response.status_code == 201:
                 data = response.json()
                 # Extract payment link from response
-                payment_link = data.get("payment_link")
+                payment_link = data.get("payment_link") or data.get("url") or data.get("checkout_url")
                 if payment_link:
                     return {
                         "success": True, 
                         "checkout_url": payment_link,
-                        "subscription_id": data.get("subscription_id"),
+                        "subscription_id": data.get("subscription_id") or data.get("id"),
                         "data": data
                     }
                 else:
+                    logger.error(f"No payment link in response: {json.dumps(data, indent=2)}")
                     return {"success": False, "error": "No payment link returned"}
             else:
-                logger.error(f"Dodo API error: {response.status_code} - {response.text}")
-                return {"success": False, "error": f"API Error: {response.status_code} - {response.text}"}
+                error_msg = f"API Error: {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('message', response.text)}"
+                except:
+                    error_msg = f"{error_msg} - {response.text}"
+                
+                logger.error(f"Dodo API error: {error_msg}")
+                return {"success": False, "error": error_msg}
                 
         except Exception as e:
             logger.error(f"Error creating subscription link: {str(e)}")
