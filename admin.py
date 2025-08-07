@@ -227,6 +227,10 @@ class AdminMetrics:
                 
                 if created_at:
                     if isinstance(created_at, datetime):
+                        # Convert timezone-aware datetime to naive for comparison
+                        if created_at.tzinfo is not None:
+                            created_at = created_at.replace(tzinfo=None)
+                        
                         if created_at >= today_start:
                             conversations_today += 1
                         if created_at >= week_start:
@@ -332,6 +336,10 @@ class AdminMetrics:
                 
                 # Count signups
                 if created_at and isinstance(created_at, datetime):
+                    # Convert timezone-aware datetime to naive for comparison
+                    if created_at.tzinfo is not None:
+                        created_at = created_at.replace(tzinfo=None)
+                    
                     if created_at >= today_start:
                         signups_today += 1
                     if created_at >= week_start:
