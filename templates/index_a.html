@@ -1265,7 +1265,19 @@
         // Handle redirect result from Firebase
         async function handleRedirectResult() {
             try {
-                const result = await auth.getRedirectResult();
+                // Only check for redirect result if we're likely coming back from auth
+                const urlParams = new URLSearchParams(window.location.search);
+                const hasAuthState = urlParams.has('state') || urlParams.has('code') || sessionStorage.getItem('firebase:authRedirect');
+                
+                if (!hasAuthState) {
+                    return; // Skip if no auth redirect indicators
+                }
+                
+                // Add timeout to prevent hanging
+                const result = await Promise.race([
+                    auth.getRedirectResult(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                ]);
                 if (result.user) {
                     const user = result.user;
                     const idToken = await user.getIdToken();
