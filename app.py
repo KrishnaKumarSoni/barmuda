@@ -140,7 +140,7 @@ def assign_ab_test_variant():
     return variant
 
 def log_ab_test_event(event_type, variant, visitor_id, form_id=None):
-    """Log A/B test events to simple JSON file"""
+    """Log A/B test events to simple JSON file with daily tracking"""
     try:
         # Create data directory if it doesn't exist
         os.makedirs('data', exist_ok=True)
@@ -158,7 +158,26 @@ def log_ab_test_event(event_type, variant, visitor_id, form_id=None):
                     'form_created': {'A': 0, 'B': 0},
                     'button_click': {'A': 0, 'B': 0}
                 },
+                'daily_data': {},
                 'events': []
+            }
+        
+        # Initialize daily_data if not present
+        if 'daily_data' not in data:
+            data['daily_data'] = {}
+        
+        # Get today's date
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Initialize today's data if not present
+        if today not in data['daily_data']:
+            data['daily_data'][today] = {
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {
+                    'signup': {'A': 0, 'B': 0},
+                    'form_created': {'A': 0, 'B': 0},
+                    'button_click': {'A': 0, 'B': 0}
+                }
             }
         
         # Log event
@@ -167,21 +186,24 @@ def log_ab_test_event(event_type, variant, visitor_id, form_id=None):
             'event_type': event_type,
             'variant': variant,
             'visitor_id': visitor_id,
-            'form_id': form_id
+            'form_id': form_id,
+            'date': today
         }
         data['events'].append(event)
         
-        # Update counters
+        # Update counters (both total and daily)
         if event_type == 'impression':
             data['impressions'][variant] += 1
+            data['daily_data'][today]['impressions'][variant] += 1
         elif event_type in ['signup', 'form_created', 'button_click']:
             data['conversions'][event_type][variant] += 1
+            data['daily_data'][today]['conversions'][event_type][variant] += 1
         
         # Save data
         with open(ab_data_file, 'w') as f:
             json.dump(data, f, indent=2)
         
-        logger.info(f"A/B Test Event: {event_type} - Variant {variant} - Visitor {visitor_id}")
+        logger.info(f"A/B Test Event: {event_type} - Variant {variant} - Visitor {visitor_id} - Date {today}")
         
     except Exception as e:
         logger.error(f"Error logging A/B test event: {e}")
@@ -3012,11 +3034,49 @@ def admin_ab_test_results():
                 'lift': round(lift, 1)
             }
         
+        # Process daily trends (last 14 days)
+        daily_trends = []
+        daily_data = data.get('daily_data', {})
+        
+        # Get last 14 days
+        from datetime import timedelta
+        today = datetime.now().date()
+        
+        for i in range(13, -1, -1):  # 14 days ago to today
+            date = today - timedelta(days=i)
+            date_str = date.strftime('%Y-%m-%d')
+            
+            day_data = daily_data.get(date_str, {
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {'signup': {'A': 0, 'B': 0}, 'form_created': {'A': 0, 'B': 0}}
+            })
+            
+            # Calculate daily conversion rates
+            daily_imp_a = day_data['impressions']['A']
+            daily_imp_b = day_data['impressions']['B']
+            daily_signup_a = day_data['conversions']['signup']['A']
+            daily_signup_b = day_data['conversions']['signup']['B']
+            
+            daily_rate_a = (daily_signup_a / daily_imp_a * 100) if daily_imp_a > 0 else 0.0
+            daily_rate_b = (daily_signup_b / daily_imp_b * 100) if daily_imp_b > 0 else 0.0
+            
+            daily_trends.append({
+                'date': date_str,
+                'impressions_a': daily_imp_a,
+                'impressions_b': daily_imp_b,
+                'conversion_rate_a': round(daily_rate_a, 2),
+                'conversion_rate_b': round(daily_rate_b, 2),
+                'signups_a': daily_signup_a,
+                'signups_b': daily_signup_b
+            })
+        
         result = {
             'impressions': data['impressions'],
             'conversions': data['conversions'],
             'conversion_rates': conversion_rates,
-            'total_visitors': impressions_a + impressions_b
+            'total_visitors': impressions_a + impressions_b,
+            'daily_trends': daily_trends,
+            'test_duration_days': len([d for d in daily_data.keys() if daily_data[d]['impressions']['A'] > 0 or daily_data[d]['impressions']['B'] > 0])
         }
         
         return jsonify(result)
