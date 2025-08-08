@@ -225,6 +225,17 @@ Prioritize these (handle via prompts):
 - Single-script integration (no complex setup required)
 - Professional UX matching industry standards (Intercom/Drift style)
 
+**Module 10: Voice Mode & Multi-Lingual Support** - IN DEVELOPMENT
+- Native voice conversation capability using ElevenLabs Conversational AI 2.0
+- Form mode selection: Chat Mode OR Voice Mode (mutually exclusive)
+- Voice settings in form editor: language selection and voice customization
+- FAB widget transformation: Voice mode shows transcript bubble with pause/hangup controls
+- Multi-lingual voice support with creator-selected language and appropriate voices
+- Unified response storage: Both chat and voice responses saved to same Firestore structure
+- Real-time voice conversation with interruption support and natural turn-taking
+- Voice-specific data extraction with conversation transcripts and metadata
+- Separate voice agent architecture parallel to existing chat system
+
 ## Key Architectural Decisions & Enhancements
 
 **Auto-Save System:**
@@ -278,6 +289,14 @@ Prioritize these (handle via prompts):
 3. Maintain compatibility with auto-save system
 4. Use TodoWrite tool for task management
 5. Update this file for significant changes
+
+**Voice Mode Implementation (Module 10):**
+1. Voice mode operates as separate system parallel to chat mode
+2. Form creators choose mode in form settings (Chat OR Voice, not both)
+3. Language selection determines voice agent language and ElevenLabs voice
+4. Widget behavior adapts: Chat = modal, Voice = transcript bubble with controls
+5. Unified data storage: Both modes save responses to same Firestore structure
+6. See VOICE_MODE_REQUIREMENTS.md for detailed technical specifications
 
 **Deployment:**
 - Production: barmuda.in (Vercel) - **AUTO-DEPLOYS from main branch**

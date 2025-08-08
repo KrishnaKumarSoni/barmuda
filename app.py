@@ -642,7 +642,7 @@ def home():
     log_ab_test_event('impression', variant, visitor_id)
     
     # Choose template based on variant
-    template = 'index.html' if variant == 'A' else 'index_b.html'
+    template = 'index_a.html' if variant == 'A' else 'index_b.html'
     
     logger.info(f"A/B Test - Showing variant {variant} to visitor {visitor_id}")
     
