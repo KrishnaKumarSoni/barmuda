@@ -1,13 +1,13 @@
 <!-- Responsive Navigation Component -->
-<nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-3 sm:px-4">
-    <div class="bg-white rounded-full border border-[#fff0cf] px-3 sm:px-5 md:px-6 py-2.5 sm:py-3 shadow-sm w-full max-w-[95%] sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-fit">
+<nav class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-4">
+    <div class="bg-white rounded-full border border-[#fff0cf] px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 shadow-sm w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-fit">
         <div class="flex items-center justify-between gap-3 sm:gap-4 md:gap-6">
             <!-- Logo Section -->
-            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div class="flex items-center gap-2 flex-shrink-0">
                 <img src="/static/assets/logo.webp" 
                      alt="Barmuda Logo" 
-                     class="h-6 sm:h-7 md:h-9 lg:h-11 w-auto object-contain">
-                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-sm sm:text-base md:text-xl lg:text-[24px] text-[#cc5500] tracking-[-0.24px] whitespace-nowrap">
+                     class="h-7 sm:h-8 md:h-9 lg:h-11 w-auto object-contain">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-base sm:text-lg md:text-xl lg:text-[24px] text-[#cc5500] tracking-[-0.24px] whitespace-nowrap">
                     Barmuda
                 </h1>
             </div>
@@ -26,9 +26,9 @@
                 {% if nav_type == 'unauthenticated' %}
                     <!-- Sign In Button -->
                     <button onclick="signInWithGoogle()" 
-                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
-                        <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
-                        <i class="ph ph-sign-in text-white text-sm sm:text-base md:text-lg lg:text-xl"></i>
+                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-4 sm:px-5 md:px-5 py-2 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
+                        <span class="font-['DM_Sans'] text-sm sm:text-base md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
+                        <i class="ph ph-sign-in text-white text-base md:text-lg lg:text-xl"></i>
                     </button>
                 {% elif nav_type == 'chat' %}
                     <!-- Generate New Form Button -->
