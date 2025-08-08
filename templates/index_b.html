@@ -436,6 +436,60 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
+        // Template data for form generation
+        const templates = {
+            'customer-feedback': `Create a customer feedback survey to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
+            
+            'employee-survey': `Create an employee engagement and satisfaction survey for our company. I want to measure workplace satisfaction, engagement levels, work-life balance, management effectiveness, career development opportunities, company culture, and identify areas where we can improve employee experience and retention.`,
+            
+            'market-research': `Create a market research survey to understand customer needs, preferences, and market trends in our industry. I want to gather data about target demographics, purchasing behaviors, brand awareness, competitor analysis, price sensitivity, and unmet needs in the market to guide our business strategy.`,
+            
+            'event-feedback': `Create an event feedback survey to gather insights from attendees about their experience. I want to collect feedback on event organization, content quality, speaker performance, venue satisfaction, networking opportunities, and suggestions for future events to improve our event planning.`,
+            
+            'user-experience': `Create a user experience survey to evaluate how people interact with our website or application. I want to understand usability issues, navigation challenges, feature usefulness, design preferences, performance concerns, and overall user satisfaction to guide our product development.`,
+            
+            'course-evaluation': `Create a course evaluation survey for students to provide feedback on their learning experience. I want to assess course content quality, instructor effectiveness, learning materials, difficulty level, engagement, and suggestions for improvement to enhance our educational offerings.`,
+            
+            'product-launch': `Create a product launch feedback survey to gather insights about our new product introduction. I want to understand initial impressions, purchase intent, feature appeal, pricing perception, marketing effectiveness, target audience fit, and early adopter feedback to optimize our launch strategy and future product development.`,
+            
+            'support-satisfaction': `Create a customer support satisfaction survey to evaluate our service quality. I want to measure response time satisfaction, resolution effectiveness, agent helpfulness, communication clarity, overall support experience, and identify areas for improvement in our customer service processes.`,
+            
+            'brand-awareness': `Create a brand awareness and perception study to understand how our brand is viewed in the market. I want to measure brand recognition, association strength, competitive positioning, brand attributes, purchase consideration, and overall brand sentiment to guide our marketing and branding strategies.`,
+            
+            'exit-interview': `Create an exit interview survey for departing employees to gather honest feedback about their experience. I want to understand reasons for leaving, management feedback, workplace culture assessment, career development opportunities, compensation satisfaction, and suggestions for improvement to enhance employee retention.`,
+            
+            'website-feedback': `Create a website feedback survey to evaluate our online presence and user experience. I want to gather insights about site navigation, content usefulness, visual design, loading speed, mobile experience, feature functionality, and overall satisfaction to improve our website performance.`,
+            
+            'training-evaluation': `Create a training evaluation survey to assess the effectiveness of our educational programs. I want to measure content relevance, instructor quality, delivery methods, engagement levels, knowledge retention, practical applicability, and overall training satisfaction to improve our learning and development initiatives.`,
+            
+            // Business & Sales Templates
+            'lead-qualification': `Create a sales lead qualification survey to identify high-potential prospects. I want to assess budget availability, decision-making authority, timeline for purchase, specific pain points, current solutions being used, and level of interest to help our sales team prioritize leads effectively.`,
+            
+            'customer-onboarding': `Create a customer onboarding survey to improve our new customer experience. I want to understand initial impressions, setup challenges, feature adoption, support needs, expectations vs reality, and satisfaction with the onboarding process to optimize our customer journey.`,
+            
+            'pricing-research': `Create a pricing research survey to optimize our product pricing strategy. I want to understand price sensitivity, value perception, competitor pricing awareness, willingness to pay, preferred pricing models, and factors that influence purchasing decisions.`,
+            
+            // HR & People Templates
+            'contact-info': `Create a contact information collection form for networking events, workshops, or business meetings. I want to gather essential contact details, professional information, areas of interest, preferred communication methods, and any specific follow-up requests to maintain meaningful connections.`,
+            
+            'hr-evaluation': `Create an HR evaluation survey to assess human resources effectiveness and employee satisfaction with HR services. I want to evaluate HR responsiveness, policy clarity, recruitment processes, benefits administration, conflict resolution, and overall HR department performance.`,
+            
+            // Education Templates  
+            'parent-feedback': `Create a parent feedback survey for educational institutions. I want to assess communication effectiveness, curriculum satisfaction, teacher quality, facility standards, extracurricular activities, safety measures, and overall school performance from parent perspective.`,
+            
+            'skills-assessment': `Create a skills assessment survey to evaluate competencies and training needs. I want to measure current skill levels, learning preferences, knowledge gaps, professional development interests, and career goals to design effective training programs.`,
+            
+            // Technology Templates
+            'beta-testing': `Create a beta testing feedback survey for software products. I want to evaluate functionality, usability, performance, bug reports, feature preferences, user interface design, and overall experience to refine products before public release.`,
+            
+            'feature-requests': `Create a feature request survey to prioritize product development. I want to understand user needs, feature importance, usage patterns, pain points, desired improvements, and willingness to pay for new features to guide product roadmap decisions.`,
+            
+            'app-feedback': `Create a mobile app feedback survey to improve user experience. I want to assess functionality, interface design, performance, ease of use, feature satisfaction, bug reports, and overall app rating to optimize mobile applications.`,
+            
+            // Academic Research Templates
+            'academic-research': `Create an academic research survey to collect data for scholarly studies and research projects. I want to gather quantitative and qualitative data, measure variables, test hypotheses, understand participant demographics, and collect insights that contribute to academic knowledge and peer-reviewed publications.`
+        };
+
         // Handle unauthenticated input validation
         function handleUnauthenticatedInput() {
             // Simple validation for unauthenticated users
@@ -461,34 +515,27 @@
             // Store the form description for after auth
             sessionStorage.setItem('pendingFormDescription', text);
             
-            // Redirect to Google Sign-In
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.addScope('email');
-            provider.addScope('profile');
-            
-            try {
-                // Redirect to sign in
-                await auth.signInWithRedirect(provider);
-            } catch (error) {
-                console.error('Auth error:', error);
-                alert('Sign in failed. Please try again.');
-            }
+            // Use popup-based authentication (working approach)
+            await signInWithGoogle();
         }
 
         // Handle template selection for unauthenticated users
         function useTemplate(templateId) {
-            // Store the template ID for after auth
-            sessionStorage.setItem('pendingTemplateId', templateId);
-            
-            // Redirect to Google Sign-In
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.addScope('email');
-            provider.addScope('profile');
-            
-            auth.signInWithRedirect(provider).catch(error => {
-                console.error('Auth error:', error);
-                alert('Sign in failed. Please try again.');
-            });
+            const template = templates[templateId];
+            if (template) {
+                const formDescription = document.getElementById('formDescription');
+                formDescription.value = template;
+                
+                // Store in session for auth flow
+                sessionStorage.setItem('pendingFormDescription', template);
+                
+                // Scroll to the form input area
+                formDescription.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Focus and set cursor to end of text
+                formDescription.focus();
+                formDescription.setSelectionRange(formDescription.value.length, formDescription.value.length);
+            }
         }
 
         // Simple popup-based Google Sign In (working version from yesterday)
