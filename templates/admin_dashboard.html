@@ -391,58 +391,152 @@
                 </div>
             </div>
 
-            <!-- A/B Test Results -->
+            <!-- A/B Testing Lab -->
             <div class="bg-white shadow rounded-lg mt-6">
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="ph ph-flask mr-3 h-5 w-5 text-gray-400"></i>
-                        A/B Test Results
-                    </h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i class="ph ph-flask mr-3 h-5 w-5 text-purple-500"></i>
+                            A/B Testing Lab
+                        </h3>
+                        <div class="flex items-center space-x-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
+                                Active
+                            </span>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- Current A/B Test -->
                 <div class="p-6">
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                        <!-- Version A Stats -->
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-blue-600" id="ab-impressions-a">--</div>
-                            <div class="text-sm text-gray-500">Version A Visitors</div>
-                        </div>
-                        
-                        <!-- Version B Stats -->
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-orange-600" id="ab-impressions-b">--</div>
-                            <div class="text-sm text-gray-500">Version B Visitors</div>
-                        </div>
-                        
-                        <!-- Signup Conversion -->
-                        <div class="text-center">
-                            <div class="text-lg font-semibold">
-                                <span class="text-blue-600" id="ab-signup-a">--</span> vs 
-                                <span class="text-orange-600" id="ab-signup-b">--</span>
-                            </div>
-                            <div class="text-sm text-gray-500">Signup Rate</div>
-                            <div class="text-xs mt-1">
-                                <span id="ab-signup-lift" class="font-medium">--</span> lift
+                    <div class="border-l-4 border-purple-400 bg-purple-50 p-4 mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-lg font-semibold text-purple-900 flex items-center">
+                                <i class="ph ph-crosshair mr-2"></i>
+                                Test #001: Landing Page Positioning
+                            </h4>
+                            <div class="text-sm text-purple-700">
+                                Started: <span id="test-start-date">Jan 8, 2025</span>
                             </div>
                         </div>
+                        <p class="text-sm text-purple-800 mb-4">
+                            Testing generic form builder messaging vs user research positioning to optimize conversion rates.
+                        </p>
                         
-                        <!-- Form Creation Conversion -->
-                        <div class="text-center">
-                            <div class="text-lg font-semibold">
-                                <span class="text-blue-600" id="ab-form-a">--</span> vs 
-                                <span class="text-orange-600" id="ab-form-b">--</span>
+                        <!-- Test Variants -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                            <div class="bg-white rounded-lg p-4 border-2 border-blue-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h5 class="font-semibold text-blue-900 flex items-center">
+                                        <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                                        Version A (Control)
+                                    </h5>
+                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">index_a.html</span>
+                                </div>
+                                <p class="text-sm text-blue-700 mb-3">"People hate filling out forms"</p>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-blue-600" id="ab-impressions-a">--</div>
+                                    <div class="text-xs text-blue-500">visitors</div>
+                                </div>
                             </div>
-                            <div class="text-sm text-gray-500">Form Creation Rate</div>
-                            <div class="text-xs mt-1">
-                                <span id="ab-form-lift" class="font-medium">--</span> lift
+                            
+                            <div class="bg-white rounded-lg p-4 border-2 border-orange-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h5 class="font-semibold text-orange-900 flex items-center">
+                                        <span class="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                                        Version B (Variant)
+                                    </h5>
+                                    <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">index_b.html</span>
+                                </div>
+                                <p class="text-sm text-orange-700 mb-3">"User feedback at scale"</p>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-orange-600" id="ab-impressions-b">--</div>
+                                    <div class="text-xs text-orange-500">visitors</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Conversion Metrics -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Signup Conversions -->
+                            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                <h6 class="font-medium text-gray-900 mb-3 flex items-center">
+                                    <i class="ph ph-user-plus mr-2 text-green-500"></i>
+                                    Signup Conversion
+                                </h6>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-center">
+                                        <div class="text-lg font-bold text-blue-600" id="ab-signup-a">--%</div>
+                                        <div class="text-xs text-gray-500">Version A</div>
+                                    </div>
+                                    <div class="text-center px-3">
+                                        <div class="text-sm text-gray-400">vs</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-lg font-bold text-orange-600" id="ab-signup-b">--%</div>
+                                        <div class="text-xs text-gray-500">Version B</div>
+                                    </div>
+                                </div>
+                                <div class="text-center pt-2 border-t border-gray-100">
+                                    <span id="ab-signup-lift" class="text-sm font-semibold">--% lift</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Form Creation Conversions -->
+                            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                <h6 class="font-medium text-gray-900 mb-3 flex items-center">
+                                    <i class="ph ph-plus-circle mr-2 text-blue-500"></i>
+                                    Form Creation
+                                </h6>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-center">
+                                        <div class="text-lg font-bold text-blue-600" id="ab-form-a">--%</div>
+                                        <div class="text-xs text-gray-500">Version A</div>
+                                    </div>
+                                    <div class="text-center px-3">
+                                        <div class="text-sm text-gray-400">vs</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-lg font-bold text-orange-600" id="ab-form-b">--%</div>
+                                        <div class="text-xs text-gray-500">Version B</div>
+                                    </div>
+                                </div>
+                                <div class="text-center pt-2 border-t border-gray-100">
+                                    <span id="ab-form-lift" class="text-sm font-semibold">--% lift</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Actions -->
+                        <div class="mt-6 flex items-center justify-between pt-4 border-t border-purple-200">
+                            <div class="text-sm text-purple-700">
+                                <strong>Status:</strong> Running • <strong>Traffic Split:</strong> 50/50
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="inline-flex items-center px-3 py-1.5 border border-purple-300 text-sm font-medium rounded text-purple-700 bg-white hover:bg-purple-50 transition-colors">
+                                    <i class="ph ph-pause mr-1"></i>
+                                    Pause Test
+                                </button>
+                                <button class="inline-flex items-center px-3 py-1.5 bg-purple-600 text-sm font-medium rounded text-white hover:bg-purple-700 transition-colors">
+                                    <i class="ph ph-trophy mr-1"></i>
+                                    Declare Winner
+                                </button>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                        <p class="text-sm text-gray-600">
-                            <strong>Version A (index_a.html):</strong> Original landing page - "People hate filling out forms"<br>
-                            <strong>Version B (index_b.html):</strong> User research positioning - "User feedback at scale"
+                    <!-- Future Tests Placeholder -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <i class="ph ph-plus-circle text-3xl text-gray-400 mb-2"></i>
+                        <h5 class="text-lg font-medium text-gray-900 mb-2">Ready for Your Next Test?</h5>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Plan your next A/B test to optimize pricing pages, onboarding flows, or feature messaging.
                         </p>
+                        <button class="inline-flex items-center px-4 py-2 bg-purple-600 text-sm font-medium rounded-md text-white hover:bg-purple-700 transition-colors">
+                            <i class="ph ph-flask mr-2"></i>
+                            Create New Test
+                        </button>
                     </div>
                 </div>
             </div>
@@ -476,6 +570,15 @@
         
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date for the A/B test
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            document.getElementById('test-start-date').textContent = formattedDate;
+            
             refreshDashboard();
             setInterval(refreshDashboard, 30000); // Auto-refresh every 30 seconds
         });
