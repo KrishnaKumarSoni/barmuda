@@ -1094,9 +1094,9 @@
                 provider.addScope('email');
                 provider.addScope('profile');
                 
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                const idToken = await user.getIdToken();
+                // Use redirect instead of popup to avoid COOP issues
+                await auth.signInWithRedirect(provider);
+                return; // The page will reload after redirect
                 
                 // Send token to backend
                 const response = await fetch('/auth/google', {
@@ -1262,6 +1262,48 @@
         let currentPage = 0;
         let totalPages = 3; // We have 3 pages of templates
         
+        // Handle redirect result from Firebase
+        async function handleRedirectResult() {
+            try {
+                const result = await auth.getRedirectResult();
+                if (result.user) {
+                    const user = result.user;
+                    const idToken = await user.getIdToken();
+                    
+                    // Send token to backend
+                    const response = await fetch('/auth/google', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ idToken })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Check for pending actions
+                        const pendingDescription = sessionStorage.getItem('pendingFormDescription');
+                        const pendingTemplateId = sessionStorage.getItem('pendingTemplateId');
+                        
+                        if (pendingDescription || pendingTemplateId) {
+                            // Redirect to create form with pending data
+                            window.location.href = '/create-form';
+                        } else {
+                            // Normal redirect to dashboard
+                            window.location.href = data.redirect || '/dashboard';
+                        }
+                    } else {
+                        console.error('Backend auth failed:', data);
+                        alert('Authentication failed. Please try again.');
+                    }
+                }
+            } catch (error) {
+                console.error('Redirect auth error:', error);
+                // Don't show alert for redirect errors unless critical
+            }
+        }
+        
         function initializeCarousel() {
             const track = document.getElementById('carousel-track');
             const dotsContainer = document.getElementById('carousel-dots');
@@ -1353,6 +1395,9 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Unauthenticated landing page loaded');
+            
+            // Handle redirect result on page load
+            handleRedirectResult();
             
             // Initialize carousel
             setTimeout(initializeCarousel, 100); // Small delay to ensure DOM is fully rendered
