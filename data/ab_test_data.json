@@ -1,0 +1,40 @@
+{
+  "impressions": {
+    "A": 127,
+    "B": 143
+  },
+  "conversions": {
+    "signup": {
+      "A": 8,
+      "B": 15
+    },
+    "form_created": {
+      "A": 3,
+      "B": 9
+    },
+    "button_click": {
+      "A": 23,
+      "B": 31
+    }
+  },
+  "events": [
+    {
+      "timestamp": "2025-01-08T10:15:23.456Z",
+      "event_type": "impression",
+      "variant": "A",
+      "visitor_id": "visitor_123456_20250108"
+    },
+    {
+      "timestamp": "2025-01-08T10:16:45.789Z", 
+      "event_type": "impression",
+      "variant": "B",
+      "visitor_id": "visitor_789012_20250108"
+    },
+    {
+      "timestamp": "2025-01-08T10:18:12.345Z",
+      "event_type": "signup",
+      "variant": "B", 
+      "visitor_id": "visitor_789012_20250108"
+    }
+  ]
+}
