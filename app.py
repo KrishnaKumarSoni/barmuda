@@ -82,7 +82,7 @@ if not firebase_admin._apps:
         # Production environment - use environment variables
         firebase_config = {
             "type": "service_account",
-            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "bermuda-01"),
+            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
             "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
             "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace(
                 "\\n", "\n"
@@ -199,9 +199,13 @@ def log_ab_test_event(event_type, variant, visitor_id, form_id=None):
             data['conversions'][event_type][variant] += 1
             data['daily_data'][today]['conversions'][event_type][variant] += 1
         
-        # Save data
-        with open(ab_data_file, 'w') as f:
-            json.dump(data, f, indent=2)
+        # Save data (skip if read-only filesystem)
+        try:
+            with open(ab_data_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except (OSError, PermissionError):
+            # Read-only filesystem (Vercel), continue without file write
+            pass
         
         logger.info(f"A/B Test Event: {event_type} - Variant {variant} - Visitor {visitor_id} - Date {today}")
         
