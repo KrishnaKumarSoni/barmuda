@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import re
 from datetime import datetime
 from functools import wraps
@@ -9,7 +10,7 @@ import firebase_admin
 from dotenv import load_dotenv
 from firebase_admin import auth, credentials, firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_from_directory, Response
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_from_directory, Response, make_response
 from flask_cors import CORS
 from openai import OpenAI
 
@@ -122,6 +123,68 @@ admin_metrics = AdminMetrics()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# A/B Testing Functions
+def get_visitor_id():
+    """Get or create a visitor ID for anonymous tracking"""
+    visitor_id = request.cookies.get('visitor_id')
+    if not visitor_id:
+        visitor_id = f"visitor_{random.randint(100000, 999999)}_{datetime.now().strftime('%Y%m%d')}"
+    return visitor_id
+
+def assign_ab_test_variant():
+    """Assign visitor to A/B test variant"""
+    variant = request.cookies.get('ab_test_variant')
+    if not variant:
+        variant = 'A' if random.random() < 0.5 else 'B'
+    return variant
+
+def log_ab_test_event(event_type, variant, visitor_id, form_id=None):
+    """Log A/B test events to simple JSON file"""
+    try:
+        # Create data directory if it doesn't exist
+        os.makedirs('data', exist_ok=True)
+        
+        # Load existing data
+        ab_data_file = 'data/ab_test_data.json'
+        if os.path.exists(ab_data_file):
+            with open(ab_data_file, 'r') as f:
+                data = json.load(f)
+        else:
+            data = {
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {
+                    'signup': {'A': 0, 'B': 0},
+                    'form_created': {'A': 0, 'B': 0},
+                    'button_click': {'A': 0, 'B': 0}
+                },
+                'events': []
+            }
+        
+        # Log event
+        event = {
+            'timestamp': datetime.now().isoformat(),
+            'event_type': event_type,
+            'variant': variant,
+            'visitor_id': visitor_id,
+            'form_id': form_id
+        }
+        data['events'].append(event)
+        
+        # Update counters
+        if event_type == 'impression':
+            data['impressions'][variant] += 1
+        elif event_type in ['signup', 'form_created', 'button_click']:
+            data['conversions'][event_type][variant] += 1
+        
+        # Save data
+        with open(ab_data_file, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        logger.info(f"A/B Test Event: {event_type} - Variant {variant} - Visitor {visitor_id}")
+        
+    except Exception as e:
+        logger.error(f"Error logging A/B test event: {e}")
 
 
 # Authentication decorator
@@ -559,7 +622,7 @@ def infer_form_from_text(input_text, max_retries=2):
 
 @app.route("/")
 def home():
-    """Home page - redirect authenticated users to create-form, show anonymous landing otherwise"""
+    """Home page with A/B testing - redirect authenticated users to create-form, show A/B test landing for anonymous"""
     # Debug session state
     logger.info(f"Home route - Session: {dict(session)}")
     logger.info(
@@ -571,9 +634,47 @@ def home():
         logger.info("User is authenticated, redirecting to create-form")
         return redirect(url_for("create_form"))
 
-    # For unauthenticated users, show the anonymous landing page
-    logger.info("User not authenticated, showing anonymous landing page")
-    return render_template("index.html")
+    # For unauthenticated users, implement A/B testing
+    visitor_id = get_visitor_id()
+    variant = assign_ab_test_variant()
+    
+    # Log impression
+    log_ab_test_event('impression', variant, visitor_id)
+    
+    # Choose template based on variant
+    template = 'index.html' if variant == 'A' else 'index_b.html'
+    
+    logger.info(f"A/B Test - Showing variant {variant} to visitor {visitor_id}")
+    
+    # Create response with cookies
+    response = make_response(render_template(template))
+    response.set_cookie('visitor_id', visitor_id, max_age=30*24*60*60)  # 30 days
+    response.set_cookie('ab_test_variant', variant, max_age=30*24*60*60)  # 30 days
+    
+    return response
+
+
+@app.route('/track-conversion', methods=['POST'])
+def track_conversion():
+    """Track A/B test conversion events"""
+    try:
+        data = request.get_json()
+        if not data or 'event_type' not in data:
+            return jsonify({'error': 'event_type is required'}), 400
+        
+        visitor_id = request.cookies.get('visitor_id')
+        variant = request.cookies.get('ab_test_variant', 'A')
+        event_type = data['event_type']
+        form_id = data.get('form_id')
+        
+        if visitor_id:
+            log_ab_test_event(event_type, variant, visitor_id, form_id)
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error tracking conversion: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route("/test-session")
@@ -681,6 +782,12 @@ def google_auth():
         session["user_id"] = user_id
         session["email"] = email
         session["authenticated"] = True
+
+        # A/B Test conversion tracking
+        visitor_id = request.cookies.get('visitor_id')
+        variant = request.cookies.get('ab_test_variant', 'A')
+        if visitor_id:
+            log_ab_test_event('signup', variant, visitor_id)
 
         # Debug session after setting
         logger.info(f"After setting session - Session: {dict(session)}")
@@ -1054,6 +1161,12 @@ def infer_form():
                     subscription_manager.increment_form_count(user_id)
                 except Exception as e:
                     logger.error(f"Error incrementing form count: {str(e)}")
+
+                # A/B Test conversion tracking - form creation
+                visitor_id = request.cookies.get('visitor_id')
+                variant = request.cookies.get('ab_test_variant', 'A')
+                if visitor_id:
+                    log_ab_test_event('form_created', variant, visitor_id, form_id)
 
                 logger.info(f"Auto-saved inactive survey {form_id} for user {user_id}")
 
@@ -2854,6 +2967,64 @@ def admin_api_dashboard():
     except Exception as e:
         logger.error(f"Error fetching dashboard data: {str(e)}")
         return jsonify({"error": "Failed to fetch dashboard data"}), 500
+
+
+@app.route("/admin/api/ab-test")
+@admin_required
+def admin_ab_test_results():
+    """API endpoint for A/B test results"""
+    try:
+        ab_data_file = 'data/ab_test_data.json'
+        if not os.path.exists(ab_data_file):
+            return jsonify({
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {
+                    'signup': {'A': 0, 'B': 0},
+                    'form_created': {'A': 0, 'B': 0},
+                    'button_click': {'A': 0, 'B': 0}
+                },
+                'conversion_rates': {
+                    'signup': {'A': 0.0, 'B': 0.0, 'lift': 0.0},
+                    'form_created': {'A': 0.0, 'B': 0.0, 'lift': 0.0}
+                },
+                'total_visitors': 0
+            })
+        
+        with open(ab_data_file, 'r') as f:
+            data = json.load(f)
+        
+        # Calculate conversion rates
+        impressions_a = data['impressions']['A']
+        impressions_b = data['impressions']['B']
+        
+        conversion_rates = {}
+        for event_type in ['signup', 'form_created']:
+            conv_a = data['conversions'][event_type]['A']
+            conv_b = data['conversions'][event_type]['B']
+            
+            rate_a = (conv_a / impressions_a * 100) if impressions_a > 0 else 0.0
+            rate_b = (conv_b / impressions_b * 100) if impressions_b > 0 else 0.0
+            lift = ((rate_b - rate_a) / rate_a * 100) if rate_a > 0 else 0.0
+            
+            conversion_rates[event_type] = {
+                'A': round(rate_a, 2),
+                'B': round(rate_b, 2),
+                'lift': round(lift, 1)
+            }
+        
+        result = {
+            'impressions': data['impressions'],
+            'conversions': data['conversions'],
+            'conversion_rates': conversion_rates,
+            'total_visitors': impressions_a + impressions_b
+        }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error getting A/B test data: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/admin/api/users/search")
 @admin_required

@@ -390,6 +390,62 @@
                     </div>
                 </div>
             </div>
+
+            <!-- A/B Test Results -->
+            <div class="bg-white shadow rounded-lg mt-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                        <i class="ph ph-flask mr-3 h-5 w-5 text-gray-400"></i>
+                        A/B Test Results
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Version A Stats -->
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="ab-impressions-a">--</div>
+                            <div class="text-sm text-gray-500">Version A Visitors</div>
+                        </div>
+                        
+                        <!-- Version B Stats -->
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600" id="ab-impressions-b">--</div>
+                            <div class="text-sm text-gray-500">Version B Visitors</div>
+                        </div>
+                        
+                        <!-- Signup Conversion -->
+                        <div class="text-center">
+                            <div class="text-lg font-semibold">
+                                <span class="text-blue-600" id="ab-signup-a">--</span> vs 
+                                <span class="text-orange-600" id="ab-signup-b">--</span>
+                            </div>
+                            <div class="text-sm text-gray-500">Signup Rate</div>
+                            <div class="text-xs mt-1">
+                                <span id="ab-signup-lift" class="font-medium">--</span> lift
+                            </div>
+                        </div>
+                        
+                        <!-- Form Creation Conversion -->
+                        <div class="text-center">
+                            <div class="text-lg font-semibold">
+                                <span class="text-blue-600" id="ab-form-a">--</span> vs 
+                                <span class="text-orange-600" id="ab-form-b">--</span>
+                            </div>
+                            <div class="text-sm text-gray-500">Form Creation Rate</div>
+                            <div class="text-xs mt-1">
+                                <span id="ab-form-lift" class="font-medium">--</span> lift
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <p class="text-sm text-gray-600">
+                            <strong>Version A:</strong> Original landing page - "People hate filling out forms"<br>
+                            <strong>Version B:</strong> User research positioning - "User feedback at scale"
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- User Details Modal -->
@@ -426,11 +482,22 @@
         
         async function refreshDashboard() {
             try {
-                const response = await fetch('/admin/api/dashboard');
-                if (!response.ok) throw new Error('Failed to fetch dashboard data');
+                // Fetch both dashboard and A/B test data
+                const [dashboardResponse, abTestResponse] = await Promise.all([
+                    fetch('/admin/api/dashboard'),
+                    fetch('/admin/api/ab-test')
+                ]);
                 
-                dashboardData = await response.json();
+                if (!dashboardResponse.ok) throw new Error('Failed to fetch dashboard data');
+                
+                dashboardData = await dashboardResponse.json();
                 updateDashboard(dashboardData);
+                
+                // Update A/B test data if available
+                if (abTestResponse.ok) {
+                    const abTestData = await abTestResponse.json();
+                    updateABTestResults(abTestData);
+                }
                 
                 document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
             } catch (error) {
@@ -560,6 +627,36 @@
                     }
                 }
             });
+        }
+        
+        function updateABTestResults(data) {
+            // Update impression counts
+            document.getElementById('ab-impressions-a').textContent = data.impressions.A || 0;
+            document.getElementById('ab-impressions-b').textContent = data.impressions.B || 0;
+            
+            // Update signup conversion rates
+            const signupA = data.conversion_rates.signup.A;
+            const signupB = data.conversion_rates.signup.B;
+            const signupLift = data.conversion_rates.signup.lift;
+            
+            document.getElementById('ab-signup-a').textContent = signupA + '%';
+            document.getElementById('ab-signup-b').textContent = signupB + '%';
+            
+            const signupLiftElement = document.getElementById('ab-signup-lift');
+            signupLiftElement.textContent = (signupLift > 0 ? '+' : '') + signupLift + '%';
+            signupLiftElement.className = 'font-medium ' + (signupLift > 0 ? 'text-green-600' : signupLift < 0 ? 'text-red-600' : 'text-gray-600');
+            
+            // Update form creation conversion rates
+            const formA = data.conversion_rates.form_created.A;
+            const formB = data.conversion_rates.form_created.B;
+            const formLift = data.conversion_rates.form_created.lift;
+            
+            document.getElementById('ab-form-a').textContent = formA + '%';
+            document.getElementById('ab-form-b').textContent = formB + '%';
+            
+            const formLiftElement = document.getElementById('ab-form-lift');
+            formLiftElement.textContent = (formLift > 0 ? '+' : '') + formLift + '%';
+            formLiftElement.className = 'font-medium ' + (formLift > 0 ? 'text-green-600' : formLift < 0 ? 'text-red-600' : 'text-gray-600');
         }
         
         async function searchUsers() {
