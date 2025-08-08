@@ -658,7 +658,14 @@ def home():
 
     # For unauthenticated users, implement A/B testing
     visitor_id = get_visitor_id()
-    variant = assign_ab_test_variant()
+    
+    # Admin override for testing (check URL parameter)
+    force_variant = request.args.get('test_variant')
+    if force_variant and force_variant in ['A', 'B']:
+        variant = force_variant
+        logger.info(f"Admin override: Forcing variant {variant}")
+    else:
+        variant = assign_ab_test_variant()
     
     # Log impression
     log_ab_test_event('impression', variant, visitor_id)
@@ -668,10 +675,34 @@ def home():
     
     logger.info(f"A/B Test - Showing variant {variant} to visitor {visitor_id}")
     
-    # Create response with cookies
+    # Create response with cookies (7 days)
     response = make_response(render_template(template))
-    response.set_cookie('visitor_id', visitor_id, max_age=30*24*60*60)  # 30 days
-    response.set_cookie('ab_test_variant', variant, max_age=30*24*60*60)  # 30 days
+    response.set_cookie('visitor_id', visitor_id, max_age=7*24*60*60)  # 7 days
+    response.set_cookie('ab_test_variant', variant, max_age=7*24*60*60)  # 7 days
+    
+    return response
+
+
+@app.route('/toggle-ab')
+def toggle_ab():
+    """Toggle A/B test variant for footer slider"""
+    current_variant = request.cookies.get('ab_test_variant', 'A')
+    new_variant = 'B' if current_variant == 'A' else 'A'
+    
+    visitor_id = get_visitor_id()
+    
+    # Log impression for new variant
+    log_ab_test_event('impression', new_variant, visitor_id)
+    
+    # Choose template
+    template = 'index_a.html' if new_variant == 'A' else 'index_b.html'
+    
+    logger.info(f"A/B Toggle - Switching to variant {new_variant}")
+    
+    # Create response with updated cookie
+    response = make_response(render_template(template))
+    response.set_cookie('visitor_id', visitor_id, max_age=7*24*60*60)  # 7 days
+    response.set_cookie('ab_test_variant', new_variant, max_age=7*24*60*60)  # 7 days
     
     return response
 
