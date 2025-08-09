@@ -2141,8 +2141,22 @@ def process_chat_message():
             return jsonify({"error": "Rate limit exceeded. Please slow down."}), 429
 
         # Process message with GPT-powered agent
-        agent = get_chat_agent()
-        result = agent.process_message(session_id, message)
+        try:
+            agent = get_chat_agent()
+            result = agent.process_message(session_id, message)
+        except Exception as agent_error:
+            # Log the error for debugging
+            import traceback
+            print(f"CRITICAL: Chat agent failed: {str(agent_error)}", file=sys.stderr)
+            print(f"TRACEBACK: {traceback.format_exc()}", file=sys.stderr)
+            
+            # Return a generic fallback response
+            return jsonify({
+                "response": "I'm having trouble processing that right now. Could you try again?",
+                "success": True,
+                "error": f"agent_error: {str(agent_error)}",
+                "fallback": True
+            }), 200
 
         if not result.get("success"):
             return (

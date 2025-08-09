@@ -12,7 +12,24 @@ from typing import Any, Dict, List, Optional
 
 import firebase_admin
 import openai
-from agents import Agent, Runner, function_tool
+
+# Debug import issue
+try:
+    from agents import Agent, Runner, function_tool
+    print("SUCCESS: OpenAI Agents SDK imported", file=os.sys.stderr)
+except ImportError as e:
+    print(f"CRITICAL ERROR: Cannot import OpenAI Agents SDK: {e}", file=os.sys.stderr)
+    # Create dummy classes to prevent complete failure
+    class Agent:
+        def __init__(self, *args, **kwargs):
+            raise ImportError("OpenAI Agents SDK not available")
+    class Runner:
+        @staticmethod
+        def run_sync(*args, **kwargs):
+            raise ImportError("OpenAI Agents SDK not available")
+    def function_tool(func):
+        return func
+
 from dotenv import load_dotenv
 from firebase_admin import db, firestore
 
@@ -732,16 +749,34 @@ def get_chat_agent():
     """Get or create the global chat agent instance"""
     global chat_agent
     if chat_agent is None:
+        import sys
         openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
-        print(f"DEBUG: API key available: {bool(openai_api_key)}")
-        print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}")
+        print(f"DEBUG: API key available: {bool(openai_api_key)}", file=sys.stderr)
+        print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}", file=sys.stderr)
+        print(f"DEBUG: Python version: {sys.version}", file=sys.stderr)
+        
+        # Check if agents module is available
+        try:
+            import agents
+            print(f"DEBUG: agents module available: {agents.__version__ if hasattr(agents, '__version__') else 'unknown version'}", file=sys.stderr)
+        except ImportError as e:
+            print(f"CRITICAL: agents module not available: {e}", file=sys.stderr)
+            raise ImportError(f"OpenAI Agents SDK not installed: {e}")
+        
         if openai_api_key:
-            print(f"DEBUG: API key prefix: {openai_api_key[:10]}...")
-            print(f"DEBUG: API key ends with newline: {repr(openai_api_key[-2:])}")
+            print(f"DEBUG: API key prefix: {openai_api_key[:10]}...", file=sys.stderr)
+            print(f"DEBUG: API key ends with newline: {repr(openai_api_key[-2:])}", file=sys.stderr)
 
         if not openai_api_key:
-            print("ERROR: OPENAI_API_KEY environment variable not set")
+            print("ERROR: OPENAI_API_KEY environment variable not set", file=sys.stderr)
             raise ValueError("OPENAI_API_KEY environment variable not set")
-        chat_agent = FormChatAgent(openai_api_key)
-        print("DEBUG: Chat agent created successfully")
+        
+        try:
+            chat_agent = FormChatAgent(openai_api_key)
+            print("DEBUG: Chat agent created successfully", file=sys.stderr)
+        except Exception as e:
+            print(f"CRITICAL: Failed to create FormChatAgent: {e}", file=sys.stderr)
+            import traceback
+            print(f"TRACEBACK: {traceback.format_exc()}", file=sys.stderr)
+            raise
     return chat_agent
