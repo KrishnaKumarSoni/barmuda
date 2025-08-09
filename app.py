@@ -299,10 +299,16 @@ def test_openai():
         )
 
 
-@app.route("/auth/google", methods=["POST"])
+@app.route("/auth/google", methods=["GET", "POST"])
 def google_auth():
     """Handle Google Firebase authentication with quota-safe fallback"""
-    logger.info("=== GOOGLE AUTH REQUEST START ===")
+    logger.info(f"=== GOOGLE AUTH REQUEST START === Method: {request.method}")
+    
+    # Handle GET request for debugging
+    if request.method == "GET":
+        logger.info("GET request received - this should be a POST request")
+        return jsonify({"error": "This endpoint requires POST method", "method_received": request.method}), 405
+    
     try:
         # Get the ID token from the request
         data = request.get_json()
