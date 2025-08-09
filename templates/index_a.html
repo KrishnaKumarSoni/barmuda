@@ -1095,15 +1095,21 @@
         // Enhanced Google Sign In with form data preservation
         async function signInWithGoogle() {
             try {
+                console.log('Starting Google sign in...');
                 const provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('email');
                 provider.addScope('profile');
                 
+                console.log('Opening popup...');
                 const result = await auth.signInWithPopup(provider);
+                console.log('Popup successful, user:', result.user.email);
+                
                 const user = result.user;
                 const idToken = await user.getIdToken();
+                console.log('Got ID token, length:', idToken.length);
                 
                 // Send token to backend (use absolute URL to avoid redirect issues)
+                console.log('Sending to backend...');
                 const response = await fetch('https://www.barmuda.in/auth/google', {
                     method: 'POST',
                     headers: {
@@ -1113,7 +1119,10 @@
                     body: JSON.stringify({ idToken })
                 });
                 
+                console.log('Backend response:', response.status);
+                
                 if (response.ok) {
+                    console.log('Authentication successful!');
                     // Check if we have pending form description
                     const pendingDescription = sessionStorage.getItem('pendingFormDescription');
                     if (pendingDescription) {
@@ -1123,12 +1132,26 @@
                         window.location.href = '/create-form';
                     }
                 } else {
-                    const error = await response.json();
-                    alert('Authentication failed: ' + error.error);
+                    console.error('Backend error:', response.status);
+                    const errorText = await response.text();
+                    console.error('Error details:', errorText);
+                    let errorMsg = 'Authentication failed';
+                    try {
+                        const error = JSON.parse(errorText);
+                        errorMsg = error.error || error.message || errorMsg;
+                    } catch (e) {
+                        errorMsg = errorText || errorMsg;
+                    }
+                    alert(errorMsg);
                     setUnauthButtonState('idle');
                 }
             } catch (error) {
-                console.error('Sign in error:', error);
+                console.error('Sign in error full details:', {
+                    name: error.name,
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 alert('Sign in failed: ' + error.message);
                 setUnauthButtonState('idle');
             }
