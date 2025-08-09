@@ -69,7 +69,7 @@
             
             <!-- Form Input Area -->
             <div class="w-full max-w-3xl relative">
-                <div class="bg-[#fffcf4] border border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
+                <div id="inputCard" class="bg-[#fffcf4] border border-[#fb9a9a] rounded-2xl relative transition-all duration-300 hover:border-[#cc5500]/80">
                     <textarea 
                         id="formDump"
                         placeholder="Describe what kind of survey you want to create..."
@@ -599,9 +599,13 @@
             const validationMessage = document.getElementById('validationMessage');
             const inputCard = document.getElementById('inputCard');
             
+            console.log('validateInput called');
+            console.log('Elements found:', { input: !!input, generateBtn: !!generateBtn, validationMessage: !!validationMessage, inputCard: !!inputCard });
+            
             // Check if all required elements exist
             if (!input || !generateBtn || !validationMessage || !inputCard) {
                 console.warn('Some required elements not found in validateInput');
+                console.warn('Missing:', { input: !input, generateBtn: !generateBtn, validationMessage: !validationMessage, inputCard: !inputCard });
                 return;
             }
             
@@ -611,10 +615,13 @@
                 const text = input.value.trim();
                 const validation = validateFormInput(text);
                 
+                console.log('Validation result:', { text: text, length: text.length, validation: validation });
+                
                 if (validation.isValid) {
                     // Valid input
                     isValid = true;
                     generateBtn.disabled = false;
+                    console.log('Button enabled!');
                     validationMessage.classList.add('hidden');
                     inputCard.classList.remove('border-red-300');
                     inputCard.classList.add('border-[#fb9a9a]');
@@ -813,12 +820,16 @@
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Create form page loaded');
+            
             // Clear any old generated form data to prevent cache issues
             sessionStorage.removeItem('generatedForm');
             
             // Initial validation state
             const generateBtn = document.getElementById('generateBtn');
+            console.log('Generate button found:', !!generateBtn);
             generateBtn.disabled = true;
+            console.log('Generate button disabled initially');
             
             // Check for pending form description from unauthenticated flow
             const pendingDescription = sessionStorage.getItem('pendingFormDescription');
