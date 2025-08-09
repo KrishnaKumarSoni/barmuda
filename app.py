@@ -2155,6 +2155,7 @@ def process_chat_message():
             print(f"PRODUCTION DEBUG: Got agent: {type(agent)}", file=sys.stderr)
             result = agent.process_message(session_id, message)
             print(f"PRODUCTION DEBUG: Result keys: {list(result.keys())}", file=sys.stderr)
+            print(f"PRODUCTION DEBUG: Result content: {result}", file=sys.stderr)
         except Exception as agent_error:
             # Log the error for debugging
             import traceback
@@ -2192,6 +2193,7 @@ def process_chat_message():
             "success": True,
             "session_updated": result.get("session_updated", False),
             "ended": conversation_ended,
+            "debug_signature": result.get("debug_signature"),  # Pass through debug info
         }
 
         # If ended, trigger data extraction
