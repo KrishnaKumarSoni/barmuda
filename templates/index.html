@@ -1108,9 +1108,9 @@
                 const idToken = await user.getIdToken();
                 console.log('Got ID token, length:', idToken.length);
                 
-                // Send token to backend (use absolute URL to avoid redirect issues)
+                // Send token to backend
                 console.log('Sending to backend...');
-                const response = await fetch('https://www.barmuda.in/auth/google', {
+                const response = await fetch('/auth/google', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
