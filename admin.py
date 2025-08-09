@@ -30,27 +30,36 @@ def init_admin(db_client):
 def load_admin_config():
     """Load admin configuration from Firebase"""
     global ADMIN_PASSWORD_HASH
+    
+    # If already loaded, skip
+    if ADMIN_PASSWORD_HASH:
+        return
+    
+    # Use a default if Firebase is unavailable (quota exceeded, etc.)
+    default_password = "barmuda_admin_2025"
+    default_hash = hashlib.sha256(default_password.encode()).hexdigest()
+    
     try:
         config_ref = db.collection("admin_config").document("settings")
         config = config_ref.get()
         
         if not config.exists:
             # Create default admin config
-            default_password = "barmuda_admin_2025"  # Default password
-            hashed = hashlib.sha256(default_password.encode()).hexdigest()
             config_ref.set({
-                "password_hash": hashed,
+                "password_hash": default_hash,
                 "created_at": datetime.now(),
                 "last_login": None,
                 "login_attempts": []
             })
-            ADMIN_PASSWORD_HASH = hashed
+            ADMIN_PASSWORD_HASH = default_hash
             logger.info("Created default admin config")
         else:
-            ADMIN_PASSWORD_HASH = config.to_dict().get("password_hash")
+            ADMIN_PASSWORD_HASH = config.to_dict().get("password_hash", default_hash)
             
     except Exception as e:
-        logger.error(f"Error loading admin config: {str(e)}")
+        # If Firebase fails (quota, network, etc.), use default
+        logger.error(f"Error loading admin config: {str(e)} - Using default")
+        ADMIN_PASSWORD_HASH = default_hash
 
 def verify_admin_password(password: str) -> bool:
     """Verify admin password against stored hash"""
@@ -167,7 +176,8 @@ class AdminMetrics:
             
             # Get responses for conversation metrics
             responses_ref = db.collection("responses")
-            all_responses = list(responses_ref.stream())
+            # Limit to prevent quota issues
+            all_responses = list(responses_ref.limit(100).stream())
             
             conversations_today = 0
             conversations_week = 0
@@ -197,7 +207,8 @@ class AdminMetrics:
             
             # Get forms metrics
             forms_ref = db.collection("forms")
-            all_forms = list(forms_ref.stream())
+            # Limit to prevent quota issues
+            all_forms = list(forms_ref.limit(100).stream())
             
             active_forms = 0
             inactive_forms = 0
@@ -264,7 +275,8 @@ class AdminMetrics:
             month_start = datetime(now.year, now.month, 1)
             
             users_ref = db.collection("users")
-            all_users = list(users_ref.stream())
+            # Limit to prevent quota issues - get max 100 users
+            all_users = list(users_ref.limit(100).stream())
             
             total_users = len(all_users)
             free_users = 0
@@ -438,7 +450,8 @@ class AdminMetrics:
             usage_data = usage_ref.to_dict() if usage_ref.exists else {}
             
             # Get forms created by user
-            forms_ref = db.collection("forms").where("creator_id", "==", user_id).stream()
+            # Limit to prevent quota issues
+            forms_ref = db.collection("forms").where("creator_id", "==", user_id).limit(20).stream()
             forms = []
             for form_doc in forms_ref:
                 form_data = form_doc.to_dict()
