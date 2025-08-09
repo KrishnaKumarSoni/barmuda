@@ -751,6 +751,7 @@ Use your tools to understand the situation and respond naturally."""
                 "response": agent_response,
                 "session_updated": True,
                 "metadata": updated_session.metadata,
+                "debug_signature": "NEW_OPENAI_AGENTS_v2.0",  # Version signature
             }
 
         except Exception as e:
@@ -780,7 +781,11 @@ def get_chat_agent():
     global chat_agent
     if chat_agent is None:
         import sys
+        import datetime
         openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        print(f"=== CHAT ENGINE VERSION CHECK ===", file=sys.stderr)
+        print(f"TIMESTAMP: {datetime.datetime.now().isoformat()}", file=sys.stderr)
+        print(f"CHAT ENGINE: Using NEW system with industry safety rules (v2.0)", file=sys.stderr)
         print(f"DEBUG: API key available: {bool(openai_api_key)}", file=sys.stderr)
         print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}", file=sys.stderr)
         print(f"DEBUG: Python version: {sys.version}", file=sys.stderr)
