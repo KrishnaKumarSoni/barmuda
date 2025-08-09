@@ -1,0 +1,3 @@
+Force deployment to ensure latest chat system is used in production.
+Timestamp: 2025-08-09T16:43:00Z
+This file exists solely to trigger a fresh deployment.
