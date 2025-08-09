@@ -599,6 +599,12 @@
             const validationMessage = document.getElementById('validationMessage');
             const inputCard = document.getElementById('inputCard');
             
+            // Check if all required elements exist
+            if (!input || !generateBtn || !validationMessage || !inputCard) {
+                console.warn('Some required elements not found in validateInput');
+                return;
+            }
+            
             clearTimeout(validationTimeout);
             
             validationTimeout = setTimeout(() => {
@@ -627,6 +633,8 @@
                         inputCard.classList.add('border-[#fb9a9a]');
                     }
                 }
+                
+                setButtonState('idle');
             }, 300); // 300ms debounce
         }
         
@@ -901,6 +909,10 @@
             const template = templates[templateId];
             if (template) {
                 const formDump = document.getElementById('formDump');
+                if (!formDump) {
+                    console.warn('formDump element not found');
+                    return;
+                }
                 formDump.value = template;
                 
                 // Trigger validation
@@ -915,23 +927,29 @@
             }
         }
 
-        // Allow Ctrl/Cmd+Enter to trigger form generation
-        document.getElementById('formDump').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                if (isValid) {
-                    generateForm();
+        // Initialize event listeners after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Allow Ctrl/Cmd+Enter to trigger form generation
+            const formDumpElement = document.getElementById('formDump');
+            if (formDumpElement) {
+                formDumpElement.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        if (isValid) {
+                            generateForm();
+                        }
+                    }
+                });
+            }
+            
+            // Handle button state reset on error dismissal
+            document.addEventListener('click', function(e) {
+                if (e.target.textContent === 'Dismiss' && e.target.closest('#errorState')) {
+                    setTimeout(() => {
+                        setButtonState('idle');
+                    }, 100);
                 }
-            }
-        });
-        
-        // Handle button state reset on error dismissal
-        document.addEventListener('click', function(e) {
-            if (e.target.textContent === 'Dismiss' && e.target.closest('#errorState')) {
-                setTimeout(() => {
-                    setButtonState('idle');
-                }, 100);
-            }
+            });
         });
         
         // Page-based Carousel functionality
@@ -1025,6 +1043,11 @@
             // Initialize dots
             updateDots();
         }
+        
+        // Initialize carousel on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCarousel();
+        });
     </script>
 
     {% include 'partials/footer.html' %}
