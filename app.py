@@ -219,7 +219,8 @@ def require_conversation_limit(f):
     
     return decorated_function
 
-# A/B Testing Functions
+# Routes
+@app.route("/")
 def home():
     """Home page - redirect authenticated users to create-form, show landing page for anonymous"""
     # Check if user is authenticated
