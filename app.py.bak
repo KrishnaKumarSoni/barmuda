@@ -117,16 +117,538 @@ openai_client = OpenAI(api_key=openai_api_key)
 from billing import init_billing, get_subscription_manager, get_dodo_client, is_test_mode
 init_billing(db)
 
-# Admin system disabled to prevent Firebase quota issues
-# from admin import init_admin, admin_required, verify_admin_password, log_admin_login, AdminMetrics, ADMIN_SESSION_KEY
-# init_admin(db)
-# # admin_metrics = AdminMetrics()
+# Initialize admin system
+from admin import init_admin, admin_required, verify_admin_password, log_admin_login, AdminMetrics, ADMIN_SESSION_KEY
+init_admin(db)
+admin_metrics = AdminMetrics()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # A/B Testing Functions
+def get_visitor_id():
+    """Get or create a visitor ID for anonymous tracking"""
+    visitor_id = request.cookies.get('visitor_id')
+    if not visitor_id:
+        visitor_id = f"visitor_{random.randint(100000, 999999)}_{datetime.now().strftime('%Y%m%d')}"
+    return visitor_id
+
+def assign_ab_test_variant():
+    """Assign visitor to A/B test variant"""
+    variant = request.cookies.get('ab_test_variant')
+    if not variant:
+        variant = 'A' if random.random() < 0.5 else 'B'
+    return variant
+
+def log_ab_test_event(event_type, variant, visitor_id, form_id=None):
+    """Log A/B test events to simple JSON file with daily tracking"""
+    try:
+        # Create data directory if it doesn't exist
+        os.makedirs('data', exist_ok=True)
+        
+        # Load existing data
+        ab_data_file = 'data/ab_test_data.json'
+        if os.path.exists(ab_data_file):
+            with open(ab_data_file, 'r') as f:
+                data = json.load(f)
+        else:
+            data = {
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {
+                    'signup': {'A': 0, 'B': 0},
+                    'form_created': {'A': 0, 'B': 0},
+                    'button_click': {'A': 0, 'B': 0}
+                },
+                'daily_data': {},
+                'events': []
+            }
+        
+        # Initialize daily_data if not present
+        if 'daily_data' not in data:
+            data['daily_data'] = {}
+        
+        # Get today's date
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Initialize today's data if not present
+        if today not in data['daily_data']:
+            data['daily_data'][today] = {
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {
+                    'signup': {'A': 0, 'B': 0},
+                    'form_created': {'A': 0, 'B': 0},
+                    'button_click': {'A': 0, 'B': 0}
+                }
+            }
+        
+        # Log event
+        event = {
+            'timestamp': datetime.now().isoformat(),
+            'event_type': event_type,
+            'variant': variant,
+            'visitor_id': visitor_id,
+            'form_id': form_id,
+            'date': today
+        }
+        data['events'].append(event)
+        
+        # Update counters (both total and daily)
+        if event_type == 'impression':
+            data['impressions'][variant] += 1
+            data['daily_data'][today]['impressions'][variant] += 1
+        elif event_type in ['signup', 'form_created', 'button_click']:
+            data['conversions'][event_type][variant] += 1
+            data['daily_data'][today]['conversions'][event_type][variant] += 1
+        
+        # Save data (skip if read-only filesystem)
+        try:
+            with open(ab_data_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except (OSError, PermissionError):
+            # Read-only filesystem (Vercel), continue without file write
+            pass
+        
+        logger.info(f"A/B Test Event: {event_type} - Variant {variant} - Visitor {visitor_id} - Date {today}")
+        
+    except Exception as e:
+        logger.error(f"Error logging A/B test event: {e}")
+
+
+# Authentication decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check for session authentication
+        if not session.get("authenticated") or not session.get("user_id"):
+            if request.is_json:
+                return jsonify({"error": "Authentication required"}), 401
+            else:
+                return redirect("/")
+
+        # Add user info to request for compatibility
+        request.user = {
+            "uid": session.get("user_id"),
+            "email": session.get("email", ""),
+            "user_id": session.get("user_id"),
+        }
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+# Feature gate decorators
+def require_form_creation(f):
+    """Decorator to check if user can create forms"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not hasattr(request, 'user'):
+            return jsonify({"error": "Authentication required"}), 401
+        
+        try:
+            subscription_manager = get_subscription_manager()
+            can_create, error_message = subscription_manager.can_create_form(request.user["uid"])
+            
+            if not can_create:
+                return jsonify({
+                    "success": False,
+                    "error": error_message,
+                    "upgrade_required": True,
+                    "feature": "form_creation"
+                }), 403
+                
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"Error checking form creation limits: {str(e)}")
+            # Allow on error to avoid breaking functionality
+            return f(*args, **kwargs)
+    
+    return decorated_function
+
+
+def require_conversation_limit(f):
+    """Decorator to check conversation limits"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # For conversation endpoints, we need to check the form owner, not the respondent
+        data = request.get_json() if request.is_json else {}
+        form_id = data.get("form_id") or kwargs.get("form_id")
+        
+        if not form_id:
+            return f(*args, **kwargs)
+        
+        try:
+            # Get form owner
+            form_doc = db.collection("forms").document(form_id).get()
+            if not form_doc.exists:
+                return jsonify({"error": "Form not found"}), 404
+                
+            form_data = form_doc.to_dict()
+            form_owner_id = form_data.get("creator_id")
+            
+            if not form_owner_id:
+                return f(*args, **kwargs)
+            
+            subscription_manager = get_subscription_manager()
+            can_start, error_message = subscription_manager.can_start_conversation(form_owner_id)
+            
+            if not can_start:
+                return jsonify({
+                    "error": "Conversation limit reached",
+                    "message": "This survey has reached its monthly conversation limit. The survey owner needs to upgrade their plan.",
+                    "upgrade_required": True
+                }), 403
+            
+            # If allowed, increment counter and proceed
+            subscription_manager.increment_conversation_count(form_owner_id)
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"Error checking conversation limits: {str(e)}")
+            # Allow on error to avoid breaking functionality
+            return f(*args, **kwargs)
+    
+    return decorated_function
+
+
+# Form Inference Logic
+def create_inference_prompt(input_text):
+    """Create the form inference prompt with Chain-of-Thought and few-shot examples"""
+
+    return f"""You are an expert form designer. Given an unstructured text dump describing a form or survey, you need to infer a structured form with appropriate questions and answer types.
+
+TASK: Analyze the input text and create a JSON form structure following the exact format below.
+
+REASONING PROCESS (Chain-of-Thought):
+1. First, summarize the main intent/purpose of the form from the input
+2. Identify 5-10 key questions that would capture the needed information
+3. For each question, determine the most appropriate input type
+4. Generate logical answer options for multiple choice questions
+5. Self-critique: Are the questions comprehensive? Are types appropriate?
+
+OUTPUT FORMAT (JSON only, no additional text):
+{{
+  "title": "Form Title (concise, descriptive)", 
+  "questions": [
+    {{
+      "text": "Question text",
+      "type": "text|multiple_choice|yes_no|number|rating",
+      "options": ["option1", "option2", "..."] or null,
+      "enabled": true
+    }}
+  ]
+}}
+
+QUESTION TYPES:
+- text: Open-ended text responses
+- multiple_choice: Select one from predefined options (include "Other" and "Prefer not to say" when appropriate)
+- yes_no: Simple yes/no questions  
+- number: Numeric input (age, quantity, etc.)
+- rating: 1-5 or 1-10 scale ratings
+
+DEMOGRAPHICS TEMPLATE (add relevant ones based on context):
+Always consider including these standard demographic questions when appropriate:
+- Age (multiple_choice: "18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say")
+- Gender (multiple_choice: "Male", "Female", "Non-binary", "Other", "Prefer not to say")
+- Location (text or multiple_choice based on scope)
+- Education Level (multiple_choice: "High School", "Bachelor's", "Master's", "PhD", "Other", "Prefer not to say")
+- Employment Status (multiple_choice: "Employed", "Student", "Unemployed", "Retired", "Other", "Prefer not to say")
+
+FEW-SHOT EXAMPLES:
+
+INPUT: "I want to survey coffee preferences, favorite drinks, and satisfaction ratings"
+OUTPUT:
+{{
+  "title": "Coffee Preferences Survey",
+  "questions": [
+    {{
+      "text": "How often do you drink coffee?",
+      "type": "multiple_choice",
+      "options": ["Daily", "Several times a week", "Weekly", "Rarely", "Never"],
+      "enabled": true
+    }},
+    {{
+      "text": "What is your favorite type of coffee drink?",
+      "type": "multiple_choice", 
+      "options": ["Espresso", "Americano", "Latte", "Cappuccino", "Cold Brew", "Frappuccino", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "Rate your overall satisfaction with your usual coffee shop",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "What factors are most important when choosing coffee?",
+      "type": "multiple_choice",
+      "options": ["Taste", "Price", "Convenience", "Brand", "Health benefits", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "Any additional comments about your coffee preferences?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What is your age range?",
+      "type": "multiple_choice",
+      "options": ["18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say"],
+      "enabled": true
+    }}
+  ]
+}}
+
+INPUT: "Event feedback form - venue, speakers, networking, overall rating"
+OUTPUT:
+{{
+  "title": "Event Feedback Survey",
+  "questions": [
+    {{
+      "text": "How would you rate the event venue?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "How would you rate the quality of speakers?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "Which speaker did you find most valuable?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "How was the networking experience?",
+      "type": "multiple_choice",
+      "options": ["Excellent", "Good", "Average", "Poor", "Did not participate"],
+      "enabled": true
+    }},
+    {{
+      "text": "What was your overall rating of the event?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "Would you attend this event again?",
+      "type": "yes_no",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What could be improved for next time?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "How did you hear about this event?",
+      "type": "multiple_choice",
+      "options": ["Social media", "Email", "Website", "Friend/colleague", "Advertisement", "Other"],
+      "enabled": true
+    }}
+  ]
+}}
+
+INPUT: "Job application: background, experience, skills, availability"
+OUTPUT:
+{{
+  "title": "Job Application Form",
+  "questions": [
+    {{
+      "text": "What is your educational background?",
+      "type": "multiple_choice",
+      "options": ["High School", "Associate Degree", "Bachelor's Degree", "Master's Degree", "PhD", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "How many years of relevant work experience do you have?",
+      "type": "multiple_choice",
+      "options": ["Less than 1 year", "1-2 years", "3-5 years", "5-10 years", "10+ years"],
+      "enabled": true
+    }},
+    {{
+      "text": "Please describe your most relevant work experience",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What key skills do you bring to this role?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "Are you available to start immediately?",
+      "type": "yes_no",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What is your preferred work arrangement?",
+      "type": "multiple_choice",
+      "options": ["Full-time in office", "Full-time remote", "Hybrid", "Part-time", "Contract", "Flexible"],
+      "enabled": true
+    }},
+    {{
+      "text": "Expected salary range",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "Why are you interested in this position?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }}
+  ]
+}}
+
+Now analyze this input and create a structured form:
+
+INPUT: {input_text}
+OUTPUT:"""
+
+
+def validate_and_fix_json(json_string):
+    """Validate JSON structure and fix common issues"""
+    try:
+        # Clean up the response - remove any extra text before/after JSON
+        json_string = json_string.strip()
+
+        # Find JSON boundaries
+        start_idx = json_string.find("{")
+        end_idx = json_string.rfind("}")
+
+        if start_idx == -1 or end_idx == -1:
+            raise ValueError("No valid JSON structure found")
+
+        json_string = json_string[start_idx : end_idx + 1]
+
+        # Parse JSON
+        parsed = json.loads(json_string)
+
+        # Validate required fields
+        if "title" not in parsed:
+            raise ValueError("Missing 'title' field")
+        if "questions" not in parsed or not isinstance(parsed["questions"], list):
+            raise ValueError("Missing or invalid 'questions' field")
+
+        # Validate each question
+        valid_types = ["text", "multiple_choice", "yes_no", "number", "rating"]
+        for i, question in enumerate(parsed["questions"]):
+            if "text" not in question:
+                raise ValueError(f"Question {i+1} missing 'text' field")
+            if "type" not in question or question["type"] not in valid_types:
+                raise ValueError(f"Question {i+1} has invalid or missing 'type' field")
+            if "enabled" not in question:
+                question["enabled"] = True
+
+            # Validate options for multiple_choice and rating
+            if question["type"] in ["multiple_choice", "rating"]:
+                if "options" not in question or not isinstance(
+                    question["options"], list
+                ):
+                    raise ValueError(
+                        f"Question {i+1} of type '{question['type']}' requires 'options' list"
+                    )
+                if len(question["options"]) < 2:
+                    raise ValueError(f"Question {i+1} needs at least 2 options")
+            elif question["type"] in ["text", "yes_no", "number"]:
+                question["options"] = None
+
+        return parsed, None
+
+    except json.JSONDecodeError as e:
+        return None, f"Invalid JSON format: {str(e)}"
+    except ValueError as e:
+        return None, str(e)
+    except Exception as e:
+        return None, f"Validation error: {str(e)}"
+
+
+def infer_form_from_text(input_text, max_retries=2):
+    """Use OpenAI GPT-4o-mini to infer form structure from unstructured text"""
+
+    # Debug API key availability
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        logger.error("OPENAI_API_KEY environment variable not found!")
+        return None, "OpenAI API key not configured"
+
+    logger.info(
+        f"Using OpenAI API key: {api_key[:8]}...{api_key[-8:] if len(api_key) > 16 else ''}"
+    )
+
+    for attempt in range(max_retries + 1):
+        try:
+            logger.info(
+                f"Form inference attempt {attempt + 1} for input: {input_text[:100]}..."
+            )
+
+            # Generate response using OpenAI client
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert form designer. Create structured JSON forms from unstructured text descriptions.",
+                    },
+                    {"role": "user", "content": create_inference_prompt(input_text)},
+                ],
+                temperature=0.1,
+                max_tokens=2000,
+            )
+
+            response_text = response.choices[0].message.content
+            logger.info(
+                f"LLM response (attempt {attempt + 1}): {response_text[:200]}..."
+            )
+
+            # Validate and parse JSON
+            parsed_form, error = validate_and_fix_json(response_text)
+
+            if parsed_form:
+                logger.info(
+                    f"Successfully inferred form with {len(parsed_form['questions'])} questions"
+                )
+                return parsed_form, None
+            else:
+                logger.warning(f"Attempt {attempt + 1} failed validation: {error}")
+                if attempt == max_retries:
+                    return (
+                        None,
+                        f"Failed to generate valid form after {max_retries + 1} attempts. Last error: {error}",
+                    )
+
+        except Exception as e:
+            import traceback
+
+            logger.error(f"Attempt {attempt + 1} failed with exception: {str(e)}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            if attempt == max_retries:
+                return (
+                    None,
+                    f"Form inference failed after {max_retries + 1} attempts: {str(e)}",
+                )
+
+    return None, "Unexpected error in form inference"
+
+
+# Routes
+
+
+@app.route("/")
 def home():
     """Home page - redirect authenticated users to create-form, show landing page for anonymous"""
     # Check if user is authenticated
@@ -137,7 +659,51 @@ def home():
     return render_template('index.html')
 
 
-# A/B test conversion tracking removed
+@app.route('/toggle-ab')
+def toggle_ab():
+    """Toggle A/B test variant for footer slider"""
+    current_variant = request.cookies.get('ab_test_variant', 'A')
+    new_variant = 'B' if current_variant == 'A' else 'A'
+    
+    visitor_id = get_visitor_id()
+    
+    # Log impression for new variant
+    log_ab_test_event('impression', new_variant, visitor_id)
+    
+    # Choose template
+    template = 'index_a.html' if new_variant == 'A' else 'index_b.html'
+    
+    logger.info(f"A/B Toggle - Switching to variant {new_variant}")
+    
+    # Create response with updated cookie
+    response = make_response(render_template(template))
+    response.set_cookie('visitor_id', visitor_id, max_age=7*24*60*60)  # 7 days
+    response.set_cookie('ab_test_variant', new_variant, max_age=7*24*60*60)  # 7 days
+    
+    return response
+
+
+@app.route('/track-conversion', methods=['POST'])
+def track_conversion():
+    """Track A/B test conversion events"""
+    try:
+        data = request.get_json()
+        if not data or 'event_type' not in data:
+            return jsonify({'error': 'event_type is required'}), 400
+        
+        visitor_id = request.cookies.get('visitor_id')
+        variant = request.cookies.get('ab_test_variant', 'A')
+        event_type = data['event_type']
+        form_id = data.get('form_id')
+        
+        if visitor_id:
+            log_ab_test_event(event_type, variant, visitor_id, form_id)
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error tracking conversion: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route("/test-session")
@@ -246,7 +812,11 @@ def google_auth():
         session["email"] = email
         session["authenticated"] = True
 
-        # A/B Test conversion tracking removed
+        # A/B Test conversion tracking
+        visitor_id = request.cookies.get('visitor_id')
+        variant = request.cookies.get('ab_test_variant', 'A')
+        if visitor_id:
+            log_ab_test_event('signup', variant, visitor_id)
 
         # Debug session after setting
         logger.info(f"After setting session - Session: {dict(session)}")
@@ -621,7 +1191,11 @@ def infer_form():
                 except Exception as e:
                     logger.error(f"Error incrementing form count: {str(e)}")
 
-                # A/B Test conversion tracking - form creation (removed)
+                # A/B Test conversion tracking - form creation
+                visitor_id = request.cookies.get('visitor_id')
+                variant = request.cookies.get('ab_test_variant', 'A')
+                if visitor_id:
+                    log_ab_test_event('form_created', variant, visitor_id, form_id)
 
                 logger.info(f"Auto-saved inactive survey {form_id} for user {user_id}")
 
@@ -2407,17 +2981,17 @@ def admin_logout():
     return jsonify({"success": True})
 
 @app.route("/admin/dashboard")
-# @admin_required
+@admin_required
 def admin_dashboard():
     """Admin dashboard page"""
     return render_template("admin_dashboard.html")
 
 @app.route("/admin/api/dashboard")
-# @admin_required
+@admin_required
 def admin_api_dashboard():
     """API endpoint for dashboard metrics"""
     try:
-        data = # admin_metrics.get_dashboard_summary()
+        data = admin_metrics.get_dashboard_summary()
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error fetching dashboard data: {str(e)}")
@@ -2425,10 +2999,102 @@ def admin_api_dashboard():
 
 
 @app.route("/admin/api/ab-test")
-# @admin_required
+@admin_required
+def admin_ab_test_results():
+    """API endpoint for A/B test results"""
+    try:
+        ab_data_file = 'data/ab_test_data.json'
+        if not os.path.exists(ab_data_file):
+            return jsonify({
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {
+                    'signup': {'A': 0, 'B': 0},
+                    'form_created': {'A': 0, 'B': 0},
+                    'button_click': {'A': 0, 'B': 0}
+                },
+                'conversion_rates': {
+                    'signup': {'A': 0.0, 'B': 0.0, 'lift': 0.0},
+                    'form_created': {'A': 0.0, 'B': 0.0, 'lift': 0.0}
+                },
+                'total_visitors': 0
+            })
+        
+        with open(ab_data_file, 'r') as f:
+            data = json.load(f)
+        
+        # Calculate conversion rates
+        impressions_a = data['impressions']['A']
+        impressions_b = data['impressions']['B']
+        
+        conversion_rates = {}
+        for event_type in ['signup', 'form_created']:
+            conv_a = data['conversions'][event_type]['A']
+            conv_b = data['conversions'][event_type]['B']
+            
+            rate_a = (conv_a / impressions_a * 100) if impressions_a > 0 else 0.0
+            rate_b = (conv_b / impressions_b * 100) if impressions_b > 0 else 0.0
+            lift = ((rate_b - rate_a) / rate_a * 100) if rate_a > 0 else 0.0
+            
+            conversion_rates[event_type] = {
+                'A': round(rate_a, 2),
+                'B': round(rate_b, 2),
+                'lift': round(lift, 1)
+            }
+        
+        # Process daily trends (last 14 days)
+        daily_trends = []
+        daily_data = data.get('daily_data', {})
+        
+        # Get last 14 days
+        from datetime import timedelta
+        today = datetime.now().date()
+        
+        for i in range(13, -1, -1):  # 14 days ago to today
+            date = today - timedelta(days=i)
+            date_str = date.strftime('%Y-%m-%d')
+            
+            day_data = daily_data.get(date_str, {
+                'impressions': {'A': 0, 'B': 0},
+                'conversions': {'signup': {'A': 0, 'B': 0}, 'form_created': {'A': 0, 'B': 0}}
+            })
+            
+            # Calculate daily conversion rates
+            daily_imp_a = day_data['impressions']['A']
+            daily_imp_b = day_data['impressions']['B']
+            daily_signup_a = day_data['conversions']['signup']['A']
+            daily_signup_b = day_data['conversions']['signup']['B']
+            
+            daily_rate_a = (daily_signup_a / daily_imp_a * 100) if daily_imp_a > 0 else 0.0
+            daily_rate_b = (daily_signup_b / daily_imp_b * 100) if daily_imp_b > 0 else 0.0
+            
+            daily_trends.append({
+                'date': date_str,
+                'impressions_a': daily_imp_a,
+                'impressions_b': daily_imp_b,
+                'conversion_rate_a': round(daily_rate_a, 2),
+                'conversion_rate_b': round(daily_rate_b, 2),
+                'signups_a': daily_signup_a,
+                'signups_b': daily_signup_b
+            })
+        
+        result = {
+            'impressions': data['impressions'],
+            'conversions': data['conversions'],
+            'conversion_rates': conversion_rates,
+            'total_visitors': impressions_a + impressions_b,
+            'daily_trends': daily_trends,
+            'test_duration_days': len([d for d in daily_data.keys() if daily_data[d]['impressions']['A'] > 0 or daily_data[d]['impressions']['B'] > 0])
+        }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error getting A/B test data: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/admin/api/users/search")
-# @admin_required
+@admin_required
 def admin_search_users():
     """Search users by email"""
     try:
@@ -2436,18 +3102,18 @@ def admin_search_users():
         if not query:
             return jsonify([])
         
-        users = # admin_metrics.search_users(query)
+        users = admin_metrics.search_users(query)
         return jsonify(users)
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return jsonify({"error": "Search failed"}), 500
 
 @app.route("/admin/api/users/<user_id>")
-# @admin_required
+@admin_required
 def admin_get_user_details(user_id):
     """Get detailed user information"""
     try:
-        details = # admin_metrics.get_user_details(user_id)
+        details = admin_metrics.get_user_details(user_id)
         if not details:
             return jsonify({"error": "User not found"}), 404
         
@@ -2457,14 +3123,14 @@ def admin_get_user_details(user_id):
         return jsonify({"error": "Failed to fetch user details"}), 500
 
 @app.route("/admin/api/users/<user_id>/grandfather", methods=["POST"])
-# @admin_required
+@admin_required
 def admin_grant_grandfather(user_id):
     """Grant grandfathered status to a user"""
     try:
         data = request.get_json()
         plan_type = data.get("plan_type", "pro")
         
-        success = # admin_metrics.grant_grandfather_status(user_id, plan_type)
+        success = admin_metrics.grant_grandfather_status(user_id, plan_type)
         if success:
             logger.info(f"Admin granted grandfather status to user: {user_id}")
             return jsonify({"success": True})
@@ -2475,11 +3141,11 @@ def admin_grant_grandfather(user_id):
         return jsonify({"error": "Operation failed"}), 500
 
 @app.route("/admin/api/users/<user_id>/reset-usage", methods=["POST"])
-# @admin_required
+@admin_required
 def admin_reset_user_usage(user_id):
     """Reset usage limits for a user"""
     try:
-        success = # admin_metrics.reset_user_usage(user_id)
+        success = admin_metrics.reset_user_usage(user_id)
         if success:
             logger.info(f"Admin reset usage for user: {user_id}")
             return jsonify({"success": True})
@@ -2490,11 +3156,11 @@ def admin_reset_user_usage(user_id):
         return jsonify({"error": "Operation failed"}), 500
 
 @app.route("/admin/api/users/<user_id>/export")
-# @admin_required
+@admin_required
 def admin_export_user_data(user_id):
     """Export user data"""
     try:
-        details = # admin_metrics.get_user_details(user_id)
+        details = admin_metrics.get_user_details(user_id)
         if not details:
             return jsonify({"error": "User not found"}), 404
         

@@ -120,7 +120,7 @@ init_billing(db)
 # Admin system disabled to prevent Firebase quota issues
 # from admin import init_admin, admin_required, verify_admin_password, log_admin_login, AdminMetrics, ADMIN_SESSION_KEY
 # init_admin(db)
-# # admin_metrics = AdminMetrics()
+# admin_metrics = AdminMetrics()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -2407,17 +2407,17 @@ def admin_logout():
     return jsonify({"success": True})
 
 @app.route("/admin/dashboard")
-# @admin_required
+@admin_required
 def admin_dashboard():
     """Admin dashboard page"""
     return render_template("admin_dashboard.html")
 
 @app.route("/admin/api/dashboard")
-# @admin_required
+@admin_required
 def admin_api_dashboard():
     """API endpoint for dashboard metrics"""
     try:
-        data = # admin_metrics.get_dashboard_summary()
+        data = admin_metrics.get_dashboard_summary()
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error fetching dashboard data: {str(e)}")
@@ -2425,10 +2425,10 @@ def admin_api_dashboard():
 
 
 @app.route("/admin/api/ab-test")
-# @admin_required
+@admin_required
 
 @app.route("/admin/api/users/search")
-# @admin_required
+@admin_required
 def admin_search_users():
     """Search users by email"""
     try:
@@ -2436,18 +2436,18 @@ def admin_search_users():
         if not query:
             return jsonify([])
         
-        users = # admin_metrics.search_users(query)
+        users = admin_metrics.search_users(query)
         return jsonify(users)
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return jsonify({"error": "Search failed"}), 500
 
 @app.route("/admin/api/users/<user_id>")
-# @admin_required
+@admin_required
 def admin_get_user_details(user_id):
     """Get detailed user information"""
     try:
-        details = # admin_metrics.get_user_details(user_id)
+        details = admin_metrics.get_user_details(user_id)
         if not details:
             return jsonify({"error": "User not found"}), 404
         
@@ -2457,14 +2457,14 @@ def admin_get_user_details(user_id):
         return jsonify({"error": "Failed to fetch user details"}), 500
 
 @app.route("/admin/api/users/<user_id>/grandfather", methods=["POST"])
-# @admin_required
+@admin_required
 def admin_grant_grandfather(user_id):
     """Grant grandfathered status to a user"""
     try:
         data = request.get_json()
         plan_type = data.get("plan_type", "pro")
         
-        success = # admin_metrics.grant_grandfather_status(user_id, plan_type)
+        success = admin_metrics.grant_grandfather_status(user_id, plan_type)
         if success:
             logger.info(f"Admin granted grandfather status to user: {user_id}")
             return jsonify({"success": True})
@@ -2475,11 +2475,11 @@ def admin_grant_grandfather(user_id):
         return jsonify({"error": "Operation failed"}), 500
 
 @app.route("/admin/api/users/<user_id>/reset-usage", methods=["POST"])
-# @admin_required
+@admin_required
 def admin_reset_user_usage(user_id):
     """Reset usage limits for a user"""
     try:
-        success = # admin_metrics.reset_user_usage(user_id)
+        success = admin_metrics.reset_user_usage(user_id)
         if success:
             logger.info(f"Admin reset usage for user: {user_id}")
             return jsonify({"success": True})
@@ -2490,11 +2490,11 @@ def admin_reset_user_usage(user_id):
         return jsonify({"error": "Operation failed"}), 500
 
 @app.route("/admin/api/users/<user_id>/export")
-# @admin_required
+@admin_required
 def admin_export_user_data(user_id):
     """Export user data"""
     try:
-        details = # admin_metrics.get_user_details(user_id)
+        details = admin_metrics.get_user_details(user_id)
         if not details:
             return jsonify({"error": "User not found"}), 404
         
