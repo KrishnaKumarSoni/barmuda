@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import re
+import sys
 from datetime import datetime
 from functools import wraps
 
@@ -2142,8 +2143,11 @@ def process_chat_message():
 
         # Process message with GPT-powered agent
         try:
+            print(f"PRODUCTION DEBUG: About to get chat agent", file=sys.stderr)
             agent = get_chat_agent()
+            print(f"PRODUCTION DEBUG: Got agent: {type(agent)}", file=sys.stderr)
             result = agent.process_message(session_id, message)
+            print(f"PRODUCTION DEBUG: Result keys: {list(result.keys())}", file=sys.stderr)
         except Exception as agent_error:
             # Log the error for debugging
             import traceback
