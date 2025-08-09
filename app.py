@@ -118,9 +118,9 @@ from billing import init_billing, get_subscription_manager, get_dodo_client, is_
 init_billing(db)
 
 # Admin system disabled to prevent Firebase quota issues
-# from admin import init_admin, admin_required, verify_admin_password, log_admin_login, AdminMetrics, ADMIN_SESSION_KEY
-# init_admin(db)
-# # admin_metrics = AdminMetrics()
+from admin import init_admin, admin_required, verify_admin_password, log_admin_login, AdminMetrics, ADMIN_SESSION_KEY
+init_admin(db)
+admin_metrics = AdminMetrics()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -2570,56 +2570,17 @@ def admin_dashboard():
 @app.route("/admin/api/dashboard")
 # @admin_required
 def admin_api_dashboard():
-    """API endpoint for dashboard metrics - returns mock data to prevent timeouts"""
+    """API endpoint for dashboard metrics - uses real Firebase data"""
     try:
-        # Return lightweight mock data instead of querying Firebase
-        mock_data = {
-            "revenue": {
-                "mrr": 250.00,
-                "last_month_mrr": 180.00,
-                "mrr_growth": 38.9,
-                "total_revenue": 2450.00,
-                "paying_customers": 8,
-                "grandfathered_users": 3
-            },
-            "usage": {
-                "conversations_today": 12,
-                "conversations_week": 87,
-                "conversations_month": 342,
-                "total_conversations": 1250,
-                "active_forms": 15,
-                "inactive_forms": 8,
-                "completion_rate": 78.5
-            },
-            "users": {
-                "total_users": 156,
-                "free_users": 148,
-                "paid_users": 8,
-                "signups_today": 3,
-                "signups_week": 21,
-                "signups_month": 67
-            },
-            "health": {
-                "api_response_time": {"avg": 245, "p95": 450, "p99": 890},
-                "error_rates": {"api_errors": 0.2, "chat_errors": 0.5},
-                "system_uptime": 99.95
-            },
-            "timestamp": datetime.now().isoformat()
-        }
-        return jsonify(mock_data)
+        # Get real dashboard data from Firebase
+        data = admin_metrics.get_dashboard_summary()
+        return jsonify(data)
     except Exception as e:
         logger.error(f"Error fetching dashboard data: {str(e)}")
         return jsonify({"error": "Failed to fetch dashboard data"}), 500
 
 
-@app.route("/admin/api/ab-test")
-# @admin_required
-def admin_api_ab_test():
-    """Return empty A/B test data since feature was removed"""
-    return jsonify({
-        "active": False,
-        "message": "A/B testing has been deprecated"
-    })
+# A/B test route removed completely
 
 @app.route("/admin/api/users/search")
 # @admin_required
@@ -2630,8 +2591,8 @@ def admin_search_users():
         if not query:
             return jsonify([])
         
-        # users = admin_metrics.search_users(query)
-        return jsonify({"error": "Admin system disabled"})
+        users = admin_metrics.search_users(query)
+        return jsonify(users)
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return jsonify({"error": "Search failed"}), 500
@@ -2641,10 +2602,8 @@ def admin_search_users():
 def admin_get_user_details(user_id):
     """Get detailed user information"""
     try:
-        # details = admin_metrics.get_user_details(user_id)
-        return jsonify({"error": "Admin system disabled"}), 503
-        
-        return jsonify(details)
+        details = admin_metrics.get_user_details(user_id)
+        return jsonify(details) if details else jsonify({"error": "User not found"}), 404
     except Exception as e:
         logger.error(f"Error fetching user details: {str(e)}")
         return jsonify({"error": "Failed to fetch user details"}), 500
@@ -2657,8 +2616,8 @@ def admin_grant_grandfather(user_id):
         data = request.get_json()
         plan_type = data.get("plan_type", "pro")
         
-        # success = admin_metrics.grant_grandfather_status(user_id, plan_type)
-        return jsonify({"error": "Admin system disabled"}), 503
+        success = admin_metrics.grant_grandfather_status(user_id, plan_type)
+        return jsonify({"success": success})
     except Exception as e:
         logger.error(f"Error granting grandfather status: {str(e)}")
         return jsonify({"error": "Operation failed"}), 500
@@ -2668,8 +2627,8 @@ def admin_grant_grandfather(user_id):
 def admin_reset_user_usage(user_id):
     """Reset usage limits for a user"""
     try:
-        # success = admin_metrics.reset_user_usage(user_id)
-        return jsonify({"error": "Admin system disabled"}), 503
+        success = admin_metrics.reset_user_usage(user_id)
+        return jsonify({"success": success})
     except Exception as e:
         logger.error(f"Error resetting user usage: {str(e)}")
         return jsonify({"error": "Operation failed"}), 500
@@ -2679,8 +2638,9 @@ def admin_reset_user_usage(user_id):
 def admin_export_user_data(user_id):
     """Export user data"""
     try:
-        # details = admin_metrics.get_user_details(user_id)
-        return jsonify({"error": "Admin system disabled"}), 503
+        details = admin_metrics.get_user_details(user_id)
+        if not details:
+            return jsonify({"error": "User not found"}), 404
         
         # Add export metadata
         export_data = {
