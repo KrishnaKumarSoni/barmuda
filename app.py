@@ -2366,7 +2366,7 @@ def test_extraction_endpoint(session_id):
 @app.route("/admin")
 def admin_login():
     """Admin login page"""
-    if session.get(ADMIN_SESSION_KEY):
+    if session.get('admin_authenticated'):
         return redirect(url_for('admin_dashboard'))
     return render_template("admin_login.html")
 
@@ -2383,17 +2383,8 @@ def admin_login_post():
         # Get client IP
         client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
         
-        if verify_admin_password(password):
-            session[ADMIN_SESSION_KEY] = True
-            session['admin_last_activity'] = datetime.now().timestamp()
-            log_admin_login(True, client_ip)
-            
-            logger.info(f"Admin login successful from IP: {client_ip}")
-            return jsonify({"success": True})
-        else:
-            log_admin_login(False, client_ip)
-            logger.warning(f"Admin login failed from IP: {client_ip}")
-            return jsonify({"success": False, "error": "Invalid password"}), 401
+        # Admin system disabled
+        return jsonify({"success": False, "error": "Admin system disabled"}), 503
             
     except Exception as e:
         logger.error(f"Admin login error: {str(e)}")
@@ -2402,7 +2393,7 @@ def admin_login_post():
 @app.route("/admin/logout", methods=["POST"])
 def admin_logout():
     """Handle admin logout"""
-    session.pop(ADMIN_SESSION_KEY, None)
+    session.pop('admin_authenticated', None)
     session.pop('admin_last_activity', None)
     return jsonify({"success": True})
 
@@ -2417,8 +2408,8 @@ def admin_dashboard():
 def admin_api_dashboard():
     """API endpoint for dashboard metrics"""
     try:
-        data = # admin_metrics.get_dashboard_summary()
-        return jsonify(data)
+        # data = admin_metrics.get_dashboard_summary()
+        return jsonify({"error": "Admin system disabled"}), 503
     except Exception as e:
         logger.error(f"Error fetching dashboard data: {str(e)}")
         return jsonify({"error": "Failed to fetch dashboard data"}), 500
@@ -2436,8 +2427,8 @@ def admin_search_users():
         if not query:
             return jsonify([])
         
-        users = # admin_metrics.search_users(query)
-        return jsonify(users)
+        # users = admin_metrics.search_users(query)
+        return jsonify({"error": "Admin system disabled"})
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return jsonify({"error": "Search failed"}), 500
@@ -2447,9 +2438,8 @@ def admin_search_users():
 def admin_get_user_details(user_id):
     """Get detailed user information"""
     try:
-        details = # admin_metrics.get_user_details(user_id)
-        if not details:
-            return jsonify({"error": "User not found"}), 404
+        # details = admin_metrics.get_user_details(user_id)
+        return jsonify({"error": "Admin system disabled"}), 503
         
         return jsonify(details)
     except Exception as e:
@@ -2464,12 +2454,8 @@ def admin_grant_grandfather(user_id):
         data = request.get_json()
         plan_type = data.get("plan_type", "pro")
         
-        success = # admin_metrics.grant_grandfather_status(user_id, plan_type)
-        if success:
-            logger.info(f"Admin granted grandfather status to user: {user_id}")
-            return jsonify({"success": True})
-        else:
-            return jsonify({"error": "Failed to grant grandfather status"}), 400
+        # success = admin_metrics.grant_grandfather_status(user_id, plan_type)
+        return jsonify({"error": "Admin system disabled"}), 503
     except Exception as e:
         logger.error(f"Error granting grandfather status: {str(e)}")
         return jsonify({"error": "Operation failed"}), 500
@@ -2479,12 +2465,8 @@ def admin_grant_grandfather(user_id):
 def admin_reset_user_usage(user_id):
     """Reset usage limits for a user"""
     try:
-        success = # admin_metrics.reset_user_usage(user_id)
-        if success:
-            logger.info(f"Admin reset usage for user: {user_id}")
-            return jsonify({"success": True})
-        else:
-            return jsonify({"error": "Failed to reset usage"}), 400
+        # success = admin_metrics.reset_user_usage(user_id)
+        return jsonify({"error": "Admin system disabled"}), 503
     except Exception as e:
         logger.error(f"Error resetting user usage: {str(e)}")
         return jsonify({"error": "Operation failed"}), 500
@@ -2494,9 +2476,8 @@ def admin_reset_user_usage(user_id):
 def admin_export_user_data(user_id):
     """Export user data"""
     try:
-        details = # admin_metrics.get_user_details(user_id)
-        if not details:
-            return jsonify({"error": "User not found"}), 404
+        # details = admin_metrics.get_user_details(user_id)
+        return jsonify({"error": "Admin system disabled"}), 503
         
         # Add export metadata
         export_data = {
