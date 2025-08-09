@@ -45,7 +45,7 @@
         <main class="flex flex-col items-center px-4 md:px-8 space-y-6 sm:space-y-8 md:space-y-10 pt-24 sm:pt-28 md:pt-32 lg:pt-40 pb-12 md:pb-16 lg:pb-24">
             <!-- Hero Section -->
             <header class="text-center max-w-4xl space-y-4">
-                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15]">
+                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15]">
                     Collect insights at scale
                 </h1>
                 <h2 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#cc5500] tracking-[-0.02em] leading-[1.2]">
@@ -68,7 +68,7 @@
                         oninput="handleUnauthenticatedInput()"></textarea>
                     <button onclick="handleUnauthenticatedGenerate()" 
                             id="unauthGenerateBtn"
-                            class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm sm:text-base md:text-lg transition-all duration-200 flex items-center gap-2 hover:scale-105 active:scale-95">
+                            class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-4 py-2.5 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm transition-all duration-200 flex items-center gap-2 hover:scale-105 active:scale-95">
                         <span id="unauthButtonText">Generate</span>
                         <div id="unauthSpinner" class="hidden">
                             <div class="flex space-x-1">
@@ -1238,7 +1238,64 @@
             
             'feature-requests': `Create a feature request survey to prioritize product development. I want to understand user needs, feature importance, usage patterns, pain points, desired improvements, and willingness to pay for new features to guide product roadmap decisions.`,
             
-            'app-feedback': `Create a mobile app feedback survey to improve user experience. I want to assess functionality, interface design, performance, ease of use, feature satisfaction, bug reports, and overall app rating to optimize mobile applications.`
+            'app-feedback': `Create a mobile app feedback survey to improve user experience. I want to assess functionality, interface design, performance, ease of use, feature satisfaction, bug reports, and overall app rating to optimize mobile applications.`,
+            
+            // Core User Research Templates
+            'user-interview': `I want to conduct user interviews to understand how people use our product. Help me create questions that explore user goals, pain points, current workflows, feature preferences, and unmet needs. I want to discover what problems our users are trying to solve and how our product fits into their daily routine.`,
+            
+            'product-discovery': `I need to validate a new product idea through user interviews. Create questions to understand the target market's current solutions, biggest frustrations, willingness to try new approaches, and what success looks like for them. Focus on problem validation and market fit.`,
+            
+            'customer-journey': `I want to map the customer journey by interviewing users about their entire experience with our product. Create questions covering awareness, consideration, onboarding, daily usage, support interactions, and renewal decisions. Help me identify friction points and optimization opportunities.`,
+            
+            'pain-point-analysis': `I need to deeply understand user pain points through interviews. Create questions that uncover daily frustrations, workarounds people use, costs of current problems, and emotional impact. Help me prioritize which problems to solve first.`,
+            
+            // Feature & Product Validation  
+            'feature-validation': `I want to validate specific features through user interviews before building them. Create questions about current workflows, desired outcomes, feature priorities, usability concerns, and willingness to adopt. Help me understand if this feature solves real problems.`,
+            
+            'usability-testing': `I need to conduct usability interviews to improve our product experience. Create questions about task completion, navigation challenges, confusing elements, missing functionality, and overall satisfaction. Focus on identifying UX improvements.`,
+            
+            'persona-research': `I want to build accurate user personas through interviews. Create questions about demographics, roles, goals, challenges, tools used, decision-making process, and motivations. Help me understand different user segments and their unique needs.`,
+            
+            'jobs-to-be-done': `I need to understand what job users are hiring our product to do. Create interview questions that explore the progress users are trying to make, situations that trigger usage, desired outcomes, and alternatives they consider. Focus on the functional and emotional jobs.`,
+            
+            // Market & Competitive Research
+            'product-market-fit': `I want to assess product-market fit through user interviews. Create questions about value perception, recommendation likelihood, usage frequency, switching costs, and what would happen if the product disappeared. Help me measure market pull.`,
+            
+            'competitor-analysis': `I need to understand how users view competitors through interviews. Create questions about alternative solutions, switching reasons, feature comparisons, pricing sensitivity, and competitive advantages. Help me identify differentiation opportunities.`,
+            
+            'pricing-validation': `I want to validate pricing through user interviews. Create questions about value perception, budget allocation, price sensitivity, payment preferences, and purchasing decision factors. Help me understand willingness to pay and optimal pricing strategy.`,
+            
+            'market-segmentation': `I need to identify market segments through user interviews. Create questions about use cases, company size, industry, role, budget, priorities, and buying process. Help me understand different user groups and their distinct needs.`,
+            
+            // Customer Success & Retention
+            'onboarding-research': `I want to improve onboarding through user interviews. Create questions about first impressions, setup challenges, learning curve, time-to-value, and early success metrics. Focus on reducing friction and increasing activation.`,
+            
+            'churn-prevention': `I need to understand why users churn through exit interviews. Create questions about dissatisfaction drivers, unmet needs, competitor advantages, pricing concerns, and what could have prevented churn. Help me reduce customer losses.`,
+            
+            'expansion-research': `I want to identify upsell opportunities through user interviews. Create questions about growing needs, budget increases, additional use cases, team expansion, and feature gaps. Help me understand expansion potential.`,
+            
+            'nps-deep-dive': `I need to understand NPS scores through follow-up interviews. Create questions for promoters, passives, and detractors about their experience, specific feedback, improvement suggestions, and referral likelihood. Turn scores into actionable insights.`,
+            
+            // Strategic Research
+            'roadmap-prioritization': `I want to inform product roadmap through user interviews. Create questions about current frustrations, desired capabilities, workflow inefficiencies, and future needs. Help me prioritize features that matter most to users.`,
+            
+            'brand-perception': `I need to understand brand perception through user interviews. Create questions about brand awareness, associations, trust levels, competitive positioning, and emotional connection. Help me strengthen brand strategy.`,
+            
+            'user-behavior': `I want to understand user behavior patterns through interviews. Create questions about usage frequency, feature adoption, workflow integration, collaboration patterns, and behavior triggers. Help me optimize for actual usage patterns.`,
+            
+            'retention-drivers': `I need to identify what keeps users engaged through interviews. Create questions about value realization, habit formation, switching costs, satisfaction drivers, and loyalty factors. Help me increase long-term retention.`,
+            
+            // Specialized Research
+            'b2b-buying-process': `I want to understand B2B buying decisions through stakeholder interviews. Create questions about decision criteria, buying committee, evaluation process, implementation concerns, and approval requirements. Help me optimize sales processes.`,
+            
+            'mobile-usage': `I need to understand mobile usage patterns through user interviews. Create questions about mobile context, device preferences, app usage, cross-platform workflows, and mobile-specific needs. Help me optimize mobile experiences.`,
+            
+            'integration-research': `I want to understand integration needs through user interviews. Create questions about current tool stack, workflow connections, data sharing, automation desires, and integration priorities. Help me build valuable integrations.`,
+            
+            'accessibility-research': `I need to understand accessibility needs through user interviews. Create questions about assistive technologies, navigation challenges, content preferences, interaction difficulties, and inclusive design needs. Help me build accessible products.`,
+            
+            // Additional Templates
+            'app-review': `I want to gather user feedback about our mobile app through interviews. Create questions about user interface, performance, features, navigation, bugs, and desired improvements. Help me optimize the app experience.`
         };
 
         // Use template function
