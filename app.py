@@ -247,6 +247,16 @@ def test_session():
         }
     )
 
+@app.route("/test-auth", methods=["GET", "POST"])
+def test_auth():
+    """Test auth endpoint to debug Vercel protection"""
+    logger.info(f"Test auth endpoint - Method: {request.method}")
+    return jsonify({
+        "message": "Auth endpoint working",
+        "method": request.method,
+        "timestamp": datetime.now().isoformat()
+    })
+
 
 @app.route("/test-openai")
 @login_required
@@ -300,6 +310,7 @@ def test_openai():
 
 
 @app.route("/auth/google", methods=["GET", "POST"])
+@app.route("/firebase-auth", methods=["GET", "POST"])
 def google_auth():
     """Handle Google Firebase authentication with quota-safe fallback"""
     logger.info(f"=== GOOGLE AUTH REQUEST START === Method: {request.method}")
