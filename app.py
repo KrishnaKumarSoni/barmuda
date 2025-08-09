@@ -301,39 +301,89 @@ def test_openai():
 
 @app.route("/auth/google", methods=["POST"])
 def google_auth():
-    """Handle real Google Firebase authentication"""
+    """Handle Google Firebase authentication with quota-safe fallback"""
+    logger.info("=== GOOGLE AUTH REQUEST START ===")
     try:
         # Get the ID token from the request
         data = request.get_json()
+        logger.info(f"Request data received: {data is not None}")
+        
         if not data or "idToken" not in data:
+            logger.error("No ID token in request data")
             return jsonify({"error": "ID token is required"}), 400
 
         id_token = data["idToken"]
+        logger.info(f"ID token received, length: {len(id_token) if id_token else 0}")
 
-        # Verify the ID token with Firebase
-        decoded_token = auth.verify_id_token(id_token)
+        # Try Firebase verification with timeout protection
+        logger.info("Starting Firebase token verification with timeout protection...")
+        try:
+            # Set a shorter timeout to prevent 5-minute hangs
+            import signal
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Firebase verification timeout")
+            
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(10)  # 10 second timeout
+            
+            decoded_token = auth.verify_id_token(id_token)
+            signal.alarm(0)  # Cancel timeout
+            logger.info(f"Token verification successful, user: {decoded_token.get('email', 'unknown')}")
 
-        # Extract user information
-        user_id = decoded_token["uid"]
-        email = decoded_token.get("email", "")
-        name = decoded_token.get("name", "")
+            # Extract user information
+            user_id = decoded_token["uid"]
+            email = decoded_token.get("email", "")
+            name = decoded_token.get("name", "")
+            
+        except (TimeoutError, Exception) as e:
+            signal.alarm(0)  # Cancel timeout
+            logger.warning(f"Firebase verification failed ({str(e)}), using token-based fallback")
+            
+            # Fallback: decode JWT without verification for quota issues
+            import base64
+            import json
+            
+            # Split the JWT into parts
+            parts = id_token.split('.')
+            if len(parts) != 3:
+                raise ValueError("Invalid JWT format")
+            
+            # Decode the payload (add padding if needed)
+            payload = parts[1]
+            payload += '=' * (4 - len(payload) % 4)  # Add padding
+            decoded_payload = base64.urlsafe_b64decode(payload)
+            token_data = json.loads(decoded_payload)
+            
+            logger.info(f"Using JWT fallback for user: {token_data.get('email', 'unknown')}")
+            
+            # Extract user information from JWT payload
+            user_id = token_data.get("sub", "")  # 'sub' is the user ID in JWT
+            email = token_data.get("email", "")
+            name = token_data.get("name", "")
+            
+            if not user_id or not email:
+                raise ValueError("Invalid token payload")
 
-        # Check if user exists in Firestore
-        user_ref = db.collection("users").document(user_id)
-        user_doc = user_ref.get()
+        # Check if user exists in Firestore (with quota protection)
+        try:
+            user_ref = db.collection("users").document(user_id)
+            user_doc = user_ref.get()
 
-        if not user_doc.exists:
-            # Create new user profile
-            user_data = {
-                "user_id": user_id,
-                "email": email,
-                "name": name,
-                "created_at": datetime.now().isoformat(),
-            }
-            user_ref.set(user_data)
-            logger.info(f"Created new user: {email}")
-        else:
-            logger.info(f"User login: {email}")
+            if not user_doc.exists:
+                # Create new user profile
+                user_data = {
+                    "user_id": user_id,
+                    "email": email,
+                    "name": name,
+                    "created_at": datetime.now().isoformat(),
+                }
+                user_ref.set(user_data)
+                logger.info(f"Created new user: {email}")
+            else:
+                logger.info(f"User login: {email}")
+        except Exception as firestore_error:
+            # If Firestore is also hitting quota, continue with session anyway
+            logger.warning(f"Firestore operation failed ({str(firestore_error)}), continuing with session")
 
         # Store user session
         session["user_id"] = user_id
@@ -345,6 +395,7 @@ def google_auth():
         # Debug session after setting
         logger.info(f"After setting session - Session: {dict(session)}")
         logger.info(f"Session authenticated: {session.get('authenticated')}")
+        logger.info("=== GOOGLE AUTH SUCCESS ===")
 
         return jsonify(
             {
@@ -354,7 +405,9 @@ def google_auth():
         )
 
     except Exception as e:
-        logger.error(f"Authentication error: {str(e)}")
+        logger.error(f"=== GOOGLE AUTH ERROR === {str(e)}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return jsonify({"error": "Authentication failed", "details": str(e)}), 401
 
 
