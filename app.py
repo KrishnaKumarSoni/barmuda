@@ -25,7 +25,9 @@ app.secret_key = os.environ.get(
 )
 
 # Configure session
-app.config["SESSION_COOKIE_SECURE"] = False  # Allow HTTP for localhost
+# Set Secure=True for production (HTTPS), False for localhost (HTTP)
+is_production = os.environ.get("VERCEL") or os.environ.get("PRODUCTION") 
+app.config["SESSION_COOKIE_SECURE"] = is_production  # True for HTTPS, False for localhost
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
