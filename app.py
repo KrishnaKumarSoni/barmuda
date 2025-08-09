@@ -219,6 +219,227 @@ def require_conversation_limit(f):
     
     return decorated_function
 
+# Form inference functions
+def create_inference_prompt(input_text):
+    """Create the form inference prompt with Chain-of-Thought and few-shot examples"""
+
+    return f"""You are an expert form designer. Given an unstructured text dump describing a form or survey, you need to infer a structured form with appropriate questions and answer types.
+
+TASK: Analyze the input text and create a JSON form structure following the exact format below.
+
+REASONING PROCESS (Chain-of-Thought):
+1. First, summarize the main intent/purpose of the form from the input
+2. Identify 5-10 key questions that would capture the needed information
+3. For each question, determine the most appropriate input type
+4. Generate logical answer options for multiple choice questions
+5. Self-critique: Are the questions comprehensive? Are types appropriate?
+
+OUTPUT FORMAT (JSON only, no additional text):
+{{
+  "title": "Form Title (concise, descriptive)", 
+  "questions": [
+    {{
+      "text": "Question text",
+      "type": "text|multiple_choice|yes_no|number|rating",
+      "options": ["option1", "option2", "..."] or null,
+      "enabled": true
+    }}
+  ]
+}}
+
+QUESTION TYPES:
+- text: Open-ended text responses
+- multiple_choice: Select one from predefined options (include "Other" and "Prefer not to say" when appropriate)
+- yes_no: Simple yes/no questions  
+- number: Numeric input (age, quantity, etc.)
+- rating: 1-5 or 1-10 scale ratings
+
+DEMOGRAPHICS TEMPLATE (add relevant ones based on context):
+Always consider including these standard demographic questions when appropriate:
+- Age (multiple_choice: "18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say")
+- Gender (multiple_choice: "Male", "Female", "Non-binary", "Other", "Prefer not to say")
+- Location (text or multiple_choice based on scope)
+- Education Level (multiple_choice: "High School", "Bachelor's", "Master's", "PhD", "Other", "Prefer not to say")
+- Employment Status (multiple_choice: "Employed", "Student", "Unemployed", "Retired", "Other", "Prefer not to say")
+
+FEW-SHOT EXAMPLES:
+
+INPUT: "I want to survey coffee preferences, favorite drinks, and satisfaction ratings"
+OUTPUT:
+{{
+  "title": "Coffee Preferences Survey",
+  "questions": [
+    {{
+      "text": "How often do you drink coffee?",
+      "type": "multiple_choice",
+      "options": ["Daily", "Several times a week", "Weekly", "Rarely", "Never"],
+      "enabled": true
+    }},
+    {{
+      "text": "What is your favorite type of coffee drink?",
+      "type": "multiple_choice", 
+      "options": ["Espresso", "Americano", "Latte", "Cappuccino", "Cold Brew", "Frappuccino", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "Rate your overall satisfaction with your usual coffee shop",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"],
+      "enabled": true
+    }},
+    {{
+      "text": "What factors are most important when choosing coffee?",
+      "type": "multiple_choice",
+      "options": ["Taste", "Price", "Convenience", "Brand", "Health benefits", "Other"],
+      "enabled": true
+    }},
+    {{
+      "text": "Any additional comments about your coffee preferences?",
+      "type": "text",
+      "options": null,
+      "enabled": true
+    }},
+    {{
+      "text": "What is your age range?",
+      "type": "multiple_choice",
+      "options": ["18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say"],
+      "enabled": true
+    }}
+  ]
+}}
+
+Now analyze this input and create a structured form:
+
+INPUT: {input_text}
+
+OUTPUT:"""
+
+
+def validate_and_fix_json(json_string):
+    """Validate JSON structure and fix common issues"""
+    try:
+        # Clean up the response - remove any extra text before/after JSON
+        json_string = json_string.strip()
+
+        # Find JSON boundaries
+        start_idx = json_string.find("{")
+        end_idx = json_string.rfind("}")
+
+        if start_idx == -1 or end_idx == -1:
+            raise ValueError("No valid JSON structure found")
+
+        json_string = json_string[start_idx : end_idx + 1]
+
+        # Parse JSON
+        parsed = json.loads(json_string)
+
+        # Validate required fields
+        if "title" not in parsed:
+            raise ValueError("Missing 'title' field")
+        if "questions" not in parsed or not isinstance(parsed["questions"], list):
+            raise ValueError("Missing or invalid 'questions' field")
+
+        # Validate each question
+        valid_types = ["text", "multiple_choice", "yes_no", "number", "rating"]
+        for i, question in enumerate(parsed["questions"]):
+            if "text" not in question:
+                raise ValueError(f"Question {i+1} missing 'text' field")
+            if "type" not in question or question["type"] not in valid_types:
+                raise ValueError(f"Question {i+1} has invalid or missing 'type' field")
+            if "enabled" not in question:
+                question["enabled"] = True
+
+            # Validate options for multiple_choice and rating
+            if question["type"] in ["multiple_choice", "rating"]:
+                if "options" not in question or not isinstance(
+                    question["options"], list
+                ):
+                    raise ValueError(
+                        f"Question {i+1} of type '{question['type']}' requires 'options' list"
+                    )
+                if len(question["options"]) < 2:
+                    raise ValueError(f"Question {i+1} needs at least 2 options")
+            elif question["type"] in ["text", "yes_no", "number"]:
+                question["options"] = None
+
+        return parsed, None
+
+    except json.JSONDecodeError as e:
+        return None, f"Invalid JSON format: {str(e)}"
+    except ValueError as e:
+        return None, str(e)
+    except Exception as e:
+        return None, f"Validation error: {str(e)}"
+
+
+def infer_form_from_text(input_text, max_retries=2):
+    """Use OpenAI GPT-4o-mini to infer form structure from unstructured text"""
+
+    # Debug API key availability
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        logger.error("OPENAI_API_KEY environment variable not found!")
+        return None, "OpenAI API key not configured"
+
+    logger.info(
+        f"Using OpenAI API key: {api_key[:8]}...{api_key[-8:] if len(api_key) > 16 else ''}"
+    )
+
+    for attempt in range(max_retries + 1):
+        try:
+            logger.info(
+                f"Form inference attempt {attempt + 1} for input: {input_text[:100]}..."
+            )
+
+            # Generate response using OpenAI client
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert form designer. Create structured JSON forms from unstructured text descriptions.",
+                    },
+                    {"role": "user", "content": create_inference_prompt(input_text)},
+                ],
+                temperature=0.1,
+                max_tokens=2000,
+            )
+
+            response_text = response.choices[0].message.content
+            logger.info(
+                f"LLM response (attempt {attempt + 1}): {response_text[:200]}..."
+            )
+
+            # Validate and parse JSON
+            parsed_form, error = validate_and_fix_json(response_text)
+
+            if parsed_form:
+                logger.info(
+                    f"Successfully inferred form with {len(parsed_form['questions'])} questions"
+                )
+                return parsed_form, None
+            else:
+                logger.warning(f"Attempt {attempt + 1} failed validation: {error}")
+                if attempt == max_retries:
+                    return (
+                        None,
+                        f"Failed to generate valid form after {max_retries + 1} attempts. Last error: {error}",
+                    )
+
+        except Exception as e:
+            import traceback
+
+            logger.error(f"Attempt {attempt + 1} failed with exception: {str(e)}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            if attempt == max_retries:
+                return (
+                    None,
+                    f"Form inference failed after {max_retries + 1} attempts: {str(e)}",
+                )
+
+    return None, "Unexpected error in form inference"
+
+
 # Routes
 @app.route("/")
 def home():
