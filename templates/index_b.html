@@ -435,6 +435,10 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        
+        // Debug Firebase initialization
+        console.log('Firebase initialized:', firebase.app().name);
+        console.log('Auth domain:', firebaseConfig.authDomain);
 
         // Template data for form generation
         const templates = {

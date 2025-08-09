@@ -1025,6 +1025,10 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        
+        // Debug Firebase initialization
+        console.log('Firebase initialized:', firebase.app().name);
+        console.log('Auth domain:', firebaseConfig.authDomain);
 
         // Handle unauthenticated input validation
         function handleUnauthenticatedInput() {
