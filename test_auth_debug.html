@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Debug Test</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <h1>Firebase Auth Debug Test</h1>
+    <button onclick="testAuth()">Test Google Sign In</button>
+    <button onclick="testAuthRedirect()">Test Google Sign In (Redirect)</button>
+    <div id="status"></div>
+    <div id="error"></div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        function log(msg) {
+            document.getElementById('status').innerHTML += '<br>' + msg;
+            console.log(msg);
+        }
+
+        function logError(msg) {
+            document.getElementById('error').innerHTML += '<br>' + msg;
+            console.error(msg);
+        }
+
+        async function testAuth() {
+            try {
+                log('Starting popup authentication...');
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                log('Success! User: ' + result.user.email);
+                
+                const idToken = await result.user.getIdToken();
+                log('Got ID token: ' + idToken.substring(0, 20) + '...');
+                
+                // Test backend
+                log('Testing backend /auth/google...');
+                const response = await fetch('/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ idToken })
+                });
+                
+                if (response.ok) {
+                    log('Backend authentication successful!');
+                } else {
+                    logError('Backend failed: ' + response.status);
+                    const text = await response.text();
+                    logError('Response: ' + text);
+                }
+                
+            } catch (error) {
+                logError('Error: ' + error.code + ' - ' + error.message);
+                logError('Full error: ' + JSON.stringify(error));
+            }
+        }
+
+        async function testAuthRedirect() {
+            try {
+                log('Starting redirect authentication...');
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                await auth.signInWithRedirect(provider);
+                
+            } catch (error) {
+                logError('Redirect Error: ' + error.code + ' - ' + error.message);
+            }
+        }
+
+        // Check for redirect result on page load
+        auth.getRedirectResult().then((result) => {
+            if (result.credential) {
+                log('Redirect success! User: ' + result.user.email);
+            }
+        }).catch((error) => {
+            if (error.code) {
+                logError('Redirect result error: ' + error.code + ' - ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
