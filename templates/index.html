@@ -1065,8 +1065,12 @@
         
         // Handle generate survey attempt for unauthenticated users
         async function handleUnauthenticatedGenerate() {
+            console.log('handleUnauthenticatedGenerate called');
+            
             const input = document.getElementById('formDescription');
             const text = input.value.trim();
+            
+            console.log('Input text:', text);
             
             if (!text) {
                 alert('Please describe the form you want to create');
@@ -1080,15 +1084,18 @@
             
             // Store the form description for after authentication
             sessionStorage.setItem('pendingFormDescription', text);
+            console.log('Stored pending description');
             
             // Show loading state
             setUnauthButtonState('signing_in');
             
             try {
+                console.log('Calling signInWithGoogle...');
                 await signInWithGoogle();
             } catch (error) {
-                setUnauthButtonState('idle');
                 console.error('Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+                setUnauthButtonState('idle');
             }
         }
         
