@@ -692,53 +692,58 @@ class AdminMetrics:
             for user_doc in all_users:
                 user_data = user_doc.to_dict()
                 created_at = user_data.get("created_at")
+                
+                # Count ALL users for cumulative total
+                cumulative_users += 1
+                
                 if created_at and isinstance(created_at, datetime):
                     # Convert timezone-aware datetime to naive for comparison
                     if created_at.tzinfo is not None:
                         created_at = created_at.replace(tzinfo=None)
                     
-                    if created_at >= start_date:
+                    # Only count in daily data if within period
+                    if created_at >= start_date and created_at <= now:
                         date_key = created_at.date().isoformat()
                         if date_key in daily_data:
                             daily_data[date_key]["users"] += 1
-                    
-                    # Count for cumulative
-                    if created_at <= now:
-                        cumulative_users += 1
             
             # Process forms
             cumulative_forms = 0
             for form_doc in all_forms:
                 form_data = form_doc.to_dict()
                 created_at = form_data.get("created_at")
+                
+                # Count ALL forms for cumulative total
+                cumulative_forms += 1
+                
                 if created_at and isinstance(created_at, datetime):
                     if created_at.tzinfo is not None:
                         created_at = created_at.replace(tzinfo=None)
                     
-                    if created_at >= start_date:
+                    # Only count in daily data if within period
+                    if created_at >= start_date and created_at <= now:
                         date_key = created_at.date().isoformat()
                         if date_key in daily_data:
                             daily_data[date_key]["forms"] += 1
-                    
-                    if created_at <= now:
-                        cumulative_forms += 1
             
             # Process conversations
             cumulative_conversations = 0
             for response_doc in all_responses:
                 response_data = response_doc.to_dict()
                 created_at = response_data.get("created_at")
+                
+                # Count ALL conversations for cumulative total
+                cumulative_conversations += 1
+                
                 if created_at and isinstance(created_at, datetime):
                     if created_at.tzinfo is not None:
                         created_at = created_at.replace(tzinfo=None)
                     
-                    if created_at >= start_date:
+                    # Only count in daily data if within period
+                    if created_at >= start_date and created_at <= now:
                         date_key = created_at.date().isoformat()
                         if date_key in daily_data:
                             daily_data[date_key]["conversations"] += 1
-                    
-                    if created_at <= now:
-                        cumulative_conversations += 1
             
             # Calculate cumulative values for each day
             running_users = max(0, cumulative_users - sum(data["users"] for data in daily_data.values()))

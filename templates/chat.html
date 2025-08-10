@@ -6,6 +6,26 @@
     <meta name="theme-color" content="#cc5500">
     <title>{{ form_title }} - Barmuda Forms</title>
     <!-- Clean code deployed: v3.0 -->
+    
+    <!-- Google Analytics (GA4) for anonymous survey tracking -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7C7SPTNMLT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-7C7SPTNMLT', {
+            // Anonymous tracking for surveys
+            anonymize_ip: true,
+            client_storage: 'none'  // No cookies for respondents
+        });
+        
+        // Track survey start
+        gtag('event', 'survey_started', {
+            form_id: '{{ form_id }}',
+            form_title: '{{ form_title }}'
+        });
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
     
