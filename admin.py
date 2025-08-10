@@ -699,12 +699,25 @@ class AdminMetrics:
             cumulative_users = 0
             for user_doc in all_users:
                 user_data = user_doc.to_dict()
-                created_at = user_data.get("created_at")
+                created_at_raw = user_data.get("created_at")
                 
                 # Count ALL users for cumulative total
                 cumulative_users += 1
                 
-                if created_at and isinstance(created_at, datetime):
+                # Parse created_at field (could be datetime object or string)
+                created_at = None
+                if created_at_raw:
+                    if isinstance(created_at_raw, datetime):
+                        created_at = created_at_raw
+                    elif isinstance(created_at_raw, str):
+                        try:
+                            # Parse ISO format string like "2025-08-08T06:05:04.969958"
+                            created_at = datetime.fromisoformat(created_at_raw.replace('Z', '+00:00'))
+                        except ValueError:
+                            logger.warning(f"Could not parse created_at string: {created_at_raw}")
+                            continue
+                
+                if created_at:
                     # Convert timezone-aware datetime to naive for comparison
                     if created_at.tzinfo is not None:
                         created_at = created_at.replace(tzinfo=None)
@@ -719,12 +732,25 @@ class AdminMetrics:
             cumulative_forms = 0
             for form_doc in all_forms:
                 form_data = form_doc.to_dict()
-                created_at = form_data.get("created_at")
+                created_at_raw = form_data.get("created_at")
                 
                 # Count ALL forms for cumulative total
                 cumulative_forms += 1
                 
-                if created_at and isinstance(created_at, datetime):
+                # Parse created_at field (could be datetime object or string)
+                created_at = None
+                if created_at_raw:
+                    if isinstance(created_at_raw, datetime):
+                        created_at = created_at_raw
+                    elif isinstance(created_at_raw, str):
+                        try:
+                            # Parse ISO format string
+                            created_at = datetime.fromisoformat(created_at_raw.replace('Z', '+00:00'))
+                        except ValueError:
+                            logger.warning(f"Could not parse form created_at string: {created_at_raw}")
+                            continue
+                
+                if created_at:
                     if created_at.tzinfo is not None:
                         created_at = created_at.replace(tzinfo=None)
                     
@@ -738,12 +764,25 @@ class AdminMetrics:
             cumulative_conversations = 0
             for response_doc in all_responses:
                 response_data = response_doc.to_dict()
-                created_at = response_data.get("created_at")
+                created_at_raw = response_data.get("created_at")
                 
                 # Count ALL conversations for cumulative total
                 cumulative_conversations += 1
                 
-                if created_at and isinstance(created_at, datetime):
+                # Parse created_at field (could be datetime object or string)
+                created_at = None
+                if created_at_raw:
+                    if isinstance(created_at_raw, datetime):
+                        created_at = created_at_raw
+                    elif isinstance(created_at_raw, str):
+                        try:
+                            # Parse ISO format string
+                            created_at = datetime.fromisoformat(created_at_raw.replace('Z', '+00:00'))
+                        except ValueError:
+                            logger.warning(f"Could not parse response created_at string: {created_at_raw}")
+                            continue
+                
+                if created_at:
                     if created_at.tzinfo is not None:
                         created_at = created_at.replace(tzinfo=None)
                     
