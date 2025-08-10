@@ -520,14 +520,14 @@
                     backdrop-filter: blur(4px);
                     align-items: center;
                     justify-content: center;
-                    padding: 16px;
+                    padding: 20px;
                 }
                 
                 .barmuda-modal-content {
                     width: 100%;
-                    max-width: 400px;
-                    height: 70vh;
-                    max-height: 500px;
+                    max-width: 340px;
+                    height: 480px;
+                    max-height: 60vh;
                     margin: 0;
                     border-radius: 16px;
                 }
@@ -544,10 +544,15 @@
             }
             
             @media (max-width: 480px) {
+                .barmuda-modal-overlay {
+                    padding: 16px;
+                }
+                
                 .barmuda-modal-content {
-                    width: calc(100% - 32px);
-                    height: 65vh;
-                    max-height: 450px;
+                    width: 100%;
+                    max-width: 300px;
+                    height: 400px;
+                    max-height: 50vh;
                 }
             }
             
