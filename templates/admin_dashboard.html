@@ -76,6 +76,10 @@
                         <i class="ph ph-arrow-clockwise mr-2 h-4 w-4"></i>
                         Refresh
                     </button>
+                    <button onclick="debugCounts()" class="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium text-white transition-all duration-200">
+                        <i class="ph ph-bug mr-1 h-4 w-4"></i>
+                        Debug
+                    </button>
                     <button onclick="logout()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                         <i class="ph ph-sign-out h-5 w-5"></i>
                     </button>
@@ -1154,6 +1158,36 @@
                 window.location.href = '/admin';
             } catch (error) {
                 console.error('Error logging out:', error);
+            }
+        }
+
+        // Debug function to check Firebase data
+        async function debugCounts() {
+            try {
+                const response = await fetch('/admin/api/debug/counts');
+                const data = await response.json();
+                
+                console.log('Debug Firebase Counts:', data);
+                
+                const message = `
+Firebase Debug Info:
+- Users: ${data.raw_counts?.users || 0}
+- Forms: ${data.raw_counts?.forms || 0}  
+- Responses: ${data.raw_counts?.responses || 0}
+
+Collections Exist:
+- Users: ${data.collections_exist?.users ? 'YES' : 'NO'}
+- Forms: ${data.collections_exist?.forms ? 'YES' : 'NO'}
+- Responses: ${data.collections_exist?.responses ? 'YES' : 'NO'}
+
+Sample User: ${data.sample_user ? JSON.stringify(data.sample_user, null, 2) : 'None'}
+                `;
+                
+                alert(message);
+                showNotification(`Debug: ${data.raw_counts?.users || 0} users, ${data.raw_counts?.forms || 0} forms, ${data.raw_counts?.responses || 0} responses`, 'info');
+            } catch (error) {
+                console.error('Debug error:', error);
+                showNotification('Debug failed - check console', 'error');
             }
         }
 

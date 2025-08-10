@@ -670,6 +670,9 @@ class AdminMetrics:
             all_forms = list(forms_ref.limit(500).stream())
             all_responses = list(responses_ref.limit(1000).stream())
             
+            # Debug logging
+            logger.info(f"Debug: Found {len(all_users)} users, {len(all_forms)} forms, {len(all_responses)} responses")
+            
             # Initialize daily data structure
             daily_data = {}
             for i in range(days):
@@ -799,6 +802,10 @@ class AdminMetrics:
                     popular_forms[form_id] = popular_forms.get(form_id, 0) + 1
             
             top_performing_forms = sorted(popular_forms.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            # Debug final counts
+            logger.info(f"Debug: Cumulative counts - users: {cumulative_users}, forms: {cumulative_forms}, conversations: {cumulative_conversations}")
+            logger.info(f"Debug: Unique form creators: {len(unique_form_creators)}, active forms: {total_active_forms}")
             
             return {
                 "period": period,

@@ -2849,6 +2849,42 @@ def admin_api_trends():
         logger.error(f"Error fetching trends data: {str(e)}")
         return jsonify({"error": "Failed to fetch trends data"}), 500
 
+@app.route("/admin/api/debug/counts")
+# @admin_required  
+def admin_debug_counts():
+    """Debug endpoint to check raw Firebase collection counts"""
+    try:
+        users_ref = db.collection("users")
+        forms_ref = db.collection("forms")
+        responses_ref = db.collection("responses")
+        
+        users_count = len(list(users_ref.limit(1000).stream()))
+        forms_count = len(list(forms_ref.limit(1000).stream()))
+        responses_count = len(list(responses_ref.limit(1000).stream()))
+        
+        # Get a sample user document to check structure
+        sample_user = None
+        users_sample = list(users_ref.limit(1).stream())
+        if users_sample:
+            sample_user = users_sample[0].to_dict()
+            
+        return jsonify({
+            "raw_counts": {
+                "users": users_count,
+                "forms": forms_count,
+                "responses": responses_count
+            },
+            "sample_user": sample_user,
+            "collections_exist": {
+                "users": users_count > 0,
+                "forms": forms_count > 0,
+                "responses": responses_count > 0
+            }
+        })
+    except Exception as e:
+        logger.error(f"Debug counts error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/admin/api/users/search")
 # @admin_required
 def admin_search_users():
