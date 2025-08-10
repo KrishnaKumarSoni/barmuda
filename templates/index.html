@@ -1040,19 +1040,37 @@
 
     <!-- Firebase Authentication -->
     <script>
-        // Firebase configuration - REAL config for barmuda-in
+        // Firebase configuration - REAL config for barmuda-in with GA4
         const firebaseConfig = {
             apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
             authDomain: "barmuda-in.firebaseapp.com",
             projectId: "barmuda-in",
             storageBucket: "barmuda-in.firebasestorage.app",
             messagingSenderId: "36564437421",
-            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+            appId: "1:36564437421:web:2a16afe9674a9d03333924",
+            measurementId: "G-7C7SPTNMLT"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        
+        // Initialize Google Analytics
+        let analytics = null;
+        try {
+            if (typeof firebase.analytics === 'function') {
+                analytics = firebase.analytics();
+                console.log('Google Analytics initialized successfully');
+                
+                // Track page view
+                analytics.logEvent('page_view', {
+                    page_title: document.title,
+                    page_location: window.location.href
+                });
+            }
+        } catch (error) {
+            console.warn('Analytics initialization failed:', error);
+        }
 
         // Handle unauthenticated input validation
         function handleUnauthenticatedInput() {
@@ -1153,6 +1171,14 @@
                 
                 if (response.ok) {
                     console.log('Authentication successful!');
+                    
+                    // Track login event
+                    if (analytics) {
+                        analytics.logEvent('login', {
+                            method: 'google'
+                        });
+                    }
+                    
                     // Check if we have pending form description
                     const pendingDescription = sessionStorage.getItem('pendingFormDescription');
                     if (pendingDescription) {

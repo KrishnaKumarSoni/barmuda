@@ -44,6 +44,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-analytics-compat.js"></script>
 </head>
 <body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
 
@@ -554,12 +555,30 @@
             projectId: "barmuda-in",
             storageBucket: "barmuda-in.firebasestorage.app",
             messagingSenderId: "36564437421",
-            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+            appId: "1:36564437421:web:2a16afe9674a9d03333924",
+            measurementId: "G-7C7SPTNMLT"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        
+        // Initialize Google Analytics
+        let analytics = null;
+        try {
+            if (typeof firebase.analytics === 'function') {
+                analytics = firebase.analytics();
+                console.log('Google Analytics initialized on create_form page');
+                
+                // Track page view
+                analytics.logEvent('page_view', {
+                    page_title: document.title,
+                    page_location: window.location.href
+                });
+            }
+        } catch (error) {
+            console.warn('Analytics initialization failed:', error);
+        }
 
         // Authentication functions
         async function signOut() {
@@ -780,6 +799,15 @@
                 
                 if (data.success) {
                     setButtonState('redirecting');
+                    
+                    // Track form creation event
+                    if (analytics) {
+                        analytics.logEvent('form_created', {
+                            form_id: data.form_id || 'temp_form',
+                            method: 'ai_generation',
+                            questions_count: data.form?.questions?.length || 0
+                        });
+                    }
                     
                     // Small delay before redirect
                     await new Promise(resolve => setTimeout(resolve, 500));
