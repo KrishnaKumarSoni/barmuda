@@ -773,6 +773,25 @@ class AdminMetrics:
             second_half_conversations = sum(day["conversations"] for day in trends_data[mid_point:])
             conversation_growth = ((second_half_conversations - first_half_conversations) / first_half_conversations * 100) if first_half_conversations > 0 else 0
             
+            # Calculate business metrics
+            total_active_forms = len([f for f in all_forms if f.to_dict().get("active", False)])
+            avg_conversations_per_user = (cumulative_conversations / cumulative_users) if cumulative_users > 0 else 0
+            avg_forms_per_user = (cumulative_forms / cumulative_users) if cumulative_users > 0 else 0
+            
+            # User engagement levels
+            high_engagement = len([r for r in all_responses if not r.to_dict().get("partial", True)])
+            engagement_rate = (high_engagement / cumulative_conversations * 100) if cumulative_conversations > 0 else 0
+            
+            # Form performance
+            popular_forms = {}
+            for response_doc in all_responses:
+                response_data = response_doc.to_dict()
+                form_id = response_data.get("form_id")
+                if form_id:
+                    popular_forms[form_id] = popular_forms.get(form_id, 0) + 1
+            
+            top_performing_forms = sorted(popular_forms.items(), key=lambda x: x[1], reverse=True)[:5]
+            
             return {
                 "period": period,
                 "days": days,
@@ -791,6 +810,19 @@ class AdminMetrics:
                         "forms": cumulative_forms,
                         "conversations": cumulative_conversations
                     }
+                },
+                "business_metrics": {
+                    "active_forms": total_active_forms,
+                    "avg_conversations_per_user": round(avg_conversations_per_user, 2),
+                    "avg_forms_per_user": round(avg_forms_per_user, 2),
+                    "engagement_rate": round(engagement_rate, 1),
+                    "conversion_funnel": {
+                        "visitors": cumulative_users * 5,  # Estimated
+                        "signups": cumulative_users,
+                        "form_creators": cumulative_forms,
+                        "active_creators": total_active_forms
+                    },
+                    "top_performing_forms": top_performing_forms
                 }
             }
             

@@ -217,6 +217,81 @@
             </div>
         </div>
 
+        <!-- Business Analytics Section -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <!-- Conversion Funnel -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Conversion Funnel</h2>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="ph ph-funnel h-4 w-4"></i>
+                        <span>User Journey</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="funnel-chart"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-4 gap-4 text-center">
+                    <div class="bg-blue-50 rounded-lg p-3">
+                        <div class="text-lg font-bold text-blue-600" id="funnel-visitors">--</div>
+                        <div class="text-xs text-gray-600">Visitors</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3">
+                        <div class="text-lg font-bold text-green-600" id="funnel-signups">--</div>
+                        <div class="text-xs text-gray-600">Signups</div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3">
+                        <div class="text-lg font-bold text-purple-600" id="funnel-creators">--</div>
+                        <div class="text-xs text-gray-600">Form Creators</div>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-3">
+                        <div class="text-lg font-bold text-orange-600" id="funnel-active">--</div>
+                        <div class="text-xs text-gray-600">Active Forms</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Engagement Metrics -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">User Engagement</h2>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="ph ph-users-three h-4 w-4"></i>
+                        <span>Activity Metrics</span>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Engagement Rate</span>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div id="engagement-bar" class="bg-green-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-900" id="engagement-rate">--%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="text-xl font-bold text-blue-600" id="avg-conversations-per-user">--</div>
+                            <div class="text-sm text-gray-600">Avg Conversations/User</div>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="text-xl font-bold text-green-600" id="avg-forms-per-user">--</div>
+                            <div class="text-sm text-gray-600">Avg Forms/User</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Top Performing Forms</h4>
+                        <div class="space-y-2" id="top-forms-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Secondary Stats -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Revenue Breakdown -->
@@ -355,6 +430,7 @@
         let trendsChart = null;
         let cumulativeChart = null;
         let revenueChart = null;
+        let funnelChart = null;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
@@ -447,6 +523,7 @@
             if (!data.daily_data) return;
 
             const summary = data.summary || {};
+            const businessMetrics = data.business_metrics || {};
             
             // Update trend indicators
             updateTrendIndicator('users-trend', summary.user_growth_percent || 0);
@@ -456,6 +533,9 @@
             // Update trend charts
             updateTrendsChart(data.daily_data);
             updateCumulativeChart(data.daily_data);
+            
+            // Update business analytics
+            updateBusinessAnalytics(businessMetrics);
         }
 
         function updateTrendIndicator(elementId, value) {
@@ -471,45 +551,47 @@
                 trendsChart.destroy();
             }
 
-            const dates = dailyData.map(d => d.date);
-            const users = dailyData.map(d => d.users);
-            const forms = dailyData.map(d => d.forms);
-            const conversations = dailyData.map(d => d.conversations);
+            // Create proper date-value pairs for Chart.js
+            const userData = dailyData.map(d => ({ x: d.date, y: d.users }));
+            const formsData = dailyData.map(d => ({ x: d.date, y: d.forms }));
+            const conversationsData = dailyData.map(d => ({ x: d.date, y: d.conversations }));
 
             trendsChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: dates,
                     datasets: [
                         {
-                            label: 'Users',
-                            data: users,
+                            label: 'New Users',
+                            data: userData,
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             fill: false,
-                            tension: 0.4,
-                            pointRadius: 2,
-                            pointHoverRadius: 6
+                            tension: 0.3,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
                         },
                         {
-                            label: 'Forms',
-                            data: forms,
+                            label: 'New Forms',
+                            data: formsData,
                             borderColor: '#10b981',
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             fill: false,
-                            tension: 0.4,
-                            pointRadius: 2,
-                            pointHoverRadius: 6
+                            tension: 0.3,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
                         },
                         {
-                            label: 'Conversations',
-                            data: conversations,
+                            label: 'New Conversations',
+                            data: conversationsData,
                             borderColor: '#8b5cf6',
                             backgroundColor: 'rgba(139, 92, 246, 0.1)',
                             fill: false,
-                            tension: 0.4,
-                            pointRadius: 2,
-                            pointHoverRadius: 6
+                            tension: 0.3,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
                         }
                     ]
                 },
@@ -525,24 +607,32 @@
                             position: 'top',
                             labels: {
                                 usePointStyle: true,
-                                padding: 20,
+                                padding: 15,
                                 font: { size: 12 }
                             }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 12 },
+                            bodyFont: { size: 11 },
+                            cornerRadius: 8
                         }
                     },
                     scales: {
                         x: {
                             type: 'time',
                             time: {
-                                parser: 'yyyy-MM-dd',
+                                unit: currentPeriod === 'L7D' ? 'day' : currentPeriod === 'L30D' ? 'day' : currentPeriod === 'L90D' ? 'week' : 'month',
                                 displayFormats: {
-                                    day: 'MMM d'
+                                    day: 'MMM dd',
+                                    week: 'MMM dd', 
+                                    month: 'MMM yyyy'
                                 }
                             },
                             grid: { display: false },
                             ticks: {
                                 font: { size: 11 },
-                                maxTicksLimit: 8
+                                maxTicksLimit: currentPeriod === 'L7D' ? 7 : currentPeriod === 'L30D' ? 8 : 6
                             }
                         },
                         y: {
@@ -551,7 +641,13 @@
                                 color: 'rgba(0, 0, 0, 0.05)'
                             },
                             ticks: {
-                                font: { size: 11 }
+                                font: { size: 11 },
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Daily Count',
+                                font: { size: 10 }
                             }
                         }
                     }
@@ -566,45 +662,47 @@
                 cumulativeChart.destroy();
             }
 
-            const dates = dailyData.map(d => d.date);
-            const cumulativeUsers = dailyData.map(d => d.cumulative_users);
-            const cumulativeForms = dailyData.map(d => d.cumulative_forms);
-            const cumulativeConversations = dailyData.map(d => d.cumulative_conversations);
+            // Create proper date-value pairs for Chart.js
+            const cumulativeUserData = dailyData.map(d => ({ x: d.date, y: d.cumulative_users }));
+            const cumulativeFormsData = dailyData.map(d => ({ x: d.date, y: d.cumulative_forms }));
+            const cumulativeConversationsData = dailyData.map(d => ({ x: d.date, y: d.cumulative_conversations }));
 
             cumulativeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: dates,
                     datasets: [
                         {
                             label: 'Total Users',
-                            data: cumulativeUsers,
+                            data: cumulativeUserData,
                             borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            fill: '+1',
-                            tension: 0.4,
-                            pointRadius: 1,
-                            pointHoverRadius: 6
+                            backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
                         },
                         {
                             label: 'Total Forms',
-                            data: cumulativeForms,
+                            data: cumulativeFormsData,
                             borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            fill: '+1',
-                            tension: 0.4,
-                            pointRadius: 1,
-                            pointHoverRadius: 6
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
                         },
                         {
                             label: 'Total Conversations',
-                            data: cumulativeConversations,
+                            data: cumulativeConversationsData,
                             borderColor: '#8b5cf6',
-                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 1,
-                            pointHoverRadius: 6
+                            backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
                         }
                     ]
                 },
@@ -620,24 +718,32 @@
                             position: 'top',
                             labels: {
                                 usePointStyle: true,
-                                padding: 20,
+                                padding: 15,
                                 font: { size: 12 }
                             }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 12 },
+                            bodyFont: { size: 11 },
+                            cornerRadius: 8
                         }
                     },
                     scales: {
                         x: {
                             type: 'time',
                             time: {
-                                parser: 'yyyy-MM-dd',
+                                unit: currentPeriod === 'L7D' ? 'day' : currentPeriod === 'L30D' ? 'day' : currentPeriod === 'L90D' ? 'week' : 'month',
                                 displayFormats: {
-                                    day: 'MMM d'
+                                    day: 'MMM dd',
+                                    week: 'MMM dd',
+                                    month: 'MMM yyyy'
                                 }
                             },
                             grid: { display: false },
                             ticks: {
                                 font: { size: 11 },
-                                maxTicksLimit: 8
+                                maxTicksLimit: currentPeriod === 'L7D' ? 7 : currentPeriod === 'L30D' ? 8 : 6
                             }
                         },
                         y: {
@@ -646,7 +752,13 @@
                                 color: 'rgba(0, 0, 0, 0.05)'
                             },
                             ticks: {
-                                font: { size: 11 }
+                                font: { size: 11 },
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cumulative Total',
+                                font: { size: 10 }
                             }
                         }
                     }
@@ -690,6 +802,130 @@
                         }
                     }
                 }
+            });
+        }
+
+        function updateBusinessAnalytics(businessMetrics) {
+            if (!businessMetrics) return;
+            
+            // Update engagement metrics
+            const engagementRate = businessMetrics.engagement_rate || 0;
+            document.getElementById('engagement-rate').textContent = engagementRate + '%';
+            document.getElementById('engagement-bar').style.width = engagementRate + '%';
+            
+            document.getElementById('avg-conversations-per-user').textContent = businessMetrics.avg_conversations_per_user || '0';
+            document.getElementById('avg-forms-per-user').textContent = businessMetrics.avg_forms_per_user || '0';
+            
+            // Update conversion funnel
+            const funnel = businessMetrics.conversion_funnel || {};
+            document.getElementById('funnel-visitors').textContent = (funnel.visitors || 0).toLocaleString();
+            document.getElementById('funnel-signups').textContent = (funnel.signups || 0).toLocaleString();
+            document.getElementById('funnel-creators').textContent = (funnel.form_creators || 0).toLocaleString();
+            document.getElementById('funnel-active').textContent = (funnel.active_creators || 0).toLocaleString();
+            
+            // Update funnel chart
+            updateFunnelChart(funnel);
+            
+            // Update top performing forms
+            updateTopFormsList(businessMetrics.top_performing_forms || []);
+        }
+
+        function updateFunnelChart(funnel) {
+            const ctx = document.getElementById('funnel-chart').getContext('2d');
+            
+            if (funnelChart) {
+                funnelChart.destroy();
+            }
+
+            const visitors = funnel.visitors || 0;
+            const signups = funnel.signups || 0;
+            const creators = funnel.form_creators || 0;
+            const active = funnel.active_creators || 0;
+
+            // Calculate conversion rates
+            const signupRate = visitors > 0 ? ((signups / visitors) * 100).toFixed(1) : 0;
+            const creatorRate = signups > 0 ? ((creators / signups) * 100).toFixed(1) : 0;
+            const activeRate = creators > 0 ? ((active / creators) * 100).toFixed(1) : 0;
+
+            funnelChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Visitors', 'Signups', 'Form Creators', 'Active Forms'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [visitors, signups, creators, active],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)', 
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(249, 115, 22, 0.8)'
+                        ],
+                        borderColor: [
+                            '#3b82f6',
+                            '#10b981',
+                            '#8b5cf6', 
+                            '#f97316'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    if (index === 1) return `${signupRate}% conversion from visitors`;
+                                    if (index === 2) return `${creatorRate}% of users create forms`;
+                                    if (index === 3) return `${activeRate}% forms are active`;
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            ticks: { 
+                                font: { size: 10 },
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTopFormsList(topForms) {
+            const container = document.getElementById('top-forms-list');
+            container.innerHTML = '';
+            
+            if (topForms.length === 0) {
+                container.innerHTML = '<div class="text-sm text-gray-500 text-center py-2">No form data available</div>';
+                return;
+            }
+            
+            topForms.slice(0, 5).forEach((form, index) => {
+                const [formId, count] = form;
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">${index + 1}</div>
+                        <span class="text-sm text-gray-900 truncate max-w-[120px]">Form ${formId.slice(-8)}</span>
+                    </div>
+                    <span class="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded">${count} responses</span>
+                `;
+                container.appendChild(div);
             });
         }
 
