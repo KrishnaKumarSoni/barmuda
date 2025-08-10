@@ -525,9 +525,9 @@
                 
                 .barmuda-modal-content {
                     width: 100%;
-                    max-width: 340px;
-                    height: 480px;
-                    max-height: 60vh;
+                    max-width: 320px;
+                    height: 350px;
+                    max-height: 45vh;
                     margin: 0;
                     border-radius: 16px;
                 }
@@ -550,9 +550,9 @@
                 
                 .barmuda-modal-content {
                     width: 100%;
-                    max-width: 300px;
-                    height: 400px;
-                    max-height: 50vh;
+                    max-width: 280px;
+                    height: 320px;
+                    max-height: 40vh;
                 }
             }
             
