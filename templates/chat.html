@@ -532,6 +532,14 @@
             const overlay = document.getElementById('completion-overlay');
             overlay.classList.remove('hidden');
             
+            // Track survey completion
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'survey_completed', {
+                    form_id: '{{ form_id }}',
+                    form_title: '{{ form_title }}'
+                });
+            }
+            
             // Set progress bar to 100% in completion screen
             const completionProgressBar = overlay.querySelector('.bg-\\[\\#cc5500\\]');
             if (completionProgressBar) {
