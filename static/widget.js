@@ -214,31 +214,32 @@
             .barmuda-modal-overlay {
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                backdrop-filter: blur(4px);
+                background: transparent;
                 display: flex;
-                align-items: center;
-                justify-content: center;
+                align-items: flex-end;
+                justify-content: ${config.position === 'bottom-left' ? 'flex-start' : 'flex-end'};
                 padding: 20px;
+                pointer-events: none;
             }
             
             .barmuda-modal-content {
                 background: #fef5e0;
                 border-radius: 16px;
-                width: 100%;
-                max-width: 480px;
-                height: 600px;
-                max-height: 90vh;
+                width: 380px;
+                height: 500px;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                transform: translateY(20px);
+                transform: translateY(20px) scale(0.95);
                 transition: transform 0.3s ease;
+                pointer-events: auto;
+                margin-bottom: 80px;
+                ${config.position === 'bottom-left' ? 'margin-left: 4px;' : 'margin-right: 4px;'}
             }
             
             #barmuda-modal.open .barmuda-modal-content {
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
             
             /* Header */
@@ -513,15 +514,22 @@
             }
             
             /* Mobile Responsive */
-            @media (max-width: 480px) {
+            @media (max-width: 768px) {
                 .barmuda-modal-overlay {
-                    padding: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    backdrop-filter: blur(4px);
+                    align-items: center;
+                    justify-content: center;
+                    padding: 16px;
                 }
                 
                 .barmuda-modal-content {
-                    height: 100vh;
-                    max-height: 100vh;
-                    border-radius: 0;
+                    width: 100%;
+                    max-width: 400px;
+                    height: 70vh;
+                    max-height: 500px;
+                    margin: 0;
+                    border-radius: 16px;
                 }
                 
                 #barmuda-fab {
@@ -532,6 +540,14 @@
                 .barmuda-fab-button {
                     width: 56px;
                     height: 56px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .barmuda-modal-content {
+                    width: calc(100% - 32px);
+                    height: 65vh;
+                    max-height: 450px;
                 }
             }
             
@@ -546,11 +562,12 @@
         // FAB click handler
         document.getElementById('barmuda-fab').addEventListener('click', toggleWidget);
         
-        // Modal overlay click to close
+        // Modal overlay click to close (only on mobile with backdrop)
         document.querySelector('.barmuda-modal-overlay').addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            if (e.target === this) {
+            // Only close on overlay click for mobile (when backdrop is visible)
+            if (e.target === this && window.innerWidth <= 768) {
                 closeWidget();
             }
         });
@@ -620,7 +637,10 @@
         
         isOpen = true;
         document.getElementById('barmuda-modal').classList.add('open');
-        document.body.style.overflow = 'hidden';
+        // Only prevent body scroll on mobile
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        }
         
         // Initialize chat if not already done
         if (!sessionId) {
