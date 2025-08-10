@@ -739,7 +739,8 @@ Use your tools to understand the situation and respond naturally."""
                 asyncio.set_event_loop(loop)
 
             print(f"DEBUG: Running agent with input: {agent_input}")
-            result = Runner.run_sync(self.agent, agent_input)
+            # Increase max_turns from default 10 to 50 for surveys with many questions
+            result = Runner.run_sync(self.agent, agent_input, max_turns=50)
             print(f"DEBUG: Agent result: {result}")
 
             # Extract response
