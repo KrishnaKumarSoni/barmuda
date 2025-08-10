@@ -82,6 +82,23 @@
             </div>
         </div>
         
+        <!-- Bot Context Section -->
+        <div class="mb-8">
+            <h2 class="font-jakarta font-bold text-3xl text-bermuda-orange tracking-tight mb-4">bot context</h2>
+            <div class="bg-white rounded-lg border border-bermuda-border p-4">
+                <textarea 
+                    id="botContext"
+                    rows="6"
+                    class="w-full font-dm text-base text-bermuda-text bg-transparent outline-none resize-none"
+                    placeholder="Give your bot personality! Add background, name, persona, or any context you want the bot to know about. For example: 'Hi! I'm Sarah from the marketing team. We're running this survey to understand customer satisfaction with our new product launch...'"
+                ></textarea>
+            </div>
+            <p class="text-sm text-bermuda-gray mt-2">
+                <i class="ph ph-info text-bermuda-orange mr-1"></i>
+                This helps your bot answer context questions naturally and redirect back to survey questions.
+            </p>
+        </div>
+        
         <!-- Questions Container -->
         <div id="questionsContainer">
             <!-- Questions will be dynamically inserted here -->
@@ -354,6 +371,9 @@
             
             // Set title
             document.getElementById('formTitle').value = formData.title || '';
+            
+            // Set bot context
+            document.getElementById('botContext').value = formData.bot_context || '';
             
             // Render questions
             renderQuestions();
@@ -756,8 +776,9 @@
         async function saveForm() {
             if (!validateForm()) return;
             
-            // Update title
+            // Update title and bot context
             formData.title = document.getElementById('formTitle').value.trim();
+            formData.bot_context = document.getElementById('botContext').value.trim();
             
             const loadingState = document.getElementById('loadingState');
             loadingState.classList.remove('hidden');
@@ -982,8 +1003,9 @@
         function showPreview() {
             if (!validateForm()) return;
             
-            // Update title
+            // Update title and bot context
             formData.title = document.getElementById('formTitle').value.trim();
+            formData.bot_context = document.getElementById('botContext').value.trim();
             
             document.getElementById('previewModal').classList.remove('hidden');
         }

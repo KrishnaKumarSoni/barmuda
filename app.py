@@ -987,6 +987,7 @@ def infer_form():
                     "title": inferred_form["title"],
                     "questions": inferred_form["questions"],
                     "demographics": inferred_form.get("demographics", {}),
+                    "bot_context": "",  # Empty by default in inference, can be added in editing
                     "creator_id": user_id,
                     "active": False,  # Key field - survey is inactive
                     "created_at": now,
@@ -1235,6 +1236,7 @@ def save_form():
             "title": form_data["title"],
             "questions": form_data["questions"],
             "demographics": form_data.get("demographics", {}),
+            "bot_context": form_data.get("bot_context", ""),
             "creator_id": user_id,
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
@@ -1358,6 +1360,7 @@ def update_form(form_id):
             "title": form_data["title"],
             "questions": form_data["questions"],
             "demographics": form_data.get("demographics", {}),
+            "bot_context": form_data.get("bot_context", ""),
             "active": form_data.get(
                 "active", existing_form.get("active", False)
             ),  # Handle activation
