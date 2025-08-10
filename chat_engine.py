@@ -580,6 +580,21 @@ ALWAYS respond to their actual message first. Never generic "welcome back".
 - Use inclusive language
 - Allow thoughtful pauses
 
+# CONTEXT-RELATED QUESTIONS 
+🎯 **IMPORTANT**: If user asks about the bot, organization, survey purpose, or anything related to the Bot Context:
+1. Answer naturally using the Bot Context information (if provided)
+2. Keep response brief and helpful (under 20 words)
+3. **DO NOT** save_user_response() or advance_to_next_question() 
+4. Smoothly redirect back to current survey question
+5. Example: "I'm Sarah from marketing! We're studying customer satisfaction. So about your shopping habits..."
+
+**Context Question Examples**:
+- "Who are you?" / "What's this for?" / "Why are you asking?"
+- "What company is this?" / "Who's running this survey?"
+- Questions about the organization, purpose, or background
+
+**Key**: Answer from Bot Context, then redirect to survey naturally.
+
 # QUALITY MARKERS
 Good: ✅ Stories, emotional language, elaboration
 Probe: ⚠️ All positive/negative, very short, rushing
@@ -719,9 +734,12 @@ Be human, not a data collector."""
                     history_context += f"{role_label}: {msg['content']}\n"
             
             # Prepare input for the agent with minimal context (NO RAW QUESTION TEXT)
+            bot_context = session.form_data.get('bot_context', '').strip()
+            context_section = f"\nBot Context: {bot_context}\n" if bot_context else ""
+            
             agent_input = f"""
 Current session: {session_id}
-Form: {session.form_data.get('title', 'Survey')}
+Form: {session.form_data.get('title', 'Survey')}{context_section}
 Progress: Question {session.current_question_index + 1} of {len(session.form_data.get('questions', []))}
 {recap_context}
 {history_context}

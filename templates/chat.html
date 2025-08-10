@@ -321,6 +321,26 @@
         }
 
         // Add message to chat
+        function formatLinksInText(text, isUserMessage = false) {
+            // URL regex that matches http/https URLs and www. URLs
+            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+            
+            return text.replace(urlRegex, function(match) {
+                let url = match;
+                // Add https:// if URL starts with www.
+                if (url.startsWith('www.')) {
+                    url = 'https://' + url;
+                }
+                
+                // Different styling for user messages (white background) vs assistant messages (dark background)
+                const linkClass = isUserMessage 
+                    ? "text-white/90 hover:text-white underline font-medium transition-colors"
+                    : "text-[#cc5500] hover:text-[#d12b2e] underline font-medium transition-colors";
+                
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${linkClass}">${match}</a>`;
+            });
+        }
+
         function addMessage(sender, message, timestamp = null) {
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
@@ -330,11 +350,13 @@
             const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
             if (sender === 'user') {
+                // Format links for user messages (white on orange background)
+                const formattedMessage = formatLinksInText(message, true);
                 messageDiv.innerHTML = `
                     <div class="flex justify-end">
                         <div class="bg-[#cc5500] max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tr-md shadow-sm">
                             <div class="font-['DM_Sans'] text-white text-sm md:text-base leading-relaxed mb-1">
-                                ${message}
+                                ${formattedMessage}
                             </div>
                             <div class="font-['DM_Sans'] text-white/70 text-xs">
                                 ${timeStr}
@@ -343,11 +365,13 @@
                     </div>
                 `;
             } else if (sender === 'assistant') {
+                // Format links for assistant messages (colored on white background)
+                const formattedMessage = formatLinksInText(message, false);
                 messageDiv.innerHTML = `
                     <div class="flex justify-start">
                         <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
                             <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed mb-1">
-                                ${message}
+                                ${formattedMessage}
                             </div>
                             <div class="font-['DM_Sans'] text-[#6b7280] text-xs">
                                 ${timeStr}
@@ -357,10 +381,11 @@
                 `;
             } else {
                 // System message
+                const formattedMessage = formatLinksInText(message, false);
                 messageDiv.innerHTML = `
                     <div class="flex justify-center">
                         <div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">
-                            ${message}
+                            ${formattedMessage}
                         </div>
                     </div>
                 `;
