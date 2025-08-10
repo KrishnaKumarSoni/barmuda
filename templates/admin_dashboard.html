@@ -492,14 +492,8 @@
             mrrTrendEl.textContent = (mrrTrend >= 0 ? '+' : '') + mrrTrend.toFixed(1) + '%';
             mrrTrendEl.className = mrrTrend >= 0 ? 'trend-positive' : 'trend-negative';
 
-            // User metrics
-            document.getElementById('total-users-metric').textContent = users.total_users || '0';
-
-            // Forms metrics
-            document.getElementById('total-forms-metric').textContent = usage.total_forms || '0';
-
-            // Conversations metrics  
-            document.getElementById('total-conversations-metric').textContent = usage.total_conversations || '0';
+            // Note: User, forms, and conversations metrics are now updated in updateTrendsCharts() 
+            // to ensure consistency with the trend data source
 
             // System health
             document.getElementById('api-avg').textContent = (health.api_response_time?.avg || 0) + ' ms';
@@ -529,6 +523,12 @@
             updateTrendIndicator('users-trend', summary.user_growth_percent || 0);
             updateTrendIndicator('forms-trend', summary.form_growth_percent || 0);
             updateTrendIndicator('conversations-trend', summary.conversation_growth_percent || 0);
+
+            // Update main metric cards with correct data from trends
+            const currentTotals = summary.current_totals || {};
+            document.getElementById('total-users-metric').textContent = currentTotals.users || '0';
+            document.getElementById('total-forms-metric').textContent = currentTotals.forms || '0';
+            document.getElementById('total-conversations-metric').textContent = currentTotals.conversations || '0';
 
             // Update trend charts
             updateTrendsChart(data.daily_data);

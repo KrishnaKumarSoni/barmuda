@@ -782,6 +782,14 @@ class AdminMetrics:
             high_engagement = len([r for r in all_responses if not r.to_dict().get("partial", True)])
             engagement_rate = (high_engagement / cumulative_conversations * 100) if cumulative_conversations > 0 else 0
             
+            # Count unique form creators (users who actually created forms)
+            unique_form_creators = set()
+            for form_doc in all_forms:
+                form_data = form_doc.to_dict()
+                creator_id = form_data.get("creator_id")
+                if creator_id:
+                    unique_form_creators.add(creator_id)
+            
             # Form performance
             popular_forms = {}
             for response_doc in all_responses:
@@ -817,10 +825,10 @@ class AdminMetrics:
                     "avg_forms_per_user": round(avg_forms_per_user, 2),
                     "engagement_rate": round(engagement_rate, 1),
                     "conversion_funnel": {
-                        "visitors": cumulative_users * 5,  # Estimated
-                        "signups": cumulative_users,
-                        "form_creators": cumulative_forms,
-                        "active_creators": total_active_forms
+                        "visitors": cumulative_users * 5,      # Estimated visitors (5x users)
+                        "signups": cumulative_users,           # Total registered users  
+                        "form_creators": len(unique_form_creators),  # Unique users who created forms
+                        "active_creators": total_active_forms   # Number of active forms
                     },
                     "top_performing_forms": top_performing_forms
                 }
