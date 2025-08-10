@@ -673,6 +673,14 @@ class AdminMetrics:
             # Debug logging
             logger.info(f"Debug: Found {len(all_users)} users, {len(all_forms)} forms, {len(all_responses)} responses")
             
+            # Debug first few users' created_at fields
+            for i, user_doc in enumerate(all_users[:3]):
+                user_data = user_doc.to_dict()
+                created_at = user_data.get("created_at")
+                logger.info(f"Debug user {i}: created_at = {created_at}, type = {type(created_at)}")
+            
+            logger.info(f"Debug: Period start_date = {start_date}, now = {now}")
+            
             # Initialize daily data structure
             daily_data = {}
             for i in range(days):

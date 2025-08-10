@@ -1169,6 +1169,13 @@
                 
                 console.log('Debug Firebase Counts:', data);
                 
+                let sampleUsersText = '';
+                if (data.sample_users && data.sample_users.length > 0) {
+                    sampleUsersText = data.sample_users.map((user, i) => 
+                        `User ${i+1}: ${user.email} | created_at: ${user.created_at} (${user.created_at_type})`
+                    ).join('\n');
+                }
+                
                 const message = `
 Firebase Debug Info:
 - Users: ${data.raw_counts?.users || 0}
@@ -1180,7 +1187,8 @@ Collections Exist:
 - Forms: ${data.collections_exist?.forms ? 'YES' : 'NO'}
 - Responses: ${data.collections_exist?.responses ? 'YES' : 'NO'}
 
-Sample User: ${data.sample_user ? JSON.stringify(data.sample_user, null, 2) : 'None'}
+Sample Users created_at fields:
+${sampleUsersText || 'No users found'}
                 `;
                 
                 alert(message);

@@ -2864,7 +2864,17 @@ def admin_debug_counts():
         
         # Get a sample user document to check structure
         sample_user = None
-        users_sample = list(users_ref.limit(1).stream())
+        sample_users = []
+        users_sample = list(users_ref.limit(3).stream())
+        for user_doc in users_sample:
+            user_data = user_doc.to_dict()
+            sample_users.append({
+                "id": user_doc.id,
+                "email": user_data.get("email"),
+                "created_at": user_data.get("created_at"),
+                "created_at_type": str(type(user_data.get("created_at"))),
+                "has_created_at": "created_at" in user_data
+            })
         if users_sample:
             sample_user = users_sample[0].to_dict()
             
@@ -2875,6 +2885,7 @@ def admin_debug_counts():
                 "responses": responses_count
             },
             "sample_user": sample_user,
+            "sample_users": sample_users,
             "collections_exist": {
                 "users": users_count > 0,
                 "forms": forms_count > 0,
