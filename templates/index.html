@@ -1186,6 +1186,18 @@
             }
         }
         
+        // Sign out function
+        async function signOut() {
+            try {
+                await auth.signOut();
+                console.log('User signed out');
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Sign-out error:', error);
+                alert('Sign-out failed. Please try again.');
+            }
+        }
+        
         // Template data
         const templates = {
             'customer-feedback': `Create a customer feedback survey to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
@@ -1494,8 +1506,39 @@
             console.log('handleUnauthenticatedGenerate exists:', typeof handleUnauthenticatedGenerate);
             console.log('signInWithGoogle exists:', typeof signInWithGoogle);
             
-            // No automatic auth check to avoid redirect loops
-            // Users will sign in manually when they click generate survey or sign in button
+            // Auth state change listener - CRITICAL for proper authentication
+            auth.onAuthStateChanged(async user => {
+                console.log('Auth state changed:', user?.email || 'Not signed in');
+                
+                if (user) {
+                    // User is already signed in - verify backend session
+                    console.log('User already authenticated:', user.email);
+                    
+                    try {
+                        // Check if backend session is valid
+                        const sessionCheck = await fetch('/api/user', {
+                            credentials: 'include'
+                        });
+                        
+                        if (sessionCheck.ok) {
+                            console.log('Backend session valid');
+                            // User is fully authenticated - update UI if needed
+                        } else {
+                            console.log('Backend session invalid, syncing...');
+                            // Backend session missing, sync it
+                            const idToken = await user.getIdToken();
+                            await fetch('/firebase-auth', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ idToken })
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Session check failed:', error);
+                    }
+                }
+            });
         });
     </script>
 </body>
