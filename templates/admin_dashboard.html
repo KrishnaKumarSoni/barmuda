@@ -8,534 +8,660 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#cc5500'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js with Date Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect { backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .metric-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .chart-container { position: relative; height: 300px; }
+        .loading { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .period-button.active { background: #cc5500; color: white; }
+        .trend-positive { color: #10b981; }
+        .trend-negative { color: #ef4444; }
+        .trend-neutral { color: #6b7280; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    
     <!-- Header -->
-    <header class="bg-white shadow">
+    <div class="sticky top-0 z-40 glass-effect border-b border-white/20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-6">
+            <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-4">
-                    <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <span class="w-2 h-2 bg-green-400 rounded-full mr-1.5"></span>
-                        Last updated: <span id="last-updated" class="ml-1">--</span>
-                    </span>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-brand to-orange-600 rounded-xl flex items-center justify-center">
+                            <i class="ph ph-chart-line-up text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                            <p class="text-sm text-gray-500">Real-time analytics & insights</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span>Live</span>
+                        <span id="last-updated" class="text-green-600">--</span>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="refreshDashboard()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
-                        <i class="ph ph-arrow-clockwise -ml-0.5 mr-2 h-4 w-4"></i>
+                    <button onclick="refreshDashboard()" class="inline-flex items-center px-4 py-2 bg-white/80 hover:bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 transition-all duration-200">
+                        <i class="ph ph-arrow-clockwise mr-2 h-4 w-4"></i>
                         Refresh
                     </button>
-                    <button onclick="logout()" class="text-gray-400 hover:text-gray-500 transition-colors">
-                        <i class="ph ph-sign-out h-6 w-6"></i>
+                    <button onclick="logout()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="ph ph-sign-out h-5 w-5"></i>
                     </button>
                 </div>
             </div>
         </div>
-    </header>
+    </div>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            
-            <!-- MRR Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="ph ph-currency-dollar h-8 w-8 text-green-400"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Monthly Recurring Revenue</dt>
-                                <dd class="flex items-baseline">
-                                    <div class="text-2xl font-semibold text-gray-900">$<span id="mrr">--</span></div>
-                                    <div id="mrr-change" class="ml-2 flex items-baseline text-sm font-semibold">--</div>
-                                </dd>
-                            </dl>
-                        </div>
+        <!-- Time Period Filter -->
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium text-gray-700">Time Period:</span>
+                <div class="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                    <button onclick="changePeriod('L7D')" class="period-button px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200" data-period="L7D">7D</button>
+                    <button onclick="changePeriod('L30D')" class="period-button active px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200" data-period="L30D">30D</button>
+                    <button onclick="changePeriod('L90D')" class="period-button px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200" data-period="L90D">90D</button>
+                    <button onclick="changePeriod('L6M')" class="period-button px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200" data-period="L6M">6M</button>
+                    <button onclick="changePeriod('L12M')" class="period-button px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200" data-period="L12M">12M</button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span>Users</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>Forms</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span>Conversations</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Users -->
+            <div class="metric-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Total Users</p>
+                        <p class="text-2xl font-bold text-gray-900" id="total-users-metric">--</p>
+                        <p class="text-sm mt-2">
+                            <span id="users-trend" class="trend-neutral">--</span>
+                            <span class="text-gray-500 ml-1">vs previous period</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="ph ph-users text-blue-600 text-xl"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Total Users Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="ph ph-users h-8 w-8 text-blue-400"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-                                <dd class="flex items-baseline">
-                                    <div class="text-2xl font-semibold text-gray-900" id="total-users">--</div>
-                                    <div class="ml-2 text-sm text-gray-500">
-                                        <span id="paid-users">--</span> paid, <span id="grandfathered-users">--</span> grandfathered
-                                    </div>
-                                </dd>
-                            </dl>
-                        </div>
+            <!-- Total Forms -->
+            <div class="metric-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Total Forms</p>
+                        <p class="text-2xl font-bold text-gray-900" id="total-forms-metric">--</p>
+                        <p class="text-sm mt-2">
+                            <span id="forms-trend" class="trend-neutral">--</span>
+                            <span class="text-gray-500 ml-1">vs previous period</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <i class="ph ph-files text-green-600 text-xl"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Conversations Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="ph ph-chat-circle h-8 w-8 text-purple-400"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Conversations Today</dt>
-                                <dd class="flex items-baseline">
-                                    <div class="text-2xl font-semibold text-gray-900" id="conversations-today">--</div>
-                                    <div class="ml-2 text-sm text-gray-500">
-                                        <span id="conversations-month">--</span> this month
-                                    </div>
-                                </dd>
-                            </dl>
-                        </div>
+            <!-- Total Conversations -->
+            <div class="metric-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Conversations</p>
+                        <p class="text-2xl font-bold text-gray-900" id="total-conversations-metric">--</p>
+                        <p class="text-sm mt-2">
+                            <span id="conversations-trend" class="trend-neutral">--</span>
+                            <span class="text-gray-500 ml-1">vs previous period</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <i class="ph ph-chat-circle text-purple-600 text-xl"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Forms Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="ph ph-files h-8 w-8 text-orange-400"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Active Forms</dt>
-                                <dd class="flex items-baseline">
-                                    <div class="text-2xl font-semibold text-gray-900" id="active-forms">--</div>
-                                    <div class="ml-2 text-sm text-gray-500">
-                                        <span id="total-forms">--</span> total
-                                    </div>
-                                </dd>
-                            </dl>
-                        </div>
+            <!-- Monthly Revenue -->
+            <div class="metric-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Monthly Revenue</p>
+                        <p class="text-2xl font-bold text-gray-900">$<span id="mrr-metric">--</span></p>
+                        <p class="text-sm mt-2">
+                            <span id="mrr-trend" class="trend-neutral">--</span>
+                            <span class="text-gray-500 ml-1">growth rate</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <i class="ph ph-currency-dollar text-emerald-600 text-xl"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Revenue Details -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="ph ph-chart-pie mr-3 h-5 w-5 text-gray-400"></i>
-                        Revenue Breakdown
-                    </h3>
+        <!-- Main Charts -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <!-- Growth Trends Chart -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Growth Trends</h2>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="ph ph-chart-line h-4 w-4"></i>
+                        <span>Daily Activity</span>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-gray-900">$<span id="total-revenue">--</span></div>
-                            <div class="text-sm text-gray-500">Total Revenue</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-gray-900" id="paying-customers">--</div>
-                            <div class="text-sm text-gray-500">Paying Customers</div>
-                        </div>
-                    </div>
-                    <div class="h-64">
-                        <canvas id="revenue-chart"></canvas>
-                    </div>
-                    <div class="mt-4 flex justify-between text-sm">
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-                            Churn: <span id="churn-rate" class="font-semibold ml-1">--%</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                            Retention: <span id="retention-rate" class="font-semibold ml-1">--%</span>
-                        </div>
-                    </div>
+                <div class="chart-container">
+                    <canvas id="trends-chart"></canvas>
                 </div>
             </div>
 
-            <!-- Usage Analytics -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="ph ph-chart-line mr-3 h-5 w-5 text-gray-400"></i>
-                        Usage Analytics
-                    </h3>
+            <!-- Cumulative Growth Chart -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Cumulative Growth</h2>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="ph ph-trend-up h-4 w-4"></i>
+                        <span>Total Count</span>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-3 gap-4 mb-6">
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-gray-900" id="conversations-week">--</div>
-                            <div class="text-sm text-gray-500">This Week</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-gray-900" id="inactive-forms">--</div>
-                            <div class="text-sm text-gray-500">Inactive Forms</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-gray-900" id="avg-conversations">--</div>
-                            <div class="text-sm text-gray-500">Avg/Form</div>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-medium text-gray-700">Completion Rate</span>
-                            <span class="text-sm font-semibold text-gray-900" id="completion-rate">--%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="completion-bar" class="bg-green-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-500">Peak Hours:</span>
-                            <div class="font-medium" id="peak-hours">--</div>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Peak Days:</span>
-                            <div class="font-medium" id="peak-days">--</div>
-                        </div>
-                    </div>
+                <div class="chart-container">
+                    <canvas id="cumulative-chart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- User Management & System Health -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-            
-            <!-- User Management -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="ph ph-user-gear mr-3 h-5 w-5 text-gray-400"></i>
-                        User Management
-                    </h3>
+        <!-- Secondary Stats -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Revenue Breakdown -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Breakdown</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Total Revenue</span>
+                        <span class="font-semibold text-gray-900">$<span id="total-revenue">--</span></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Paying Customers</span>
+                        <span class="font-semibold text-gray-900" id="paying-customers">--</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Churn Rate</span>
+                        <span class="font-semibold text-red-600" id="churn-rate">--%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Retention Rate</span>
+                        <span class="font-semibold text-green-600" id="retention-rate">--%</span>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <!-- Search -->
-                    <div class="flex space-x-3 mb-4">
-                        <input type="text" id="user-search" 
-                               placeholder="Search by email..." 
-                               class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
-                        <button onclick="searchUsers()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                            <i class="ph ph-magnifying-glass mr-1"></i>
-                            Search
-                        </button>
-                    </div>
-                    
-                    <!-- Search Results -->
-                    <div id="search-results" class="hidden">
-                        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-md">
-                            <table class="min-w-full divide-y divide-gray-300">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Email</th>
-                                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</th>
-                                        <th scope="col" class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="search-results-table" class="bg-white divide-y divide-gray-200">
-                                    <!-- Results will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Most Active Users -->
-                    <div class="mt-6">
-                        <h4 class="text-sm font-medium text-gray-900 mb-3">Most Active Users</h4>
-                        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-md">
-                            <table class="min-w-full divide-y divide-gray-300">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">User</th>
-                                        <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="active-users-table" class="bg-white divide-y divide-gray-200">
-                                    <!-- Will be populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="mt-6 h-48">
+                    <canvas id="revenue-chart"></canvas>
                 </div>
             </div>
 
             <!-- System Health -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="ph ph-heartbeat mr-3 h-5 w-5 text-gray-400"></i>
-                        System Health
-                    </h3>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">API Response</span>
+                        <span class="font-semibold text-gray-900" id="api-avg">-- ms</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Error Rate</span>
+                        <span class="font-semibold" id="api-errors">--%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Uptime</span>
+                        <span class="font-semibold text-green-600" id="system-uptime">--%</span>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <!-- API Performance -->
-                    <div class="mb-6">
-                        <h4 class="text-sm font-medium text-gray-900 mb-3">API Performance</h4>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="text-center">
-                                <div class="text-lg font-semibold text-gray-900" id="api-avg">-- ms</div>
-                                <div class="text-xs text-gray-500">Average</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-lg font-semibold text-gray-900" id="api-p95">-- ms</div>
-                                <div class="text-xs text-gray-500">P95</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-lg font-semibold text-gray-900" id="api-p99">-- ms</div>
-                                <div class="text-xs text-gray-500">P99</div>
-                            </div>
+                
+                <div class="mt-6 space-y-3">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <h5 class="text-xs font-semibold text-gray-900 mb-2">Today's Costs</h5>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-gray-600">Firebase</span>
+                            <span class="font-medium text-green-600">$<span id="firebase-cost">--</span></span>
                         </div>
-                    </div>
-
-                    <!-- Error Rates -->
-                    <div class="mb-6">
-                        <h4 class="text-sm font-medium text-gray-900 mb-3">Error Rates</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">API Errors</span>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" id="api-errors">--%</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Chat Errors</span>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" id="chat-errors">--%</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Payment Errors</span>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" id="payment-errors">--%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Service Costs -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h5 class="text-xs font-medium text-gray-900 mb-2 flex items-center">
-                                <i class="ph ph-database mr-1 h-4 w-4"></i>
-                                Firebase Today
-                            </h5>
-                            <div class="space-y-1">
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-gray-600">Reads</span>
-                                    <span class="font-medium" id="firebase-reads">--</span>
-                                </div>
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-gray-600">Writes</span>
-                                    <span class="font-medium" id="firebase-writes">--</span>
-                                </div>
-                                <div class="flex justify-between text-xs border-t pt-1">
-                                    <span class="text-gray-600">Cost</span>
-                                    <span class="font-semibold text-green-600">$<span id="firebase-cost">--</span></span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h5 class="text-xs font-medium text-gray-900 mb-2 flex items-center">
-                                <i class="ph ph-robot mr-1 h-4 w-4"></i>
-                                OpenAI Today
-                            </h5>
-                            <div class="space-y-1">
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-gray-600">Tokens</span>
-                                    <span class="font-medium" id="openai-tokens">--</span>
-                                </div>
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-gray-600">Calls</span>
-                                    <span class="font-medium" id="openai-calls">--</span>
-                                </div>
-                                <div class="flex justify-between text-xs border-t pt-1">
-                                    <span class="text-gray-600">Cost</span>
-                                    <span class="font-semibold text-green-600">$<span id="openai-cost">--</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Dodo Status -->
-                    <div class="mt-4 p-3 bg-gray-50 rounded-lg">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-900 flex items-center">
-                                <i class="ph ph-credit-card mr-2 h-4 w-4"></i>
-                                Dodo Payments
-                            </span>
-                            <span id="dodo-status-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
-                                <span id="dodo-status">Operational</span>
-                            </span>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span class="text-gray-600">OpenAI</span>
+                            <span class="font-medium text-green-600">$<span id="openai-cost">--</span></span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- User Details Modal -->
-        <div id="user-details-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeUserDetails()"></div>
-                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                            <i class="ph ph-user-circle mr-2 h-6 w-6"></i>
-                            User Details
-                        </h3>
-                        <button onclick="closeUserDetails()" class="text-gray-400 hover:text-gray-500">
-                            <i class="ph ph-x h-6 w-6"></i>
-                        </button>
+            <!-- User Management -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">User Management</h3>
+                <div class="flex space-x-2 mb-4">
+                    <input type="text" id="user-search" 
+                           placeholder="Search users..." 
+                           class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+                    <button onclick="searchUsers()" class="px-4 py-2 bg-brand text-white rounded-lg text-sm font-medium hover:bg-brand/90 transition-colors">
+                        <i class="ph ph-magnifying-glass"></i>
+                    </button>
+                </div>
+                
+                <div id="search-results" class="hidden">
+                    <div class="overflow-hidden rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+                                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="search-results-table" class="bg-white divide-y divide-gray-200">
+                                <!-- Results populated by JS -->
+                            </tbody>
+                        </table>
                     </div>
-                    <div id="user-details-content" class="space-y-6">
-                        <!-- Content will be populated by JavaScript -->
+                </div>
+
+                <div class="mt-4">
+                    <h4 class="text-sm font-medium text-gray-900 mb-3">Active Users</h4>
+                    <div class="space-y-2" id="active-users-list">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- JavaScript -->
+    <!-- User Details Modal -->
+    <div id="user-details-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeUserDetails()"></div>
+            <div class="inline-block align-bottom bg-white rounded-2xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="ph ph-user-circle mr-2 h-6 w-6"></i>
+                        User Details
+                    </h3>
+                    <button onclick="closeUserDetails()" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x h-6 w-6"></i>
+                    </button>
+                </div>
+                <div id="user-details-content" class="space-y-6">
+                    <!-- Content populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden fixed inset-0 z-40 bg-white/80 backdrop-blur-sm">
+        <div class="flex items-center justify-center h-full">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-gray-700 font-medium">Loading analytics...</span>
+            </div>
+        </div>
+    </div>
+
     <script>
         let dashboardData = null;
-        
+        let trendsData = null;
+        let currentPeriod = 'L30D';
+        let trendsChart = null;
+        let cumulativeChart = null;
+        let revenueChart = null;
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            
             refreshDashboard();
-            setInterval(refreshDashboard, 30000); // Auto-refresh every 30 seconds
+            setInterval(refreshDashboard, 60000); // Refresh every minute
         });
-        
+
+        function showLoading(show = true) {
+            const overlay = document.getElementById('loading-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
         async function refreshDashboard() {
             try {
-                // Fetch dashboard data
-                const dashboardResponse = await fetch('/admin/api/dashboard');
-                
-                if (!dashboardResponse.ok) throw new Error('Failed to fetch dashboard data');
-                
+                // Fetch dashboard and trends data in parallel
+                const [dashboardResponse, trendsResponse] = await Promise.all([
+                    fetch('/admin/api/dashboard'),
+                    fetch(`/admin/api/trends?period=${currentPeriod}`)
+                ]);
+
+                if (!dashboardResponse.ok || !trendsResponse.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
                 dashboardData = await dashboardResponse.json();
+                trendsData = await trendsResponse.json();
+
                 updateDashboard(dashboardData);
+                updateTrendsCharts(trendsData);
                 
                 document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
             } catch (error) {
-                console.error('Error fetching dashboard data:', error);
+                console.error('Error refreshing dashboard:', error);
                 showNotification('Failed to load dashboard data', 'error');
             }
         }
-        
+
         function updateDashboard(data) {
-            // Revenue Metrics
+            // Update key metrics
             const revenue = data.revenue || {};
-            document.getElementById('mrr').textContent = revenue.mrr?.toFixed(0) || '0';
-            document.getElementById('total-revenue').textContent = revenue.total_revenue?.toFixed(0) || '0';
+            const usage = data.usage || {};
+            const users = data.users || {};
+            const health = data.health || {};
+
+            // Revenue metrics
+            document.getElementById('mrr-metric').textContent = (revenue.mrr || 0).toFixed(0);
+            document.getElementById('total-revenue').textContent = (revenue.total_revenue || 0).toFixed(0);
             document.getElementById('paying-customers').textContent = revenue.paying_customers || '0';
-            document.getElementById('grandfathered-users').textContent = revenue.grandfathered_users || '0';
             document.getElementById('churn-rate').textContent = (revenue.churn_rate || 0) + '%';
             document.getElementById('retention-rate').textContent = (revenue.retention_rate || 0) + '%';
-            
-            // MRR Change with pill badge
-            const mrrChange = revenue.mrr_growth || 0;
-            const mrrChangeEl = document.getElementById('mrr-change');
-            const changeClass = mrrChange >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-            mrrChangeEl.innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${changeClass}">
-                ${mrrChange >= 0 ? '+' : ''}${mrrChange.toFixed(1)}%
-            </span>`;
-            
-            // Usage Analytics
-            const usage = data.usage || {};
-            document.getElementById('conversations-today').textContent = usage.conversations_today || '0';
-            document.getElementById('conversations-week').textContent = usage.conversations_week || '0';
-            document.getElementById('conversations-month').textContent = usage.conversations_month || '0';
-            document.getElementById('active-forms').textContent = usage.active_forms || '0';
-            document.getElementById('inactive-forms').textContent = usage.inactive_forms || '0';
-            document.getElementById('total-forms').textContent = usage.total_forms || '0';
-            document.getElementById('avg-conversations').textContent = usage.avg_conversations_per_form?.toFixed(1) || '0';
-            document.getElementById('completion-rate').textContent = (usage.completion_rate || 0) + '%';
-            document.getElementById('completion-bar').style.width = (usage.completion_rate || 0) + '%';
-            
-            // Peak usage
-            document.getElementById('peak-hours').textContent = usage.peak_hours?.map(h => h + ':00').join(', ') || '--';
-            document.getElementById('peak-days').textContent = usage.peak_days?.slice(0, 3).join(', ') || '--';
-            
-            // User Metrics
-            const users = data.users || {};
-            document.getElementById('total-users').textContent = users.total_users || '0';
-            document.getElementById('paid-users').textContent = users.paid_users || '0';
-            
-            // Most active users table
-            const activeUsersTable = document.getElementById('active-users-table');
-            activeUsersTable.innerHTML = '';
-            (users.most_active_users || []).slice(0, 5).forEach(user => {
-                activeUsersTable.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-3 py-2 text-xs text-gray-900 truncate max-w-[200px]">${user.email}</td>
-                        <td class="px-3 py-2 text-xs text-gray-900 text-right font-medium">${user.activity_score}</td>
-                    </tr>
-                `;
-            });
-            
-            // System Health
-            const health = data.health || {};
+
+            // MRR trend
+            const mrrTrend = revenue.mrr_growth || 0;
+            const mrrTrendEl = document.getElementById('mrr-trend');
+            mrrTrendEl.textContent = (mrrTrend >= 0 ? '+' : '') + mrrTrend.toFixed(1) + '%';
+            mrrTrendEl.className = mrrTrend >= 0 ? 'trend-positive' : 'trend-negative';
+
+            // User metrics
+            document.getElementById('total-users-metric').textContent = users.total_users || '0';
+
+            // Forms metrics
+            document.getElementById('total-forms-metric').textContent = usage.total_forms || '0';
+
+            // Conversations metrics  
+            document.getElementById('total-conversations-metric').textContent = usage.total_conversations || '0';
+
+            // System health
             document.getElementById('api-avg').textContent = (health.api_response_time?.avg || 0) + ' ms';
-            document.getElementById('api-p95').textContent = (health.api_response_time?.p95 || 0) + ' ms';
-            document.getElementById('api-p99').textContent = (health.api_response_time?.p99 || 0) + ' ms';
+            const errorRate = health.error_rates?.api_errors || 0;
+            const errorEl = document.getElementById('api-errors');
+            errorEl.textContent = errorRate + '%';
+            errorEl.className = errorRate > 5 ? 'font-semibold text-red-600' : 'font-semibold text-green-600';
             
-            document.getElementById('api-errors').textContent = (health.error_rates?.api_errors || 0) + '%';
-            document.getElementById('chat-errors').textContent = (health.error_rates?.chat_errors || 0) + '%';
-            document.getElementById('payment-errors').textContent = (health.error_rates?.payment_errors || 0) + '%';
-            
-            // Firebase usage
-            document.getElementById('firebase-reads').textContent = (health.firebase_usage?.reads_today || 0).toLocaleString();
-            document.getElementById('firebase-writes').textContent = (health.firebase_usage?.writes_today || 0).toLocaleString();
+            document.getElementById('system-uptime').textContent = (health.system_uptime || 100) + '%';
             document.getElementById('firebase-cost').textContent = (health.firebase_usage?.estimated_cost || 0).toFixed(2);
-            
-            // OpenAI usage
-            document.getElementById('openai-tokens').textContent = (health.openai_usage?.tokens_today || 0).toLocaleString();
-            document.getElementById('openai-calls').textContent = (health.openai_usage?.api_calls || 0).toLocaleString();
             document.getElementById('openai-cost').textContent = (health.openai_usage?.estimated_cost || 0).toFixed(2);
-            
-            // Dodo status
-            const dodoStatus = health.dodo_status || {};
-            document.getElementById('dodo-status').textContent = dodoStatus.status || 'Unknown';
-            const statusBadge = document.getElementById('dodo-status-badge');
-            if (dodoStatus.status === 'operational') {
-                statusBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
-            } else {
-                statusBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
-            }
-            
+
             // Update revenue chart
             updateRevenueChart(revenue);
+
+            // Update active users list
+            updateActiveUsersList(users.most_active_users || []);
         }
-        
+
+        function updateTrendsCharts(data) {
+            if (!data.daily_data) return;
+
+            const summary = data.summary || {};
+            
+            // Update trend indicators
+            updateTrendIndicator('users-trend', summary.user_growth_percent || 0);
+            updateTrendIndicator('forms-trend', summary.form_growth_percent || 0);
+            updateTrendIndicator('conversations-trend', summary.conversation_growth_percent || 0);
+
+            // Update trend charts
+            updateTrendsChart(data.daily_data);
+            updateCumulativeChart(data.daily_data);
+        }
+
+        function updateTrendIndicator(elementId, value) {
+            const element = document.getElementById(elementId);
+            element.textContent = (value >= 0 ? '+' : '') + value.toFixed(1) + '%';
+            element.className = value >= 0 ? 'trend-positive' : value < 0 ? 'trend-negative' : 'trend-neutral';
+        }
+
+        function updateTrendsChart(dailyData) {
+            const ctx = document.getElementById('trends-chart').getContext('2d');
+            
+            if (trendsChart) {
+                trendsChart.destroy();
+            }
+
+            const dates = dailyData.map(d => d.date);
+            const users = dailyData.map(d => d.users);
+            const forms = dailyData.map(d => d.forms);
+            const conversations = dailyData.map(d => d.conversations);
+
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Users',
+                            data: users,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Forms',
+                            data: forms,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Conversations',
+                            data: conversations,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DD',
+                                displayFormats: {
+                                    day: 'MMM d'
+                                }
+                            },
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 11 },
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCumulativeChart(dailyData) {
+            const ctx = document.getElementById('cumulative-chart').getContext('2d');
+            
+            if (cumulativeChart) {
+                cumulativeChart.destroy();
+            }
+
+            const dates = dailyData.map(d => d.date);
+            const cumulativeUsers = dailyData.map(d => d.cumulative_users);
+            const cumulativeForms = dailyData.map(d => d.cumulative_forms);
+            const cumulativeConversations = dailyData.map(d => d.cumulative_conversations);
+
+            cumulativeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Total Users',
+                            data: cumulativeUsers,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: '+1',
+                            tension: 0.4,
+                            pointRadius: 1,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Total Forms',
+                            data: cumulativeForms,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: '+1',
+                            tension: 0.4,
+                            pointRadius: 1,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Total Conversations',
+                            data: cumulativeConversations,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 1,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DD',
+                                displayFormats: {
+                                    day: 'MMM d'
+                                }
+                            },
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 11 },
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function updateRevenueChart(revenue) {
             const ctx = document.getElementById('revenue-chart').getContext('2d');
             
-            // Destroy existing chart if it exists
-            if (window.revenueChart) {
-                window.revenueChart.destroy();
+            if (revenueChart) {
+                revenueChart.destroy();
             }
-            
-            window.revenueChart = new Chart(ctx, {
+
+            revenueChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Free', 'Starter', 'Pro', 'Business'],
@@ -546,7 +672,8 @@
                             revenue.user_count_by_plan?.pro || 0,
                             revenue.user_count_by_plan?.business || 0
                         ],
-                        backgroundColor: ['#e5e7eb', '#22c55e', '#f59e0b', '#ef4444']
+                        backgroundColor: ['#e5e7eb', '#22c55e', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
                     }]
                 },
                 options: {
@@ -556,188 +683,60 @@
                         legend: {
                             position: 'bottom',
                             labels: {
-                                font: { size: 12 },
-                                padding: 10
+                                font: { size: 11 },
+                                padding: 15,
+                                usePointStyle: true
                             }
                         }
                     }
                 }
             });
         }
-        
-        // A/B test functions removed
-        /*
-        function updateABTestResults(data) {
-            // Update impression counts
-            document.getElementById('ab-impressions-a').textContent = data.impressions.A || 0;
-            document.getElementById('ab-impressions-b').textContent = data.impressions.B || 0;
+
+        function updateActiveUsersList(users) {
+            const container = document.getElementById('active-users-list');
+            container.innerHTML = '';
             
-            // Update test duration
-            document.getElementById('test-duration').textContent = data.test_duration_days || 0;
-            
-            // Update signup conversion rates
-            const signupA = data.conversion_rates.signup.A;
-            const signupB = data.conversion_rates.signup.B;
-            const signupLift = data.conversion_rates.signup.lift;
-            
-            document.getElementById('ab-signup-a').textContent = signupA + '%';
-            document.getElementById('ab-signup-b').textContent = signupB + '%';
-            
-            const signupLiftElement = document.getElementById('ab-signup-lift');
-            signupLiftElement.textContent = (signupLift > 0 ? '+' : '') + signupLift + '%';
-            signupLiftElement.className = 'font-medium ' + (signupLift > 0 ? 'text-green-600' : signupLift < 0 ? 'text-red-600' : 'text-gray-600');
-            
-            // Update form creation conversion rates
-            const formA = data.conversion_rates.form_created.A;
-            const formB = data.conversion_rates.form_created.B;
-            const formLift = data.conversion_rates.form_created.lift;
-            
-            document.getElementById('ab-form-a').textContent = formA + '%';
-            document.getElementById('ab-form-b').textContent = formB + '%';
-            
-            const formLiftElement = document.getElementById('ab-form-lift');
-            formLiftElement.textContent = (formLift > 0 ? '+' : '') + formLift + '%';
-            formLiftElement.className = 'font-medium ' + (formLift > 0 ? 'text-green-600' : formLift < 0 ? 'text-red-600' : 'text-gray-600');
-            
-            // Update trends chart
-            updateTrendsChart(data.daily_trends || []);
+            users.slice(0, 5).forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <span class="text-sm text-gray-900 truncate max-w-[120px]">${user.email}</span>
+                    <span class="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded">${user.activity_score}</span>
+                `;
+                container.appendChild(div);
+            });
         }
-        
-        function updateTrendsChart(dailyTrends) {
-            const ctx = document.getElementById('ab-trends-chart').getContext('2d');
+
+        async function changePeriod(period) {
+            // Update button states
+            document.querySelectorAll('.period-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-period="${period}"]`).classList.add('active');
             
-            // Destroy existing chart if it exists
-            if (window.abTrendsChart) {
-                window.abTrendsChart.destroy();
+            currentPeriod = period;
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/admin/api/trends?period=${period}`);
+                if (!response.ok) throw new Error('Failed to fetch trends data');
+                
+                trendsData = await response.json();
+                updateTrendsCharts(trendsData);
+            } catch (error) {
+                console.error('Error fetching trends:', error);
+                showNotification('Failed to load trend data', 'error');
+            } finally {
+                showLoading(false);
             }
-            
-            // Prepare data for chart
-            const dates = dailyTrends.map(d => {
-                const date = new Date(d.date);
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            });
-            
-            const visitsA = dailyTrends.map(d => d.impressions_a);
-            const visitsB = dailyTrends.map(d => d.impressions_b);
-            const conversionA = dailyTrends.map(d => d.conversion_rate_a);
-            const conversionB = dailyTrends.map(d => d.conversion_rate_b);
-            
-            window.abTrendsChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [
-                        {
-                            label: 'Version A Visitors',
-                            data: visitsA,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Version B Visitors',
-                            data: visitsB,
-                            borderColor: '#f97316',
-                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Version A Conversion %',
-                            data: conversionA,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                            borderDash: [5, 5],
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y1'
-                        },
-                        {
-                            label: 'Version B Conversion %',
-                            data: conversionB,
-                            borderColor: '#f97316',
-                            backgroundColor: 'rgba(249, 115, 22, 0.2)',
-                            borderDash: [5, 5],
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                boxWidth: 12,
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            },
-                            ticks: {
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Daily Visitors'
-                            },
-                            ticks: {
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Conversion Rate (%)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                            ticks: {
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        },
-                    }
-                }
-            });
         }
-        */
-        
+
+        // User management functions
         async function searchUsers() {
             const query = document.getElementById('user-search').value;
             if (!query) return;
-            
+
             try {
                 const response = await fetch(`/admin/api/users/search?q=${encodeURIComponent(query)}`);
                 const users = await response.json();
@@ -756,13 +755,13 @@
                     
                     resultsTable.innerHTML += `
                         <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-3 text-sm text-gray-900">${user.email}</td>
-                            <td class="px-3 py-3 text-sm">
+                            <td class="px-3 py-2 text-sm text-gray-900">${user.email}</td>
+                            <td class="px-3 py-2 text-sm">
                                 <span class="${planBadge}">${plan.toUpperCase()}</span>
                             </td>
-                            <td class="px-3 py-3 text-sm text-right space-x-2">
-                                <button onclick="viewUserDetails('${user.id}')" class="text-orange-600 hover:text-orange-900">View</button>
-                                <button onclick="grantGrandfather('${user.id}')" class="text-green-600 hover:text-green-900">Grandfather</button>
+                            <td class="px-3 py-2 text-sm text-right space-x-2">
+                                <button onclick="viewUserDetails('${user.id}')" class="text-brand hover:text-brand/80">View</button>
+                                <button onclick="grantGrandfather('${user.id}')" class="text-green-600 hover:text-green-800">Grandfather</button>
                             </td>
                         </tr>
                     `;
@@ -776,7 +775,7 @@
                 showNotification('Failed to search users', 'error');
             }
         }
-        
+
         async function viewUserDetails(userId) {
             try {
                 const response = await fetch(`/admin/api/users/${userId}`);
@@ -790,9 +789,7 @@
                 const user = data.user;
                 const usage = data.usage || {};
                 const forms = data.forms || [];
-                const recentResponses = data.recent_responses || [];
                 
-                // Calculate plan status
                 const plan = user.subscription?.plan || 'free';
                 const isGrandfathered = plan.includes('grandfathered');
                 const planDisplay = isGrandfathered ? 
@@ -804,23 +801,15 @@
                     isGrandfathered ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800';
                 
                 content.innerHTML = `
-                    <!-- User Overview -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                                <i class="ph ph-identification-card mr-2 h-4 w-4"></i>
-                                Profile Information
-                            </h4>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-3">Profile Information</h4>
                             <dl class="space-y-2">
                                 <div class="flex justify-between">
                                     <dt class="text-xs text-gray-500">Email</dt>
                                     <dd class="text-xs font-medium text-gray-900">${user.email}</dd>
                                 </div>
                                 <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">User ID</dt>
-                                    <dd class="text-xs font-mono text-gray-600">${userId}</dd>
-                                </div>
-                                <div class="flex justify-between items-center">
                                     <dt class="text-xs text-gray-500">Plan</dt>
                                     <dd class="text-xs">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${planBadge}">
@@ -828,18 +817,11 @@
                                         </span>
                                     </dd>
                                 </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Created</dt>
-                                    <dd class="text-xs text-gray-900">${user.created_at ? new Date(user.created_at.seconds * 1000).toLocaleDateString() : 'Unknown'}</dd>
-                                </div>
                             </dl>
                         </div>
                         
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                                <i class="ph ph-chart-bar mr-2 h-4 w-4"></i>
-                                Usage Statistics
-                            </h4>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-3">Usage Statistics</h4>
                             <dl class="space-y-2">
                                 <div class="flex justify-between">
                                     <dt class="text-xs text-gray-500">Conversations</dt>
@@ -849,76 +831,18 @@
                                     <dt class="text-xs text-gray-500">Forms Created</dt>
                                     <dd class="text-xs font-medium text-gray-900">${usage.forms_count || 0}</dd>
                                 </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Current Month</dt>
-                                    <dd class="text-xs text-gray-900">${usage.current_month || new Date().toISOString().slice(0, 7)}</dd>
-                                </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Last Activity</dt>
-                                    <dd class="text-xs text-gray-900">${usage.updated_at ? new Date(usage.updated_at.seconds * 1000).toLocaleDateString() : 'No activity'}</dd>
-                                </div>
                             </dl>
                         </div>
                     </div>
                     
-                    <!-- Forms Created -->
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                            <i class="ph ph-files mr-2 h-4 w-4"></i>
-                            Forms Created (${forms.length})
-                        </h4>
-                        ${forms.length > 0 ? `
-                            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-md">
-                                <table class="min-w-full divide-y divide-gray-300">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
-                                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Created</th>
-                                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        ${forms.map(form => `
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-3 py-3 text-xs text-gray-900 max-w-xs truncate">${form.title}</td>
-                                                <td class="px-3 py-3 text-center">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${form.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                                        ${form.active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </td>
-                                                <td class="px-3 py-3 text-center text-xs text-gray-500">
-                                                    ${form.created_at ? new Date(form.created_at.seconds * 1000).toLocaleDateString() : 'Unknown'}
-                                                </td>
-                                                <td class="px-3 py-3 text-right text-xs">
-                                                    <a href="/form/${form.id}" target="_blank" class="text-orange-600 hover:text-orange-900">View</a>
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ` : `
-                            <div class="text-center py-6 bg-gray-50 rounded-lg">
-                                <i class="ph ph-files h-12 w-12 text-gray-300 mx-auto mb-2"></i>
-                                <p class="text-sm text-gray-500">No forms created yet</p>
-                            </div>
-                        `}
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                        <button onclick="resetUsage('${userId}')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                            <i class="ph ph-arrow-counter-clockwise -ml-0.5 mr-2 h-4 w-4"></i>
+                    <div class="flex space-x-3 pt-4 border-t border-gray-200">
+                        <button onclick="resetUsage('${userId}')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">
+                            <i class="ph ph-arrow-counter-clockwise mr-1"></i>
                             Reset Usage
                         </button>
-                        <button onclick="grantGrandfather('${userId}')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <i class="ph ph-crown -ml-0.5 mr-2 h-4 w-4"></i>
+                        <button onclick="grantGrandfather('${userId}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                            <i class="ph ph-crown mr-1"></i>
                             Grant Grandfather
-                        </button>
-                        <button onclick="exportUserData('${userId}')" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                            <i class="ph ph-download -ml-0.5 mr-2 h-4 w-4"></i>
-                            Export Data
                         </button>
                     </div>
                 `;
@@ -927,11 +851,11 @@
                 showNotification('Failed to load user details', 'error');
             }
         }
-        
+
         function closeUserDetails() {
             document.getElementById('user-details-modal').classList.add('hidden');
         }
-        
+
         async function grantGrandfather(userId) {
             if (!confirm('Grant grandfathered status to this user?')) return;
             
@@ -944,7 +868,7 @@
                 
                 if (response.ok) {
                     showNotification('Grandfathered status granted', 'success');
-                    searchUsers(); // Refresh search results
+                    searchUsers();
                 } else {
                     throw new Error('Failed to grant status');
                 }
@@ -953,7 +877,7 @@
                 showNotification('Failed to grant grandfather status', 'error');
             }
         }
-        
+
         async function resetUsage(userId) {
             if (!confirm('Reset usage limits for this user?')) return;
             
@@ -964,7 +888,7 @@
                 
                 if (response.ok) {
                     showNotification('Usage reset successfully', 'success');
-                    viewUserDetails(userId); // Refresh details
+                    viewUserDetails(userId);
                 } else {
                     throw new Error('Failed to reset usage');
                 }
@@ -973,45 +897,21 @@
                 showNotification('Failed to reset usage', 'error');
             }
         }
-        
-        async function exportUserData(userId) {
-            try {
-                const response = await fetch(`/admin/api/users/${userId}/export`);
-                const data = await response.json();
-                
-                // Download as JSON
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `user_${userId}_export.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                showNotification('User data exported', 'success');
-            } catch (error) {
-                console.error('Error exporting user data:', error);
-                showNotification('Failed to export user data', 'error');
-            }
-        }
-        
+
         function showNotification(message, type = 'info') {
             const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600';
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg text-sm z-50 transform transition-all duration-300`;
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-xl shadow-lg text-sm z-50 transform transition-all duration-300`;
             notification.textContent = message;
             document.body.appendChild(notification);
             
-            // Animate in
             setTimeout(() => notification.classList.add('translate-y-0'), 10);
-            
-            // Remove after 3 seconds
             setTimeout(() => {
                 notification.classList.add('opacity-0', 'transform', 'translate-y-2');
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
-        
+
         async function logout() {
             try {
                 await fetch('/admin/logout', { method: 'POST' });
@@ -1020,8 +920,8 @@
                 console.error('Error logging out:', error);
             }
         }
-        
-        // Add Enter key support for search
+
+        // Enter key support for search
         document.getElementById('user-search').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchUsers();

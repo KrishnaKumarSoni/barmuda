@@ -639,6 +639,165 @@ class AdminMetrics:
             logger.error(f"Error resetting user usage: {str(e)}")
             return False
     
+    def get_trends_data(self, period: str = "L30D") -> Dict[str, Any]:
+        """Get trend data for users, forms, and conversations over specified period"""
+        try:
+            now = datetime.now()
+            
+            # Calculate date range based on period
+            if period == "L7D":
+                days = 7
+            elif period == "L30D":
+                days = 30
+            elif period == "L90D":
+                days = 90
+            elif period == "L6M":
+                days = 180
+            elif period == "L12M":
+                days = 365
+            else:
+                days = 30
+                
+            start_date = now - timedelta(days=days)
+            
+            # Get all data with date filtering
+            users_ref = db.collection("users")
+            forms_ref = db.collection("forms")
+            responses_ref = db.collection("responses")
+            
+            # Limit to prevent quota issues
+            all_users = list(users_ref.limit(500).stream())
+            all_forms = list(forms_ref.limit(500).stream())
+            all_responses = list(responses_ref.limit(1000).stream())
+            
+            # Initialize daily data structure
+            daily_data = {}
+            for i in range(days):
+                date = (start_date + timedelta(days=i)).date()
+                daily_data[date.isoformat()] = {
+                    "date": date.isoformat(),
+                    "users": 0,
+                    "forms": 0,
+                    "conversations": 0,
+                    "cumulative_users": 0,
+                    "cumulative_forms": 0,
+                    "cumulative_conversations": 0
+                }
+            
+            # Process users
+            cumulative_users = 0
+            for user_doc in all_users:
+                user_data = user_doc.to_dict()
+                created_at = user_data.get("created_at")
+                if created_at and isinstance(created_at, datetime):
+                    # Convert timezone-aware datetime to naive for comparison
+                    if created_at.tzinfo is not None:
+                        created_at = created_at.replace(tzinfo=None)
+                    
+                    if created_at >= start_date:
+                        date_key = created_at.date().isoformat()
+                        if date_key in daily_data:
+                            daily_data[date_key]["users"] += 1
+                    
+                    # Count for cumulative
+                    if created_at <= now:
+                        cumulative_users += 1
+            
+            # Process forms
+            cumulative_forms = 0
+            for form_doc in all_forms:
+                form_data = form_doc.to_dict()
+                created_at = form_data.get("created_at")
+                if created_at and isinstance(created_at, datetime):
+                    if created_at.tzinfo is not None:
+                        created_at = created_at.replace(tzinfo=None)
+                    
+                    if created_at >= start_date:
+                        date_key = created_at.date().isoformat()
+                        if date_key in daily_data:
+                            daily_data[date_key]["forms"] += 1
+                    
+                    if created_at <= now:
+                        cumulative_forms += 1
+            
+            # Process conversations
+            cumulative_conversations = 0
+            for response_doc in all_responses:
+                response_data = response_doc.to_dict()
+                created_at = response_data.get("created_at")
+                if created_at and isinstance(created_at, datetime):
+                    if created_at.tzinfo is not None:
+                        created_at = created_at.replace(tzinfo=None)
+                    
+                    if created_at >= start_date:
+                        date_key = created_at.date().isoformat()
+                        if date_key in daily_data:
+                            daily_data[date_key]["conversations"] += 1
+                    
+                    if created_at <= now:
+                        cumulative_conversations += 1
+            
+            # Calculate cumulative values for each day
+            running_users = max(0, cumulative_users - sum(data["users"] for data in daily_data.values()))
+            running_forms = max(0, cumulative_forms - sum(data["forms"] for data in daily_data.values()))
+            running_conversations = max(0, cumulative_conversations - sum(data["conversations"] for data in daily_data.values()))
+            
+            for date_key in sorted(daily_data.keys()):
+                running_users += daily_data[date_key]["users"]
+                running_forms += daily_data[date_key]["forms"]
+                running_conversations += daily_data[date_key]["conversations"]
+                
+                daily_data[date_key]["cumulative_users"] = running_users
+                daily_data[date_key]["cumulative_forms"] = running_forms
+                daily_data[date_key]["cumulative_conversations"] = running_conversations
+            
+            # Convert to sorted list
+            trends_data = [daily_data[date] for date in sorted(daily_data.keys())]
+            
+            # Calculate period totals and growth
+            total_users = sum(day["users"] for day in trends_data)
+            total_forms = sum(day["forms"] for day in trends_data)
+            total_conversations = sum(day["conversations"] for day in trends_data)
+            
+            # Calculate growth (compare first half vs second half of period)
+            mid_point = len(trends_data) // 2
+            first_half_users = sum(day["users"] for day in trends_data[:mid_point])
+            second_half_users = sum(day["users"] for day in trends_data[mid_point:])
+            user_growth = ((second_half_users - first_half_users) / first_half_users * 100) if first_half_users > 0 else 0
+            
+            first_half_forms = sum(day["forms"] for day in trends_data[:mid_point])
+            second_half_forms = sum(day["forms"] for day in trends_data[mid_point:])
+            form_growth = ((second_half_forms - first_half_forms) / first_half_forms * 100) if first_half_forms > 0 else 0
+            
+            first_half_conversations = sum(day["conversations"] for day in trends_data[:mid_point])
+            second_half_conversations = sum(day["conversations"] for day in trends_data[mid_point:])
+            conversation_growth = ((second_half_conversations - first_half_conversations) / first_half_conversations * 100) if first_half_conversations > 0 else 0
+            
+            return {
+                "period": period,
+                "days": days,
+                "start_date": start_date.isoformat(),
+                "end_date": now.isoformat(),
+                "daily_data": trends_data,
+                "summary": {
+                    "total_users": total_users,
+                    "total_forms": total_forms,
+                    "total_conversations": total_conversations,
+                    "user_growth_percent": round(user_growth, 1),
+                    "form_growth_percent": round(form_growth, 1),
+                    "conversation_growth_percent": round(conversation_growth, 1),
+                    "current_totals": {
+                        "users": cumulative_users,
+                        "forms": cumulative_forms,
+                        "conversations": cumulative_conversations
+                    }
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting trends data: {str(e)}")
+            return {"error": str(e)}
+
     def get_dashboard_summary(self) -> Dict[str, Any]:
         """Get all dashboard metrics in one call"""
         return {
