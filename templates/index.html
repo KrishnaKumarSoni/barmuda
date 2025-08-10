@@ -32,12 +32,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
-<body class="bg-[#fff5e0] relative min-h-screen">
+<body class="bg-[#fff5e0] relative min-h-screen overflow-x-hidden">
     <!-- Hero Section -->
-    <div class="relative flex flex-col z-10">
+    <div class="relative flex flex-col z-10 min-w-0">
         
         <!-- Hero Content -->
-        <div class="relative z-10 flex flex-col">
+        <div class="relative z-10 flex flex-col min-w-0">
         {% set nav_type = 'unauthenticated' %}
         {% include 'partials/nav.html' %}
         
@@ -91,21 +91,21 @@
                 </div>
                 
                 <!-- Carousel Container -->
-                <div class="relative">
+                <div class="relative overflow-hidden">
                     
                     <!-- Carousel Content -->
                     <div id="carousel-container" class="overflow-hidden">
-                        <div id="carousel-track" class="flex transition-transform duration-500 ease-out">
+                        <div id="carousel-track" class="flex transition-transform duration-500 ease-out min-w-0">
                             
                             <!-- Page 1 - Core User Research (12 templates) -->
                             <div class="flex-shrink-0 w-full">
                                 <div class="flex flex-wrap gap-2 justify-center max-w-5xl mx-auto">
                             
                             <!-- User Interview -->
-                            <div class="bg-white border border-[#DAB568] rounded-full px-2 md:px-3 py-1.5 md:py-2 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group" onclick="useTemplate('user-interview')">
+                            <div class="bg-white border border-[#DAB568] rounded-full px-2 md:px-3 py-1.5 md:py-2 hover:bg-[#cc5500] hover:border-[#cc5500] hover:text-white transition-all duration-200 cursor-pointer group flex-shrink-0" onclick="useTemplate('user-interview')">
                                 <div class="flex items-center gap-1.5">
                                     <i class="ph ph-user-focus text-[#cc5500] group-hover:text-white text-sm transition-colors"></i>
-                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs text-[#8B4513] group-hover:text-white transition-colors whitespace-nowrap">
+                                    <h3 class="font-['Plus_Jakarta_Sans'] font-medium text-xs text-[#8B4513] group-hover:text-white transition-colors">
                                         User Interview
                                     </h3>
                                 </div>
@@ -744,7 +744,7 @@
     </section>
 
     <!-- Embed Widget Section -->
-    <section class="relative bg-[#fff5e0] py-12 sm:py-16 md:py-20 lg:py-24 z-10">
+    <section class="relative bg-[#fff5e0] py-12 sm:py-16 md:py-20 lg:py-24 z-10 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <div class="flex items-center justify-center gap-4 mb-6">
@@ -800,32 +800,32 @@
                 </div>
                 
                 <!-- Live Demo -->
-                <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 border border-[#f1f5f9]">
+                <div class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 border border-[#f1f5f9] overflow-hidden">
                     <div class="mb-6">
-                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-xl md:text-2xl text-[#0f0f0f] mb-3">See it in action</h3>
-                        <p class="font-['DM_Sans'] text-[#6b7280] text-base md:text-lg">This floating button appears on your website</p>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg md:text-xl text-[#0f0f0f] mb-3">See it in action</h3>
+                        <p class="font-['DM_Sans'] text-[#6b7280] text-sm md:text-base">This floating button appears on your website</p>
                     </div>
                     
                     <!-- Mock Website Frame -->
-                    <div class="bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] rounded-2xl p-6 relative min-h-[300px]">
+                    <div class="bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] rounded-2xl p-4 sm:p-6 relative min-h-[250px] sm:min-h-[300px] overflow-hidden">
                         <!-- Mock website content -->
-                        <div class="space-y-4 opacity-60">
-                            <div class="h-4 bg-[#e2e8f0] rounded w-3/4"></div>
-                            <div class="h-4 bg-[#e2e8f0] rounded w-1/2"></div>
-                            <div class="h-4 bg-[#e2e8f0] rounded w-5/6"></div>
-                            <div class="h-16 bg-[#e2e8f0] rounded"></div>
-                            <div class="h-4 bg-[#e2e8f0] rounded w-2/3"></div>
-                            <div class="h-4 bg-[#e2e8f0] rounded w-4/5"></div>
+                        <div class="space-y-3 sm:space-y-4 opacity-60">
+                            <div class="h-3 sm:h-4 bg-[#e2e8f0] rounded w-3/4"></div>
+                            <div class="h-3 sm:h-4 bg-[#e2e8f0] rounded w-1/2"></div>
+                            <div class="h-3 sm:h-4 bg-[#e2e8f0] rounded w-5/6"></div>
+                            <div class="h-12 sm:h-16 bg-[#e2e8f0] rounded"></div>
+                            <div class="h-3 sm:h-4 bg-[#e2e8f0] rounded w-2/3"></div>
+                            <div class="h-3 sm:h-4 bg-[#e2e8f0] rounded w-4/5"></div>
                         </div>
                         
                         <!-- Floating Action Button -->
-                        <div class="absolute bottom-6 right-6">
+                        <div class="absolute bottom-4 sm:bottom-6 right-4 sm:right-6">
                             <div class="relative group cursor-pointer">
-                                <div class="w-14 h-14 bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                                    <i class="ph ph-chat-circle text-white text-2xl"></i>
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                                    <i class="ph ph-chat-circle text-white text-xl sm:text-2xl"></i>
                                 </div>
                                 <!-- Tooltip -->
-                                <div class="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div class="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                                     <div class="bg-[#1f2937] text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap">
                                         Share your feedback
                                         <div class="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-[#1f2937]"></div>
@@ -837,14 +837,15 @@
                     
                     <!-- Code Example -->
                     <div class="mt-6">
-                        <div class="bg-[#1f2937] rounded-xl p-4 text-sm">
+                        <div class="bg-[#1f2937] rounded-xl p-4 text-sm overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="font-['Plus_Jakarta_Sans'] font-medium text-[#9ca3af] text-xs">HTML</span>
-                                <button onclick="copyEmbedCode()" class="text-[#cc5500] hover:text-[#d12b2e] transition-colors text-xs flex items-center gap-1">
+                                <button onclick="copyEmbedCode()" class="text-[#cc5500] hover:text-[#d12b2e] transition-colors text-xs flex items-center gap-1 flex-shrink-0">
                                     <i class="ph ph-copy"></i> Copy
                                 </button>
                             </div>
-                            <pre class="text-[#e5e7eb] font-mono text-xs leading-relaxed overflow-x-auto"><code>&lt;script&gt;
+                            <div class="overflow-x-auto">
+                                <pre class="text-[#e5e7eb] font-mono text-xs leading-relaxed min-w-0"><code>&lt;script&gt;
 (function() {
     var script = document.createElement('script');
     script.src = 'https://barmuda.vercel.app/widget.js';
@@ -854,6 +855,7 @@
     document.head.appendChild(script);
 })();
 &lt;/script&gt;</code></pre>
+                            </div>
                         </div>
                     </div>
                 </div>
