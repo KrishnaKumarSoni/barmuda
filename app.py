@@ -2795,8 +2795,15 @@ def admin_login_post():
         # Get client IP
         client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
         
-        # Admin system disabled
-        return jsonify({"success": False, "error": "Admin system disabled"}), 503
+        # Verify admin password
+        if admin.verify_admin_password(password):
+            session['admin_authenticated'] = True
+            session['admin_last_activity'] = datetime.now().timestamp()
+            admin.log_admin_login(True, client_ip)
+            return jsonify({"success": True})
+        else:
+            admin.log_admin_login(False, client_ip)
+            return jsonify({"success": False, "error": "Invalid password"}), 401
             
     except Exception as e:
         logger.error(f"Admin login error: {str(e)}")
@@ -2829,6 +2836,18 @@ def admin_api_dashboard():
 
 
 # A/B test route removed completely
+
+@app.route("/admin/api/trends")
+# @admin_required
+def admin_api_trends():
+    """API endpoint for trend analytics data"""
+    try:
+        period = request.args.get("period", "L30D")
+        data = admin_metrics.get_trends_data(period)
+        return jsonify(data)
+    except Exception as e:
+        logger.error(f"Error fetching trends data: {str(e)}")
+        return jsonify({"error": "Failed to fetch trends data"}), 500
 
 @app.route("/admin/api/users/search")
 # @admin_required
