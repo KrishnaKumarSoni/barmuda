@@ -56,208 +56,208 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
 </head>
-<body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
+<body class="bg-white relative min-h-screen font-['Inter']">
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col">
         {% set nav_type = 'why' %}
         {% include 'partials/nav.html' %}
 
-        <!-- Main Content Area -->
-        <div class="flex-1 px-4 md:px-8 pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-24">
-            <div class="max-w-4xl mx-auto">
+        <!-- Hero Section -->
+        <section class="pt-32 pb-20 px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-full text-sm font-medium mb-8">
+                    <i class="ph-fill ph-chart-line-up"></i>
+                    User interviewer at scale
+                </div>
                 
-                <!-- Header -->
-                <div class="text-center mb-12 md:mb-16">
-                    <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#1e1e1e] tracking-[-0.02em] leading-[1.15] mb-3 sm:mb-4">
-                        Why Barmuda exists
-                    </h1>
-                    <p class="font-['DM_Sans'] text-sm sm:text-base md:text-lg text-[#6b7280] max-w-xl mx-auto leading-relaxed">
-                        The user interviewer at scale. People hate forms. The data proves it.
+                <h1 class="font-['Inter'] font-bold text-4xl md:text-6xl text-gray-900 mb-6 leading-tight">
+                    Why surveys fail, and<br>
+                    <span class="text-orange-500">conversations succeed</span>
+                </h1>
+                
+                <p class="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+                    Traditional forms are dying. People hate filling them out. Here's the data on why 
+                    conversational interfaces get 3x better results.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/" class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg font-medium transition-colors">
+                        Try it yourself
+                    </a>
+                    <a href="#data" class="border border-gray-300 hover:border-gray-400 text-gray-700 px-8 py-4 rounded-lg font-medium transition-colors">
+                        See the data
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem Section -->
+        <section id="data" class="py-20 bg-gray-50">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Traditional surveys are broken</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        The numbers don't lie. People are abandoning traditional forms at record rates.
                     </p>
                 </div>
 
-                <!-- The Problem Section -->
-                <section class="mb-12 md:mb-16">
-                    <div class="bg-white rounded-2xl p-6 sm:p-8 md:p-10 border border-[#fff0cf] mb-8">
-                        <div class="flex items-center gap-3 mb-6">
-                            <i class="ph ph-warning-circle text-red-500 text-2xl md:text-3xl"></i>
-                            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-lg sm:text-xl md:text-2xl text-[#1e1e1e]">
-                                Traditional surveys are dying
-                            </h2>
-                        </div>
-                        
-                        <div class="space-y-6">
-                            <div class="grid md:grid-cols-2 gap-6 sm:gap-8">
-                                <div class="bg-[#fff5e0] rounded-xl p-4 sm:p-5">
-                                    <div class="text-2xl md:text-3xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-1">67%</div>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666]">of people abandon surveys due to fatigue</p>
-                                </div>
-                                <div class="bg-[#fff5e0] rounded-xl p-4 sm:p-5">
-                                    <div class="text-2xl md:text-3xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-1">70%</div>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666]">average cart abandonment rate online</p>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-[#fff5e0] rounded-xl p-4 sm:p-5">
-                                <div class="text-xl md:text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] mb-1">Response rates dropped</div>
-                                <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666]">from 60% to under 45% since the pandemic. Government surveys that used to get 90% now get 70%.</p>
-                            </div>
-                        </div>
+                <!-- Stats Grid -->
+                <div class="grid md:grid-cols-3 gap-8 mb-16">
+                    <div class="bg-white rounded-xl p-8 text-center border border-gray-100 shadow-sm">
+                        <div class="text-5xl font-bold text-red-500 mb-2">67%</div>
+                        <div class="text-gray-900 font-semibold mb-2">Survey Abandonment</div>
+                        <div class="text-gray-600 text-sm">of people quit surveys due to fatigue and poor UX</div>
                     </div>
                     
-                    <div class="prose max-w-none">
-                        <p class="font-['DM_Sans'] text-sm md:text-base text-[#4b5563] leading-relaxed mb-3">
-                            Here's what happens: You send a survey link. People see 15 questions on one page. They think "this will take forever" and close it immediately.
-                        </p>
-                        <p class="font-['DM_Sans'] text-sm md:text-base text-[#4b5563] leading-relaxed">
-                            Even if they start, <strong>increasing from 3 to 4 questions drops completion rates by 18%</strong>. Add more questions? Forget about it.
-                        </p>
+                    <div class="bg-white rounded-xl p-8 text-center border border-gray-100 shadow-sm">
+                        <div class="text-5xl font-bold text-red-500 mb-2">45%</div>
+                        <div class="text-gray-900 font-semibold mb-2">Response Rates</div>
+                        <div class="text-gray-600 text-sm">down from 60% pre-pandemic, and still falling</div>
                     </div>
-                </section>
+                    
+                    <div class="bg-white rounded-xl p-8 text-center border border-gray-100 shadow-sm">
+                        <div class="text-5xl font-bold text-red-500 mb-2">18%</div>
+                        <div class="text-gray-900 font-semibold mb-2">Drop Per Question</div>
+                        <div class="text-gray-600 text-sm">completion rate falls 18% from question 3 to 4</div>
+                    </div>
+                </div>
 
-                <!-- Why This Matters Section -->
-                <section class="mb-12 md:mb-16">
-                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl md:text-2xl text-[#1e1e1e] mb-4 md:mb-6">
-                        Why this matters for your business
-                    </h2>
-                    
-                    <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
-                        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-[#fff0cf]">
-                            <i class="ph ph-chart-line-down text-[#cc5500] text-2xl mb-3"></i>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#1e1e1e] mb-2">Bad data</h3>
-                            <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666] leading-relaxed">
-                                Only your most satisfied or most angry customers respond. Everyone else ignores your surveys.
-                            </p>
+                <!-- Problem Statement -->
+                <div class="bg-red-50 border border-red-100 rounded-xl p-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="ph ph-warning text-white text-lg"></i>
                         </div>
-                        
-                        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-[#fff0cf]">
-                            <i class="ph ph-money text-[#cc5500] text-2xl mb-3"></i>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#1e1e1e] mb-2">Wasted money</h3>
-                            <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666] leading-relaxed">
-                                You pay for survey tools and get incomplete data. It's like buying expensive ingredients for a meal nobody eats.
-                            </p>
-                        </div>
-                        
-                        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-[#fff0cf]">
-                            <i class="ph ph-clock text-[#cc5500] text-2xl mb-3"></i>
-                            <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#1e1e1e] mb-2">Slow decisions</h3>
-                            <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666] leading-relaxed">
-                                Without good feedback, you guess what customers want. Competitors who know their customers win.
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-2">The vicious cycle</h3>
+                            <p class="text-gray-700 leading-relaxed">
+                                You send a survey link → People see 15 questions → They think "this will take forever" → 
+                                They close it immediately. Even if they start, adding just one more question drops 
+                                completion rates by 18%. The result? Biased data from only your most engaged (or most angry) customers.
                             </p>
                         </div>
                     </div>
-                </section>
+                </div>
+            </div>
+        </section>
 
-                <!-- The Solution Section -->
-                <section class="mb-12 md:mb-16">
-                    <div class="bg-gradient-to-br from-[#cc5500] to-[#d12b2e] rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-8">
-                        <div class="flex items-center gap-3 mb-6">
-                            <i class="ph ph-chat-circle-dots text-white text-2xl md:text-3xl"></i>
-                            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-lg sm:text-xl md:text-2xl">
-                                Chat feels different
-                            </h2>
-                        </div>
-                        
-                        <div class="space-y-6">
-                            <p class="font-['DM_Sans'] text-sm md:text-base leading-relaxed">
-                                When people chat, they share more. They're honest. They don't feel like they're filling out paperwork.
-                            </p>
-                            
-                            <div class="grid md:grid-cols-2 gap-6">
-                                <div class="bg-white/10 rounded-xl p-4 sm:p-5">
-                                    <div class="text-2xl md:text-3xl font-['Plus_Jakarta_Sans'] font-bold mb-1">3x</div>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm">higher response rates with conversational interfaces</p>
-                                </div>
-                                <div class="bg-white/10 rounded-xl p-4 sm:p-5">
-                                    <div class="text-2xl md:text-3xl font-['Plus_Jakarta_Sans'] font-bold mb-1">40%</div>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm">improvement in completion rates vs traditional forms</p>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Solution Section -->
+        <section class="py-20">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Conversations change everything</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        When you make surveys feel like texting, people actually want to participate.
+                    </p>
+                </div>
+
+                <!-- Benefits Grid -->
+                <div class="grid md:grid-cols-2 gap-8 mb-16">
+                    <div class="bg-green-50 border border-green-100 rounded-xl p-8">
+                        <div class="text-4xl font-bold text-green-600 mb-2">3x</div>
+                        <div class="text-gray-900 font-semibold mb-2">Higher Response Rates</div>
+                        <div class="text-gray-700">Conversational interfaces get people talking. They feel natural, not like work.</div>
                     </div>
                     
-                    <div class="prose max-w-none">
-                        <p class="font-['DM_Sans'] text-sm md:text-base text-[#4b5563] leading-relaxed">
-                            Think about it: Would you rather fill out a 10-question form or have a quick chat? 
-                            Same information, completely different experience.
-                        </p>
+                    <div class="bg-green-50 border border-green-100 rounded-xl p-8">
+                        <div class="text-4xl font-bold text-green-600 mb-2">40%</div>
+                        <div class="text-gray-900 font-semibold mb-2">Better Completion</div>
+                        <div class="text-gray-700">One question at a time. No overwhelming forms. People actually finish.</div>
                     </div>
-                </section>
+                </div>
 
-                <!-- How It Works Section -->
-                <section class="mb-12 md:mb-16">
-                    <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl md:text-2xl text-[#1e1e1e] mb-4 md:mb-6">
-                        How we're different
-                    </h2>
+                <!-- How It Works -->
+                <div class="bg-gray-900 rounded-2xl p-8 md:p-12 text-white">
+                    <h3 class="text-2xl font-bold mb-8 text-center">How Barmuda works differently</h3>
                     
-                    <div class="space-y-6">
-                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 bg-[#cc5500]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-sm">1</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#1e1e1e] mb-2">One question at a time</h3>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666] leading-relaxed">
-                                        No overwhelming forms. Just a conversation where each question flows naturally from the last answer.
-                                    </p>
-                                </div>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i class="ph ph-chat-circle text-xl"></i>
                             </div>
+                            <h4 class="font-semibold mb-2">Feels like texting</h4>
+                            <p class="text-gray-300 text-sm">One question at a time in a familiar chat interface</p>
                         </div>
                         
-                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 bg-[#cc5500]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-sm">2</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#1e1e1e] mb-2">Feels like texting</h3>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666] leading-relaxed">
-                                        People text all day. They're comfortable with it. So we made surveys that work the same way.
-                                    </p>
-                                </div>
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i class="ph ph-brain text-xl"></i>
                             </div>
+                            <h4 class="font-semibold mb-2">AI-powered</h4>
+                            <p class="text-gray-300 text-sm">Smart follow-ups based on previous answers</p>
                         </div>
                         
-                        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#fff0cf]">
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 bg-[#cc5500]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-sm">3</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#1e1e1e] mb-2">Smart and adaptive</h3>
-                                    <p class="font-['DM_Sans'] text-xs md:text-sm text-[#666] leading-relaxed">
-                                        The AI asks follow-up questions based on answers. No irrelevant questions, no wasted time.
-                                    </p>
-                                </div>
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i class="ph ph-lightning text-xl"></i>
                             </div>
+                            <h4 class="font-semibold mb-2">No friction</h4>
+                            <p class="text-gray-300 text-sm">No forms, no progress bars, no overwhelming lists</p>
                         </div>
                     </div>
-                </section>
+                </div>
+            </div>
+        </section>
 
-                <!-- The Bottom Line Section -->
-                <section class="mb-12 md:mb-16">
-                    <div class="bg-[#fff5e0] rounded-2xl p-6 sm:p-8 md:p-10 border border-[#fff0cf] text-center">
-                        <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-xl md:text-2xl text-[#1e1e1e] mb-3 md:mb-4">
-                            The bottom line
-                        </h2>
-                        <p class="font-['DM_Sans'] text-sm md:text-base text-[#4b5563] leading-relaxed mb-4">
-                            Traditional surveys are broken. Response rates keep falling. People are tired of boring forms.
-                        </p>
-                        <p class="font-['DM_Sans'] text-sm md:text-base text-[#4b5563] leading-relaxed mb-6">
-                            We built Barmuda because conversations work better than questionnaires. 
-                            It's that simple.
-                        </p>
-                        
-                        <a href="/" class="inline-flex items-center gap-2 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl font-['Plus_Jakarta_Sans'] font-medium hover:opacity-90 transition-opacity">
-                            Try it yourself
-                            <i class="ph ph-arrow-right text-lg"></i>
+        <!-- Business Impact -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">The business impact</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        Better data collection means better business decisions.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="ph ph-chart-pie text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Better data quality</h3>
+                        <p class="text-gray-600 text-sm">Get responses from your whole audience, not just the extremes</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="ph ph-rocket text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Faster insights</h3>
+                        <p class="text-gray-600 text-sm">Higher response rates mean you get actionable data sooner</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="ph ph-trend-up text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">ROI improvement</h3>
+                        <p class="text-gray-600 text-sm">Stop guessing what customers want - know it</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-20">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-12 text-white">
+                    <h2 class="text-3xl font-bold mb-4">Ready to see the difference?</h2>
+                    <p class="text-xl mb-8 opacity-90">
+                        Try creating a conversational survey in under 2 minutes.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="/" class="bg-white text-orange-500 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            Create your first survey
+                        </a>
+                        <a href="/demo" class="border border-white/30 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
+                            See a demo
                         </a>
                     </div>
-                </section>
-
+                </div>
             </div>
-        </div>
+        </section>
+
     </div>
 
     <!-- Reusable Footer -->
@@ -352,6 +352,16 @@
                     `;
                 }
             }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
         });
     </script>
 </body>
