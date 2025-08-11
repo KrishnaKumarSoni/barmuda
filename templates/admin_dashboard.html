@@ -297,7 +297,7 @@
         </div>
 
         <!-- Secondary Stats -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Revenue Breakdown -->
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Breakdown</h3>
@@ -356,41 +356,106 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- User Management -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">User Management</h3>
-                <div class="flex space-x-2 mb-4">
-                    <input type="text" id="user-search" 
-                           placeholder="Search users..." 
-                           class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
-                    <button onclick="searchUsers()" class="px-4 py-2 bg-brand text-white rounded-lg text-sm font-medium hover:bg-brand/90 transition-colors">
-                        <i class="ph ph-magnifying-glass"></i>
+        <!-- User Management Section -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                    <i class="ph ph-users-three mr-3 h-6 w-6 text-brand"></i>
+                    User Management
+                </h2>
+                <div class="flex items-center space-x-2 text-sm text-gray-500">
+                    <i class="ph ph-database h-4 w-4"></i>
+                    <span>Real-time user data</span>
+                </div>
+            </div>
+
+            <!-- Search and Quick Stats -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Search Section -->
+                <div class="space-y-4">
+                    <div class="flex space-x-2">
+                        <input type="text" id="user-search" 
+                               placeholder="Search users by email..." 
+                               class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+                        <button onclick="searchUsers()" class="px-5 py-2.5 bg-brand text-white rounded-xl text-sm font-medium hover:bg-brand/90 transition-colors flex items-center">
+                            <i class="ph ph-magnifying-glass mr-1"></i>
+                            Search
+                        </button>
+                    </div>
+                    
+                    <div id="search-results" class="hidden">
+                        <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                            <div class="bg-white px-4 py-3 border-b border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-900">Search Results</h4>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50 sticky top-0">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="search-results-table" class="bg-white divide-y divide-gray-200">
+                                        <!-- Results populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick User Stats -->
+                <div class="space-y-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-3">User Overview</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <div class="text-lg font-bold text-blue-600" id="total-users-quick">--</div>
+                            <div class="text-xs text-gray-600">Total Users</div>
+                        </div>
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <div class="text-lg font-bold text-green-600" id="active-users-quick">--</div>
+                            <div class="text-xs text-gray-600">Active Users</div>
+                        </div>
+                        <div class="bg-purple-50 rounded-xl p-4">
+                            <div class="text-lg font-bold text-purple-600" id="paid-users-quick">--</div>
+                            <div class="text-xs text-gray-600">Paid Users</div>
+                        </div>
+                        <div class="bg-orange-50 rounded-xl p-4">
+                            <div class="text-lg font-bold text-orange-600" id="grandfathered-users-quick">--</div>
+                            <div class="text-xs text-gray-600">Grandfathered</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users Table -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900">Recent Users</h4>
+                    <button onclick="loadAllUsers()" class="text-sm text-brand hover:text-brand/80 font-medium">
+                        Load More →
                     </button>
                 </div>
-                
-                <div id="search-results" class="hidden">
-                    <div class="overflow-hidden rounded-lg border border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
-                                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="search-results-table" class="bg-white divide-y divide-gray-200">
-                                <!-- Results populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <h4 class="text-sm font-medium text-gray-900 mb-3">Active Users</h4>
-                    <div class="space-y-2" id="active-users-list">
-                        <!-- Populated by JS -->
-                    </div>
+                <div class="overflow-hidden rounded-xl border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Activity</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-users-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -513,8 +578,24 @@
             // Update revenue chart
             updateRevenueChart(revenue);
 
-            // Update active users list
-            updateActiveUsersList(users.most_active_users || []);
+            // Update user management quick stats
+            updateUserManagementStats(users, revenue);
+
+            // Load recent users table
+            loadAllUsers();
+        }
+
+        function updateUserManagementStats(users, revenue) {
+            // Update quick stats in user management section
+            const totalUsers = users.total_users || 0;
+            const activeUsers = users.active_users_last_30d || 0;
+            const payingCustomers = revenue.paying_customers || 0;
+            const grandfatheredUsers = revenue.grandfathered_users || 0;
+
+            document.getElementById('total-users-quick').textContent = totalUsers.toLocaleString();
+            document.getElementById('active-users-quick').textContent = activeUsers.toLocaleString();
+            document.getElementById('paid-users-quick').textContent = payingCustomers.toLocaleString();
+            document.getElementById('grandfathered-users-quick').textContent = grandfatheredUsers.toLocaleString();
         }
 
         function updateTrendsCharts(data) {
@@ -974,8 +1055,11 @@
 
         // User management functions
         async function searchUsers() {
-            const query = document.getElementById('user-search').value;
-            if (!query) return;
+            const query = document.getElementById('user-search').value.trim();
+            if (!query) {
+                document.getElementById('search-results').classList.add('hidden');
+                return;
+            }
 
             try {
                 const response = await fetch(`/admin/api/users/search?q=${encodeURIComponent(query)}`);
@@ -988,31 +1072,133 @@
                 resultsTable.innerHTML = '';
                 
                 users.forEach(user => {
-                    const plan = user.subscription?.plan || 'free';
+                    const subscription = user.subscription || {};
+                    const plan = subscription.plan || 'free';
+                    const isGrandfathered = subscription.grandfathered || false;
+                    const createdAt = user.created_at ? new Date(user.created_at.seconds * 1000) : null;
+                    
+                    const planDisplay = isGrandfathered ? 
+                        plan.toUpperCase() + ' (GF)' : 
+                        plan.toUpperCase();
+                    
                     const planBadge = plan === 'free' ? 
-                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800' :
-                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                        'bg-gray-100 text-gray-800' : 
+                        isGrandfathered ? 'bg-purple-100 text-purple-800' : 
+                        'bg-green-100 text-green-800';
+                    
+                    const statusBadge = user.last_login_at ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600';
+                    const statusText = user.last_login_at ? 'Active' : 'Inactive';
                     
                     resultsTable.innerHTML += `
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-2 text-sm text-gray-900">${user.email}</td>
-                            <td class="px-3 py-2 text-sm">
-                                <span class="${planBadge}">${plan.toUpperCase()}</span>
+                        <tr class="hover:bg-gray-50 cursor-pointer" onclick="viewUserDetails('${user.id}')">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-r from-brand to-orange-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white text-xs font-medium">${user.email.charAt(0).toUpperCase()}</span>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">${user.email}</div>
+                                        <div class="text-xs text-gray-500">${user.id.slice(-8)}</div>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="px-3 py-2 text-sm text-right space-x-2">
-                                <button onclick="viewUserDetails('${user.id}')" class="text-brand hover:text-brand/80">View</button>
-                                <button onclick="grantGrandfather('${user.id}')" class="text-green-600 hover:text-green-800">Grandfather</button>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${planBadge}">
+                                    ${planDisplay}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadge}">
+                                    ${statusText}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button onclick="event.stopPropagation(); viewUserDetails('${user.id}')" class="text-brand hover:text-brand/80 text-sm">View</button>
+                                <button onclick="event.stopPropagation(); grantGrandfather('${user.id}')" class="text-green-600 hover:text-green-800 text-sm">Grandfather</button>
                             </td>
                         </tr>
                     `;
                 });
                 
                 if (users.length === 0) {
-                    resultsTable.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-sm text-gray-500 text-center">No users found</td></tr>';
+                    resultsTable.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No users found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error searching users:', error);
                 showNotification('Failed to search users', 'error');
+            }
+        }
+
+        async function loadAllUsers() {
+            try {
+                const response = await fetch('/admin/api/users/recent');
+                const users = await response.json();
+                
+                const recentTable = document.getElementById('recent-users-table');
+                recentTable.innerHTML = '';
+                
+                users.slice(0, 10).forEach(user => {
+                    const subscription = user.subscription || {};
+                    const plan = subscription.plan || 'free';
+                    const isGrandfathered = subscription.grandfathered || false;
+                    const createdAt = user.created_at ? new Date(user.created_at.seconds * 1000) : null;
+                    const lastActivity = user.last_login_at ? new Date(user.last_login_at.seconds * 1000) : null;
+                    
+                    const planDisplay = isGrandfathered ? 
+                        plan.toUpperCase() + ' (GF)' : 
+                        plan.toUpperCase();
+                    
+                    const planBadge = plan === 'free' ? 
+                        'bg-gray-100 text-gray-800' : 
+                        isGrandfathered ? 'bg-purple-100 text-purple-800' : 
+                        'bg-green-100 text-green-800';
+                    
+                    const activityText = lastActivity ? 
+                        lastActivity.toLocaleDateString() : 
+                        'Never';
+                    
+                    const joinedText = createdAt ? 
+                        createdAt.toLocaleDateString() : 
+                        'Unknown';
+                    
+                    recentTable.innerHTML += `
+                        <tr class="hover:bg-gray-50 cursor-pointer" onclick="viewUserDetails('${user.id}')">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-r from-brand to-orange-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white text-xs font-medium">${user.email.charAt(0).toUpperCase()}</span>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">${user.email}</div>
+                                        <div class="text-xs text-gray-500">ID: ${user.id.slice(-8)}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${planBadge}">
+                                    ${planDisplay}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-500">
+                                ${activityText}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-500">
+                                ${joinedText}
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button onclick="event.stopPropagation(); viewUserDetails('${user.id}')" class="text-brand hover:text-brand/80 text-sm">View</button>
+                                <button onclick="event.stopPropagation(); grantGrandfather('${user.id}')" class="text-green-600 hover:text-green-800 text-sm">Actions</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                if (users.length === 0) {
+                    recentTable.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-sm text-gray-500 text-center">No users found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showNotification('Failed to load users', 'error');
             }
         }
 
@@ -1040,49 +1226,130 @@
                     'bg-gray-100 text-gray-800' : 
                     isGrandfathered ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800';
                 
+                const createdAt = user.created_at ? new Date(user.created_at.seconds * 1000) : null;
+                const lastActivity = user.last_login_at ? new Date(user.last_login_at.seconds * 1000) : null;
+                
                 content.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <h4 class="text-sm font-semibold text-gray-900 mb-3">Profile Information</h4>
-                            <dl class="space-y-2">
+                    <!-- User Profile Header -->
+                    <div class="bg-gradient-to-r from-brand to-orange-600 rounded-xl p-6 text-white mb-6">
+                        <div class="flex items-center">
+                            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                                <span class="text-2xl font-bold">${user.email.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-xl font-semibold">${user.email}</h3>
+                                <p class="text-brand-100">User ID: ${userId.slice(-12)}</p>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 mt-2">
+                                    ${planDisplay}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Details Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Profile Information -->
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <i class="ph ph-user-circle mr-2 h-5 w-5 text-brand"></i>
+                                Profile Information
+                            </h4>
+                            <dl class="space-y-3">
                                 <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Email</dt>
-                                    <dd class="text-xs font-medium text-gray-900">${user.email}</dd>
+                                    <dt class="text-sm text-gray-500">Email</dt>
+                                    <dd class="text-sm font-medium text-gray-900">${user.email}</dd>
                                 </div>
                                 <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Plan</dt>
-                                    <dd class="text-xs">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${planBadge}">
+                                    <dt class="text-sm text-gray-500">Plan</dt>
+                                    <dd>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${planBadge}">
                                             ${planDisplay}
                                         </span>
                                     </dd>
                                 </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm text-gray-500">Joined</dt>
+                                    <dd class="text-sm font-medium text-gray-900">${createdAt ? createdAt.toLocaleDateString() : 'Unknown'}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm text-gray-500">Last Active</dt>
+                                    <dd class="text-sm font-medium text-gray-900">${lastActivity ? lastActivity.toLocaleDateString() : 'Never'}</dd>
+                                </div>
                             </dl>
                         </div>
                         
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <h4 class="text-sm font-semibold text-gray-900 mb-3">Usage Statistics</h4>
-                            <dl class="space-y-2">
-                                <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Conversations</dt>
-                                    <dd class="text-xs font-medium text-gray-900">${usage.conversations_count || 0}</dd>
+                        <!-- Usage Statistics -->
+                        <div class="bg-blue-50 rounded-xl p-6">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <i class="ph ph-chart-bar mr-2 h-5 w-5 text-blue-600"></i>
+                                Usage Statistics
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white rounded-lg p-4">
+                                    <div class="text-2xl font-bold text-blue-600">${usage.conversations_count || 0}</div>
+                                    <div class="text-xs text-gray-600">Conversations</div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-xs text-gray-500">Forms Created</dt>
-                                    <dd class="text-xs font-medium text-gray-900">${usage.forms_count || 0}</dd>
+                                <div class="bg-white rounded-lg p-4">
+                                    <div class="text-2xl font-bold text-green-600">${usage.forms_count || 0}</div>
+                                    <div class="text-xs text-gray-600">Forms Created</div>
                                 </div>
-                            </dl>
+                                <div class="bg-white rounded-lg p-4">
+                                    <div class="text-2xl font-bold text-purple-600">${usage.responses_received || 0}</div>
+                                    <div class="text-xs text-gray-600">Responses</div>
+                                </div>
+                                <div class="bg-white rounded-lg p-4">
+                                    <div class="text-2xl font-bold text-orange-600">${Math.round((usage.conversations_count || 0) + (usage.forms_count || 0) * 2)}</div>
+                                    <div class="text-xs text-gray-600">Activity Score</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Subscription Details -->
+                    ${user.subscription && user.subscription.plan !== 'free' ? `
+                    <div class="bg-green-50 rounded-xl p-6 mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="ph ph-credit-card mr-2 h-5 w-5 text-green-600"></i>
+                            Subscription Details
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <div class="text-sm text-gray-500">Plan</div>
+                                <div class="text-lg font-semibold text-gray-900">${user.subscription.plan.toUpperCase()}</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Status</div>
+                                <div class="text-lg font-semibold ${isGrandfathered ? 'text-purple-600' : 'text-green-600'}">
+                                    ${isGrandfathered ? 'Grandfathered' : 'Active'}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Monthly Value</div>
+                                <div class="text-lg font-semibold text-gray-900">
+                                    $${user.subscription.plan === 'starter' ? '19' : user.subscription.plan === 'pro' ? '49' : user.subscription.plan === 'business' ? '99' : '0'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
                     
-                    <div class="flex space-x-3 pt-4 border-t border-gray-200">
-                        <button onclick="resetUsage('${userId}')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">
-                            <i class="ph ph-arrow-counter-clockwise mr-1"></i>
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
+                        <button onclick="resetUsage('${userId}')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors flex items-center">
+                            <i class="ph ph-arrow-counter-clockwise mr-2"></i>
                             Reset Usage
                         </button>
-                        <button onclick="grantGrandfather('${userId}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
-                            <i class="ph ph-crown mr-1"></i>
+                        <button onclick="grantGrandfather('${userId}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center">
+                            <i class="ph ph-crown mr-2"></i>
                             Grant Grandfather
+                        </button>
+                        <button onclick="exportUserData('${userId}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="ph ph-download mr-2"></i>
+                            Export Data
+                        </button>
+                        <button onclick="viewUserForms('${userId}')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center">
+                            <i class="ph ph-files mr-2"></i>
+                            View Forms
                         </button>
                     </div>
                 `;
@@ -1197,6 +1464,40 @@ ${sampleUsersText || 'No users found'}
                 console.error('Debug error:', error);
                 showNotification('Debug failed - check console', 'error');
             }
+        }
+
+        // Additional user management functions
+        async function exportUserData(userId) {
+            try {
+                const response = await fetch(`/admin/api/users/${userId}/export`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Download the data as JSON file
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `user_${userId}_export.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showNotification('User data exported successfully', 'success');
+                } else {
+                    throw new Error(data.error || 'Export failed');
+                }
+            } catch (error) {
+                console.error('Error exporting user data:', error);
+                showNotification('Failed to export user data', 'error');
+            }
+        }
+
+        async function viewUserForms(userId) {
+            // This could navigate to a forms view or open another modal
+            // For now, just show a notification
+            showNotification('Forms view coming soon', 'info');
         }
 
         // Enter key support for search

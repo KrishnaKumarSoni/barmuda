@@ -2950,6 +2950,17 @@ def admin_reset_user_usage(user_id):
         logger.error(f"Error resetting user usage: {str(e)}")
         return jsonify({"error": "Operation failed"}), 500
 
+@app.route("/admin/api/users/recent")
+# @admin_required
+def admin_get_recent_users():
+    """Get recent users list"""
+    try:
+        users = admin_metrics.get_recent_users()
+        return jsonify(users)
+    except Exception as e:
+        logger.error(f"Error fetching recent users: {str(e)}")
+        return jsonify({"error": "Failed to fetch recent users"}), 500
+
 @app.route("/admin/api/users/<user_id>/export")
 # @admin_required
 def admin_export_user_data(user_id):
