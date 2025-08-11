@@ -897,6 +897,39 @@ class AdminMetrics:
             logger.error(f"Error getting trends data: {str(e)}")
             return {"error": str(e)}
 
+    def get_recent_users(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get recent users with detailed information"""
+        try:
+            users_ref = db.collection("users").order_by("created_at", direction=firestore.Query.DESCENDING).limit(limit)
+            users_docs = list(users_ref.stream())
+            
+            users_list = []
+            for user_doc in users_docs:
+                user_data = user_doc.to_dict()
+                
+                # Get user activity data
+                forms_count = len(list(db.collection("forms").where("creator_id", "==", user_doc.id).limit(10).stream()))
+                responses_count = len(list(db.collection("responses").where("user_id", "==", user_doc.id).limit(10).stream()))
+                
+                user_info = {
+                    "id": user_doc.id,
+                    "email": user_data.get("email", ""),
+                    "created_at": user_data.get("created_at"),
+                    "last_login_at": user_data.get("last_login_at"),
+                    "subscription": user_data.get("subscription", {"plan": "free"}),
+                    "forms_count": forms_count,
+                    "responses_count": responses_count,
+                    "activity_score": forms_count + responses_count
+                }
+                
+                users_list.append(user_info)
+            
+            return users_list
+            
+        except Exception as e:
+            logger.error(f"Error getting recent users: {str(e)}")
+            return []
+
     def get_dashboard_summary(self) -> Dict[str, Any]:
         """Get all dashboard metrics in one call"""
         return {
