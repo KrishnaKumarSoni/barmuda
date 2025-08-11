@@ -33,6 +33,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-analytics-compat.js"></script>
     
+    <!-- Auth Helper for popup/redirect fallback -->
+    <script src="/static/js/auth-helper.js"></script>
+    
     <!-- Barmuda Widget - Self-Dogfooding! -->
     <script>
     (function() {
@@ -1160,9 +1163,28 @@
                 provider.addScope('email');
                 provider.addScope('profile');
                 
-                console.log('Opening popup...');
-                const result = await auth.signInWithPopup(provider);
-                console.log('Popup successful, user:', result.user.email);
+                // Try popup first, fallback to redirect if blocked
+                console.log('Attempting popup sign-in...');
+                let result;
+                try {
+                    result = await auth.signInWithPopup(provider);
+                    console.log('Popup successful, user:', result.user.email);
+                } catch (popupError) {
+                    // Check if it's a popup blocked error
+                    if (popupError.code === 'auth/popup-blocked' || 
+                        popupError.code === 'auth/popup-closed-by-user' ||
+                        popupError.code === 'auth/cancelled-popup-request') {
+                        console.log('Popup blocked, using redirect method instead...');
+                        // Store pending data before redirect
+                        const pendingDescription = sessionStorage.getItem('pendingFormDescription');
+                        if (pendingDescription) {
+                            localStorage.setItem('pendingFormDescription', pendingDescription);
+                        }
+                        // Use redirect method as fallback
+                        return auth.signInWithRedirect(provider);
+                    }
+                    throw popupError;
+                }
                 
                 const user = result.user;
                 const idToken = await user.getIdToken();
@@ -1224,6 +1246,47 @@
                 setUnauthButtonState('idle');
             }
         }
+        
+        // Handle redirect result when page loads
+        auth.getRedirectResult().then(async (result) => {
+            if (result && result.user) {
+                console.log('Redirect sign-in successful:', result.user.email);
+                
+                const user = result.user;
+                const idToken = await user.getIdToken();
+                
+                // Send token to backend
+                const response = await fetch('/firebase-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ idToken })
+                });
+                
+                if (response.ok) {
+                    console.log('Authentication successful!');
+                    
+                    // Check for pending form data in localStorage (survives redirect)
+                    const pendingDescription = localStorage.getItem('pendingFormDescription');
+                    if (pendingDescription) {
+                        sessionStorage.setItem('pendingFormDescription', pendingDescription);
+                        localStorage.removeItem('pendingFormDescription');
+                    }
+                    
+                    window.location.href = '/create-form';
+                } else {
+                    console.error('Backend authentication failed');
+                    alert('Sign-in failed. Please try again.');
+                }
+            }
+        }).catch((error) => {
+            console.error('Redirect result error:', error);
+            if (error.code && error.code !== 'auth/popup-blocked') {
+                alert(`Sign-in error: ${error.message}`);
+            }
+        });
         
         // Sign out function
         async function signOut() {
