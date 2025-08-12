@@ -2961,6 +2961,17 @@ def admin_get_recent_users():
         logger.error(f"Error fetching recent users: {str(e)}")
         return jsonify({"error": "Failed to fetch recent users"}), 500
 
+@app.route("/admin/api/users/<user_id>/forms")
+# @admin_required
+def admin_get_user_forms(user_id):
+    """Get forms created by a specific user"""
+    try:
+        forms = admin_metrics.get_user_forms(user_id)
+        return jsonify(forms)
+    except Exception as e:
+        logger.error(f"Error fetching user forms: {str(e)}")
+        return jsonify({"error": "Failed to fetch user forms"}), 500
+
 @app.route("/admin/api/users/<user_id>/export")
 # @admin_required
 def admin_export_user_data(user_id):

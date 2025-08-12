@@ -930,6 +930,40 @@ class AdminMetrics:
             logger.error(f"Error getting recent users: {str(e)}")
             return []
 
+    def get_user_forms(self, user_id: str) -> List[Dict[str, Any]]:
+        """Get forms created by a specific user"""
+        try:
+            forms_ref = db.collection("forms").where("creator_id", "==", user_id)
+            forms_docs = list(forms_ref.stream())
+            
+            forms_list = []
+            for form_doc in forms_docs:
+                form_data = form_doc.to_dict()
+                
+                # Count responses for this form
+                responses_count = len(list(db.collection("responses").where("form_id", "==", form_doc.id).limit(100).stream()))
+                
+                form_info = {
+                    "id": form_doc.id,
+                    "title": form_data.get("title", "Untitled Form"),
+                    "active": form_data.get("active", False),
+                    "created_at": form_data.get("created_at"),
+                    "questions": form_data.get("questions", []),
+                    "responses_count": responses_count,
+                    "share_url": f"/form/{form_doc.id}"
+                }
+                
+                forms_list.append(form_info)
+            
+            # Sort by creation date (newest first)
+            forms_list.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+            
+            return forms_list
+            
+        except Exception as e:
+            logger.error(f"Error getting user forms: {str(e)}")
+            return []
+
     def get_dashboard_summary(self) -> Dict[str, Any]:
         """Get all dashboard metrics in one call"""
         return {

@@ -1075,7 +1075,18 @@
                     const subscription = user.subscription || {};
                     const plan = subscription.plan || 'free';
                     const isGrandfathered = subscription.grandfathered || false;
-                    const createdAt = user.created_at ? new Date(user.created_at.seconds * 1000) : null;
+                    
+                    // Handle different date formats from Firebase  
+                    let createdAt = null;
+                    if (user.created_at) {
+                        if (user.created_at.seconds) {
+                            createdAt = new Date(user.created_at.seconds * 1000);
+                        } else if (user.created_at._seconds) {
+                            createdAt = new Date(user.created_at._seconds * 1000);
+                        } else if (typeof user.created_at === 'string') {
+                            createdAt = new Date(user.created_at);
+                        }
+                    }
                     
                     const planDisplay = isGrandfathered ? 
                         plan.toUpperCase() + ' (GF)' : 
@@ -1141,8 +1152,29 @@
                     const subscription = user.subscription || {};
                     const plan = subscription.plan || 'free';
                     const isGrandfathered = subscription.grandfathered || false;
-                    const createdAt = user.created_at ? new Date(user.created_at.seconds * 1000) : null;
-                    const lastActivity = user.last_login_at ? new Date(user.last_login_at.seconds * 1000) : null;
+                    
+                    // Handle different date formats from Firebase
+                    let createdAt = null;
+                    if (user.created_at) {
+                        if (user.created_at.seconds) {
+                            createdAt = new Date(user.created_at.seconds * 1000);
+                        } else if (user.created_at._seconds) {
+                            createdAt = new Date(user.created_at._seconds * 1000);
+                        } else if (typeof user.created_at === 'string') {
+                            createdAt = new Date(user.created_at);
+                        }
+                    }
+                    
+                    let lastActivity = null;
+                    if (user.last_login_at) {
+                        if (user.last_login_at.seconds) {
+                            lastActivity = new Date(user.last_login_at.seconds * 1000);
+                        } else if (user.last_login_at._seconds) {
+                            lastActivity = new Date(user.last_login_at._seconds * 1000);
+                        } else if (typeof user.last_login_at === 'string') {
+                            lastActivity = new Date(user.last_login_at);
+                        }
+                    }
                     
                     const planDisplay = isGrandfathered ? 
                         plan.toUpperCase() + ' (GF)' : 
@@ -1226,8 +1258,28 @@
                     'bg-gray-100 text-gray-800' : 
                     isGrandfathered ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800';
                 
-                const createdAt = user.created_at ? new Date(user.created_at.seconds * 1000) : null;
-                const lastActivity = user.last_login_at ? new Date(user.last_login_at.seconds * 1000) : null;
+                // Handle different date formats from Firebase
+                let createdAt = null;
+                if (user.created_at) {
+                    if (user.created_at.seconds) {
+                        createdAt = new Date(user.created_at.seconds * 1000);
+                    } else if (user.created_at._seconds) {
+                        createdAt = new Date(user.created_at._seconds * 1000);
+                    } else if (typeof user.created_at === 'string') {
+                        createdAt = new Date(user.created_at);
+                    }
+                }
+                
+                let lastActivity = null;
+                if (user.last_login_at) {
+                    if (user.last_login_at.seconds) {
+                        lastActivity = new Date(user.last_login_at.seconds * 1000);
+                    } else if (user.last_login_at._seconds) {
+                        lastActivity = new Date(user.last_login_at._seconds * 1000);
+                    } else if (typeof user.last_login_at === 'string') {
+                        lastActivity = new Date(user.last_login_at);
+                    }
+                }
                 
                 content.innerHTML = `
                     <!-- User Profile Header -->
@@ -1495,9 +1547,90 @@ ${sampleUsersText || 'No users found'}
         }
 
         async function viewUserForms(userId) {
-            // This could navigate to a forms view or open another modal
-            // For now, just show a notification
-            showNotification('Forms view coming soon', 'info');
+            try {
+                const response = await fetch(`/admin/api/users/${userId}/forms`);
+                const forms = await response.json();
+                
+                // Create forms modal
+                const formsModal = document.createElement('div');
+                formsModal.id = 'user-forms-modal';
+                formsModal.className = 'fixed inset-0 z-50 overflow-y-auto';
+                formsModal.innerHTML = `
+                    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeUserForms()"></div>
+                        <div class="inline-block align-bottom bg-white rounded-2xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full sm:p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                    <i class="ph ph-files mr-3 h-6 w-6 text-brand"></i>
+                                    User Forms
+                                </h3>
+                                <button onclick="closeUserForms()" class="text-gray-400 hover:text-gray-500">
+                                    <i class="ph ph-x h-6 w-6"></i>
+                                </button>
+                            </div>
+                            <div id="user-forms-content" class="space-y-4">
+                                ${forms.length === 0 ? 
+                                    '<div class="text-center py-12 text-gray-500">No forms created yet</div>' :
+                                    forms.map(form => `
+                                        <div class="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-4">
+                                                    <div class="w-10 h-10 bg-gradient-to-r from-brand to-orange-600 rounded-lg flex items-center justify-center">
+                                                        <i class="ph ph-file-text text-white text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-semibold text-gray-900">${form.title || 'Untitled Form'}</h4>
+                                                        <p class="text-sm text-gray-500">Created: ${new Date(form.created_at?.seconds ? form.created_at.seconds * 1000 : Date.now()).toLocaleDateString()}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center space-x-4">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${form.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                                        ${form.active ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                    <div class="text-sm text-gray-500">
+                                                        ${form.responses_count || 0} responses
+                                                    </div>
+                                                    <div class="flex space-x-2">
+                                                        <button onclick="viewForm('${form.id}')" class="text-brand hover:text-brand/80 text-sm font-medium">
+                                                            View
+                                                        </button>
+                                                        <button onclick="viewFormResponses('${form.id}')" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                                                            Responses
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(formsModal);
+                
+            } catch (error) {
+                console.error('Error loading user forms:', error);
+                showNotification('Failed to load user forms', 'error');
+            }
+        }
+
+        function closeUserForms() {
+            const modal = document.getElementById('user-forms-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function viewForm(formId) {
+            // Open form in new tab
+            window.open(`/form/${formId}`, '_blank');
+        }
+
+        function viewFormResponses(formId) {
+            // Navigate to responses page  
+            window.open(`/responses?form_id=${formId}`, '_blank');
         }
 
         // Enter key support for search
