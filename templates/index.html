@@ -1070,6 +1070,34 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         
+        // Auth synchronization state - prevents race conditions
+        let authSyncInProgress = false;
+        let redirectProcessed = false;
+        let maxRetries = 3;
+        
+        // Loading state management
+        function showAuthLoading(message = 'Signing in...') {
+            const signInButton = document.querySelector('button[onclick="signInWithGoogle()"]');
+            if (signInButton) {
+                signInButton.disabled = true;
+                signInButton.innerHTML = `
+                    <span class="font-['DM_Sans'] text-sm text-white">${message}</span>
+                    <i class="ph ph-spinner animate-spin text-white text-base md:text-lg lg:text-xl"></i>
+                `;
+            }
+        }
+        
+        function hideAuthLoading() {
+            const signInButton = document.querySelector('button[onclick="signInWithGoogle()"]');
+            if (signInButton) {
+                signInButton.disabled = false;
+                signInButton.innerHTML = `
+                    <span class="font-['DM_Sans'] text-sm sm:text-base md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
+                    <i class="ph ph-sign-in text-white text-base md:text-lg lg:text-xl"></i>
+                `;
+            }
+        }
+        
         // Initialize Google Analytics
         let analytics = null;
         try {
@@ -1159,6 +1187,7 @@
         async function signInWithGoogle() {
             try {
                 console.log('Starting Google sign in...');
+                showAuthLoading('Signing in...');
                 const provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('email');
                 provider.addScope('profile');
@@ -1187,23 +1216,12 @@
                 }
                 
                 const user = result.user;
-                const idToken = await user.getIdToken();
-                console.log('Got ID token, length:', idToken.length);
+                console.log('Got user from popup:', user.email);
                 
-                // Send token to backend
-                console.log('Sending to backend...');
-                const response = await fetch('/firebase-auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({ idToken })
-                });
+                // Use synchronized backend sync
+                const success = await syncTokenToBackend(user, 'popup');
                 
-                console.log('Backend response:', response.status);
-                
-                if (response.ok) {
+                if (success) {
                     console.log('Authentication successful!');
                     
                     // Track login event
@@ -1234,6 +1252,7 @@
                     }
                     alert(errorMsg);
                     setUnauthButtonState('idle');
+                    hideAuthLoading();
                 }
             } catch (error) {
                 console.error('Sign in error full details:', {
@@ -1244,18 +1263,26 @@
                 });
                 alert('Sign in failed: ' + error.message);
                 setUnauthButtonState('idle');
+                hideAuthLoading();
             }
         }
         
-        // Handle redirect result when page loads
-        auth.getRedirectResult().then(async (result) => {
-            if (result && result.user) {
-                console.log('Redirect sign-in successful:', result.user.email);
-                
-                const user = result.user;
-                const idToken = await user.getIdToken();
-                
-                // Send token to backend
+        // Synchronized token exchange function with retry logic
+        async function syncTokenToBackend(user, source = 'unknown', retryCount = 0) {
+            if (authSyncInProgress && retryCount === 0) {
+                console.log(`Auth sync already in progress, skipping ${source}...`);
+                return false;
+            }
+            
+            if (retryCount === 0) {
+                authSyncInProgress = true;
+                showAuthLoading('Authenticating...');
+            }
+            
+            console.log(`Starting auth sync from ${source} (attempt ${retryCount + 1})...`);
+            
+            try {
+                const idToken = await user.getIdToken(true); // Force refresh token
                 const response = await fetch('/firebase-auth', {
                     method: 'POST',
                     headers: {
@@ -1264,8 +1291,51 @@
                     credentials: 'include',
                     body: JSON.stringify({ idToken })
                 });
-                
+
                 if (response.ok) {
+                    console.log(`Auth sync successful from ${source}`);
+                    if (retryCount === 0) hideAuthLoading();
+                    return true;
+                } else {
+                    console.error(`Backend authentication failed (${source}):`, response.status);
+                    
+                    // Retry logic for certain errors
+                    if (retryCount < maxRetries && (response.status >= 500 || response.status === 401)) {
+                        console.log(`Retrying auth sync (${retryCount + 1}/${maxRetries})...`);
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+                        return syncTokenToBackend(user, source, retryCount + 1);
+                    }
+                    
+                    return false;
+                }
+            } catch (error) {
+                console.error(`Auth sync error (${source}):`, error);
+                
+                // Retry on network errors
+                if (retryCount < maxRetries && (error.name === 'TypeError' || error.name === 'NetworkError')) {
+                    console.log(`Retrying auth sync due to network error (${retryCount + 1}/${maxRetries})...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+                    return syncTokenToBackend(user, source, retryCount + 1);
+                }
+                
+                return false;
+            } finally {
+                if (retryCount === 0) {
+                    authSyncInProgress = false;
+                    hideAuthLoading();
+                }
+            }
+        }
+
+        // Handle redirect result when page loads - PRIORITY HANDLER
+        auth.getRedirectResult().then(async (result) => {
+            if (result && result.user) {
+                console.log('Redirect sign-in successful:', result.user.email);
+                redirectProcessed = true;
+                
+                const success = await syncTokenToBackend(result.user, 'redirect');
+                
+                if (success) {
                     console.log('Authentication successful!');
                     
                     // Check for pending form data in localStorage (survives redirect)
@@ -1277,15 +1347,16 @@
                     
                     window.location.href = '/create-form';
                 } else {
-                    console.error('Backend authentication failed');
+                    console.error('Backend authentication failed after redirect');
                     alert('Sign-in failed. Please try again.');
                 }
+            } else {
+                console.log('No redirect result found');
+                redirectProcessed = true; // Mark as processed even if no result
             }
         }).catch((error) => {
             console.error('Redirect result error:', error);
-            if (error.code && error.code !== 'auth/popup-blocked') {
-                alert(`Sign-in error: ${error.message}`);
-            }
+            redirectProcessed = true; // Mark as processed even on error
         });
         
         // Sign out function
@@ -1613,6 +1684,21 @@
                 console.log('Auth state changed:', user?.email || 'Not signed in');
                 
                 if (user) {
+                    // Wait for redirect processing to complete to avoid race conditions
+                    if (!redirectProcessed) {
+                        console.log('Waiting for redirect processing to complete...');
+                        await new Promise(resolve => {
+                            const checkRedirect = () => {
+                                if (redirectProcessed) {
+                                    resolve();
+                                } else {
+                                    setTimeout(checkRedirect, 100);
+                                }
+                            };
+                            checkRedirect();
+                        });
+                    }
+                    
                     // User is already signed in - verify backend session
                     console.log('User already authenticated:', user.email);
                     
@@ -1627,17 +1713,13 @@
                             // User is fully authenticated - update UI if needed
                         } else {
                             console.log('Backend session invalid, syncing...');
-                            // Backend session missing, sync it
-                            const idToken = await user.getIdToken();
-                            await fetch('/firebase-auth', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ idToken })
-                            });
+                            // Backend session missing, sync it using synchronized method
+                            await syncTokenToBackend(user, 'auth-state-changed');
                         }
                     } catch (error) {
                         console.error('Session check failed:', error);
+                        // Try to sync anyway in case of network issues
+                        await syncTokenToBackend(user, 'auth-state-changed-fallback');
                     }
                 }
             });
