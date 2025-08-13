@@ -30,7 +30,9 @@ app.secret_key = os.environ.get(
 is_production = os.environ.get("VERCEL") or os.environ.get("PRODUCTION") 
 app.config["SESSION_COOKIE_SECURE"] = is_production  # True for HTTPS, False for localhost
 app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SAMESITE"] = "None" if is_production else "Lax"  # None for OAuth redirects in production
+app.config["PERMANENT_SESSION_LIFETIME"] = 86400 * 7  # 7 days
+app.config["SESSION_PERMANENT"] = True
 
 CORS(app, supports_credentials=True)
 
@@ -624,7 +626,8 @@ def google_auth():
             # If Firestore is also hitting quota, continue with session anyway
             logger.warning(f"Firestore operation failed ({str(firestore_error)}), continuing with session")
 
-        # Store user session
+        # Store user session with permanence
+        session.permanent = True
         session["user_id"] = user_id
         session["email"] = email
         session["authenticated"] = True
@@ -743,6 +746,19 @@ def billing():
     except Exception as e:
         return jsonify({"error": "Failed to load billing page", "details": str(e)}), 500
 
+
+@app.route("/api/user")
+@login_required 
+def check_user_session():
+    """Check if user session is valid - lightweight endpoint"""
+    try:
+        return jsonify({
+            "authenticated": True,
+            "user_id": request.user["uid"], 
+            "email": request.user["email"]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": "Session invalid"}), 401
 
 @app.route("/api/user/profile")
 @login_required
