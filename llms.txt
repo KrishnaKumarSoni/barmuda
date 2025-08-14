@@ -1,0 +1,923 @@
+# https://barmuda.in llms-full.txt
+
+## Conversational Survey Solutions
+## Create Your Survey
+
+Generate
+
+## User Interview Templates
+
+User Interview Templates
+
+### User Interview
+
+### Product Discovery
+
+### Customer Journey
+
+### Pain Points
+
+### Feature Validation
+
+### Usability Testing
+
+### Persona Research
+
+### Jobs to be Done
+
+### Market Fit
+
+### Competitor Analysis
+
+### Pricing Validation
+
+### Market Segmentation
+
+### Onboarding Research
+
+### Churn Prevention
+
+### Expansion Research
+
+### NPS Deep Dive
+
+### Roadmap Priority
+
+### Brand Perception
+
+### User Behavior
+
+### Retention Drivers
+
+### B2B Buying Process
+
+### Mobile Usage
+
+### Integration Research
+
+### Accessibility Research
+
+### Customer Feedback
+
+### Employee Survey
+
+### Patient Experience
+
+### Course Evaluation
+
+### Hotel Experience
+
+### Restaurant Feedback
+
+### Support Experience
+
+### Website Experience
+
+### App Experience
+
+### Beta Testing
+
+### Market Research
+
+AI-Generated
+
+Chat Interface
+
+Embed Widget
+
+CSV Export
+
+Share Links
+
+Dashboard
+
+## Forms suck. Everyone knows it.
+
+People see a long form and give up. You get 10% response rates if you're lucky.
+
+
+### Traditional surveys
+
+#### People quit after 2 minutes
+
+They see 20 questions at once and immediately feel overwhelmed. Most people abandon before starting.
+
+#### Low response rates
+
+Static forms feel like homework. People rush through or skip questions entirely.
+
+#### Poor data quality
+
+Rushed responses and random clicking leads to unreliable data you can't trust.
+
+### Conversational surveys
+
+#### Feels like texting a friend
+
+AI asks one question at a time in natural conversation. No overwhelming forms to look at.
+
+#### 3x higher completion rates
+
+People actually finish because the experience is engaging and personalized.
+
+#### Richer, authentic responses
+
+No bias from visible options. People give honest, detailed answers in their own words.
+
+## Three steps. That's it.
+
+From idea to live survey in under 2 minutes
+
+
+1
+
+### Describe your survey
+
+Just paste your questions or describe what you want to learn. Our AI does the rest.
+
+
+2
+
+### Share your link
+
+Get a unique link that works on any device. Share it anywhere you want.
+
+
+3
+
+### Watch responses flow in
+
+People chat naturally. You get structured data ready for analysis.
+
+
+### See it in action
+
+This is what your respondents will experience
+
+barmuda.vercel.app/form/demo
+
+Hey! 👋 What's your favorite type of coffee?
+
+I love cold brew, especially during summer!
+
+Cold brew is awesome! ☕ How often do you visit coffee shops?
+
+## Embed anywhere in seconds
+
+Add a floating chat button to your website. Visitors can start conversations without leaving your page.
+
+
+### One-click integration
+
+Copy one line of code. Paste it anywhere on your website. The widget appears instantly with your brand colors.
+
+### Works everywhere
+
+WordPress, Shopify, React, or plain HTML. Works on desktop and mobile. No conflicts with existing code.
+
+### Matches your brand
+
+Customize position, colors, and text. Floating button blends seamlessly with your website design.
+
+### See it in action
+
+This floating button appears on your website
+
+Share your feedback
+
+
+HTML Copy
+
+
+```
+<script>
+(function() {
+    var script = document.createElement('script');
+    script.src = 'https://barmuda.vercel.app/widget.js';
+    script.setAttribute('data-form-id', 'YOUR_FORM_ID');
+    script.setAttribute('data-position', 'bottom-right');
+    script.setAttribute('data-color', '#cc5500');
+    document.head.appendChild(script);
+})();
+</script>
+```
+
+## The results speak for themselves
+
+Companies using conversational surveys see dramatic improvements in response quality and completion rates
+
+
+3x
+
+Higher completion rates
+
+vs traditional forms
+
+87%
+
+Average completion rate
+
+industry average is 31%
+
+5x
+
+More detailed responses
+
+richer qualitative data
+
+### Traditional vs Conversational
+
+Traditional surveys
+
+Show all 20 questions at once → People get overwhelmed → 31% completion rate
+
+Conversational surveys
+
+AI asks one question at a time → Feels like texting → 87% completion rate
+
+People actually finish the survey
+
+No bias from visible answer options
+
+Richer responses in natural language
+
+Better data quality overall
+
+## Frequently asked questions
+
+Everything you need to know about conversational surveys
+
+
+### How does the AI understand natural language responses?
+
+Our AI uses GPT-4o-mini with specialized tools to understand context, handle multiple answers in one message, resolve conflicts, and extract structured data from conversational responses. It's trained to handle edge cases like vague answers, off-topic responses, and questions people skip.
+
+### How do I embed surveys on my website?
+
+Copy-paste one line of JavaScript code and get a floating chat widget on your site. No complex setup, no iframes, no CSP issues. The widget works on any website and matches your brand colors.
+
+### What types of questions can I ask?
+
+Any type! Text responses, multiple choice, ratings, yes/no questions, and numbers. The AI automatically infers question types from your description. We also provide 12+ templates for common use cases like customer feedback and employee surveys.
+
+### How do I analyze the responses?
+
+View responses in your dashboard with charts, word clouds, and insights. Export data as CSV or JSON for Excel, Google Sheets, or analytics tools. All conversational responses are automatically structured into clean, analyzable data.
+
+### Is respondent data private?
+
+Yes. Respondents stay anonymous - no accounts or personal info required. We only collect device fingerprints to prevent duplicates. Your survey data is encrypted, stored securely, and only accessible to you.
+
+### How much does it cost?
+
+Start free with 100 conversations per month and 3 forms. Paid plans start at $19/month for 1,000 conversations with unlimited forms, embedding, and custom colors. No per-response charges - simple monthly pricing.
+
+## Ready to get 3x more responses?
+
+Join thousands of researchers, marketers, and HR teams who switched from boring surveys to engaging conversations.
+
+
+Create your first survey
+
+Free to start•No credit card required•Setup in 2 minutes
+
+Unlimited surveys
+
+CSV export included
+
+24/7 support
+
+Loading...
+
+powered by barmuda
+
+### Thanks for the chat! 😊
+
+Your responses have been shared and will help make a real difference.
+
+Done
+
+## Barmuda Sitemap
+https://barmuda.in/2025-01-10daily1.0https://barmuda.in/why2025-01-10weekly0.9https://barmuda.in/pricing2025-01-10weekly0.8https://barmuda.in/privacy2025-01-10monthly0.3https://barmuda.in/terms2025-01-10monthly0.3
+
+## Privacy Policy Overview
+# Privacy Policy
+
+Last updated: January 6, 2025
+
+
+## Introduction
+
+Barmuda ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our conversational survey platform and services.
+
+
+By using our service, you agree to the collection and use of information in accordance with this policy.
+
+
+## Information We Collect
+
+### Personal Information
+
+When you create an account, we collect:
+
+
+- Email address (via Google SSO)
+- Name and profile information from your Google account
+- Account preferences and settings
+
+### Survey Data
+
+When you create or respond to surveys:
+
+
+- Survey questions and responses
+- Chat conversation transcripts
+- Response metadata (timestamps, completion status)
+- Analytics data (response rates, completion times)
+
+### Technical Information
+
+We automatically collect:
+
+
+- Device fingerprint (for anti-abuse and duplicate detection)
+- IP address and approximate location
+- Browser type and version
+- Usage analytics and performance metrics
+- Session information
+
+## How We Use Your Information
+
+We use collected information to:
+
+- Provide and maintain our survey platform
+- Process and deliver survey responses
+- Improve our AI conversation capabilities
+- Detect and prevent duplicate submissions
+- Prevent abuse and ensure platform security
+- Provide customer support
+- Send service-related communications
+- Analyze usage patterns to improve our service
+
+## Information Sharing and Disclosure
+
+We do not sell, trade, or rent your personal information. We may share information in these limited circumstances:
+
+
+- **Service Providers:** With trusted third parties who assist in operating our platform (e.g., OpenAI for AI processing, Firebase for authentication)
+- **Survey Creators:** Survey responses are shared with the creators of those surveys
+- **Legal Requirements:** When required by law or to protect our rights and safety
+- **Business Transfers:** In connection with mergers, acquisitions, or asset sales
+
+## Survey Respondent Privacy
+
+For survey respondents, we prioritize anonymity:
+
+
+- No account creation required to respond to surveys
+- We collect device fingerprints and location silently for anti-abuse purposes only
+- Personal identifiers are not linked to survey responses unless voluntarily provided
+- Survey creators cannot access respondent IP addresses or device information
+- Duplicate detection helps ensure data quality without compromising anonymity
+
+## Data Security
+
+We implement appropriate security measures to protect your information:
+
+
+- Encryption in transit and at rest
+- Secure authentication via Google SSO
+- Regular security assessments
+- Access controls and monitoring
+- Data backup and recovery procedures
+
+However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.
+
+
+## Data Retention
+
+We retain your information for as long as:
+
+- Your account is active
+- Needed to provide our services
+- Required for legal, tax, or accounting purposes
+- Necessary to resolve disputes or enforce agreements
+
+Survey responses are retained indefinitely unless explicitly deleted by the survey creator.
+
+
+## Your Privacy Rights
+
+You have the right to:
+
+- Access and update your account information
+- Delete your surveys and associated responses
+- Export your survey data
+- Request account deletion
+- Opt out of non-essential communications
+
+To exercise these rights, contact us at the email address below.
+
+
+## Cookies and Tracking
+
+We use cookies and similar technologies to:
+
+
+- Maintain your login session
+- Remember your preferences
+- Analyze site usage and performance
+- Prevent fraud and abuse
+
+You can control cookies through your browser settings, though some features may not work properly if disabled.
+
+
+## Third-Party Services
+
+Our service integrates with third-party providers:
+
+
+- **Google Firebase:** Authentication and data storage
+- **OpenAI:** AI-powered conversation processing
+- **Vercel:** Platform hosting and deployment
+- **FingerprintJS:** Device identification for anti-abuse
+
+These services have their own privacy policies, which we encourage you to review.
+
+
+## International Users
+
+Our services are hosted in the United States. By using our platform, you consent to the transfer and processing of your information in the US and other countries where our service providers operate. We take appropriate steps to ensure your data is protected in accordance with this privacy policy.
+
+
+## Children's Privacy
+
+Our service is not intended for children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us so we can delete such information.
+
+
+## Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. Continued use of our service after changes constitutes acceptance of the updated policy.
+
+
+## Contact Us
+
+If you have any questions about this Privacy Policy, please contact us at:
+
+
+Email: privacy@barmuda.in
+
+We'll respond to privacy-related inquiries within 30 days.
+
+## Barmuda Pricing Plans
+# Pay for what you use
+
+Free to try. Paid plans when you need more conversations.
+
+
+### Free
+
+$0/month
+
+Perfect for testing and small projects
+
+100 conversations per month
+
+3 surveys
+
+Conversational chat interface
+
+Multiple question types
+
+**Website embedding widget**
+
+Response dashboard
+
+CSV export
+
+"Powered by Barmuda" branding
+
+**Good for:** Testing if people actually respond better to chat surveys
+
+Start free
+
+
+Popular
+
+### Starter
+
+$19/month
+
+For serious survey creators
+
+1,000 conversations per month
+
+Unlimited surveys
+
+Remove Barmuda branding
+
+**Custom embedding widget colors**
+
+Template library (12 templates)
+
+Active/inactive form control
+
+Response analytics
+
+JSON & CSV export
+
+**Good for:** Small businesses, personal projects, student research
+
+Upgrade to Starter
+
+
+### Pro
+
+$49/month
+
+For scaling businesses & power users
+
+10,000 conversations per month
+
+Everything in Starter
+
+Priority email support
+
+**Advanced embedding customization**
+
+Word cloud visualization
+
+Duplicate response detection
+
+Advanced response filtering
+
+Custom export formats
+
+**Good for:** Companies that survey customers monthly, market researchers, consultants
+
+Upgrade to Pro
+
+
+### Business
+
+Talk to sales
+
+For enterprise & high-volume users
+
+Unlimited conversations
+
+Everything in Pro
+
+Team member access
+
+**Enterprise embedding solutions**
+
+Dedicated account manager
+
+Custom integrations
+
+SLA guarantees
+
+**Good for:** Agencies, larger companies, research firms
+
+Contact Sales
+
+
+### What you actually get
+
+| Feature | Free | Starter | Pro | Business |
+| --- | --- | --- | --- | --- |
+| Conversations/month | 100 | 1,000 | 10,000 | ∞ |
+| Surveys | 3 | ∞ | ∞ | ∞ |
+| Chat interface |  |  |  |  |
+| CSV export |  |  |  |  |
+| Remove branding |  |  |  |  |
+| Team members |  |  |  |  |
+| Email support |  |  |  |  |
+
+## FAQ
+
+Honest answers
+
+### What counts as a "conversation"?
+
+One person chatting with our AI, start to finish. Even if they quit halfway, it counts.
+
+### What if I go over my limit?
+
+New conversations stop working until you upgrade or the month resets. No extra charges.
+
+### Can I cancel anytime?
+
+Yes. There's no contract. Just stop paying.
+
+### Do you have discounts?
+
+Some early users have grandfathered pricing. Otherwise, standard rates apply.
+
+### What payment methods?
+
+Credit cards via Dodo Payments. UPI and bank transfers for Indian users.
+
+### Can I import from Google Forms?
+
+Copy-paste your questions and our AI creates a conversational version. Or use our 12 pre-built templates.
+
+### What if it doesn't work better?
+
+Try it free first. See for yourself.
+
+## Surveys vs Conversations
+User interviewer at scale
+
+
+# Why surveys fail, and  conversations succeed
+
+Traditional forms are dying. People hate filling them out. Here's the data on why
+conversational interfaces get 3x better results.
+
+
+[Try it yourself](https://www.barmuda.in/) [See the data](https://www.barmuda.in/why#data)
+
+## Traditional surveys are broken
+
+The numbers don't lie. People are abandoning traditional forms at record rates.
+
+
+67%
+
+Survey Abandonment
+
+of people quit surveys due to fatigue and poor UX
+
+45%
+
+Response Rates
+
+down from 60% pre-pandemic, and still falling
+
+18%
+
+Drop Per Question
+
+completion rate falls 18% from question 3 to 4
+
+### The vicious cycle
+
+You send a survey link → People see 15 questions → They think "this will take forever" →
+They close it immediately. Even if they start, adding just one more question drops
+completion rates by 18%. The result? Biased data from only your most engaged (or most angry) customers.
+
+
+## Conversations change everything
+
+When you make surveys feel like texting, people actually want to participate.
+
+
+3x
+
+Higher Response Rates
+
+Conversational interfaces get people talking. They feel natural, not like work.
+
+40%
+
+Better Completion
+
+One question at a time. No overwhelming forms. People actually finish.
+
+### How Barmuda works differently
+
+#### Feels like texting
+
+One question at a time in a familiar chat interface
+
+#### AI-powered
+
+Smart follow-ups based on previous answers
+
+#### No friction
+
+No forms, no progress bars, no overwhelming lists
+
+## The business impact
+
+Better data collection means better business decisions.
+
+
+### Better data quality
+
+Get responses from your whole audience, not just the extremes
+
+### Faster insights
+
+Higher response rates mean you get actionable data sooner
+
+### ROI improvement
+
+Stop guessing what customers want - know it
+
+## Ready to see the difference?
+
+Try creating a conversational survey in under 2 minutes.
+
+
+[Create your first survey](https://www.barmuda.in/) [See a demo](https://www.barmuda.in/demo)
+
+## Barmuda Terms of Service
+# Terms of Service
+
+Last updated: January 6, 2025
+
+
+## Agreement to Terms
+
+These Terms of Service ("Terms") govern your use of Barmuda's conversational survey platform and services ("Service") operated by Barmuda ("we," "our," or "us").
+
+
+By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part of these terms, you may not access the Service.
+
+
+## Acceptance of Terms
+
+By creating an account or using our Service, you represent that:
+
+
+- You are at least 13 years old
+- You have the legal capacity to enter into these Terms
+- Your use of the Service will not violate any applicable laws
+- All information you provide is accurate and current
+
+## Description of Service
+
+Barmuda provides a conversational survey platform that allows you to:
+
+
+- Create surveys with natural language processing
+- Deploy surveys through chat interfaces and website embedding
+- Collect and analyze responses through our dashboard
+- Export survey data in various formats
+- Access AI-powered conversation and data extraction features
+
+## User Accounts
+
+### Account Creation
+
+To use certain features, you must create an account using Google SSO. You are responsible for:
+
+
+- Maintaining the confidentiality of your account
+- All activities that occur under your account
+- Notifying us immediately of any unauthorized use
+
+### Account Termination
+
+We reserve the right to suspend or terminate accounts that violate these Terms, engage in abusive behavior, or for any other reason at our sole discretion.
+
+
+## Acceptable Use Policy
+
+You agree not to:
+
+- Use the Service for any illegal or unauthorized purpose
+- Create surveys that collect sensitive personal information without proper disclosure
+- Harass, abuse, or harm other users or respondents
+- Attempt to gain unauthorized access to our systems
+- Reverse engineer or attempt to extract our source code
+- Spam or send unsolicited survey links
+- Create surveys with misleading, deceptive, or fraudulent content
+- Violate any applicable laws, regulations, or third-party rights
+- Use automated systems to abuse our rate limits
+- Interfere with the proper working of the Service
+
+## Content and Data Ownership
+
+### Your Content
+
+You retain ownership of all surveys, questions, and data you create. By using our Service, you grant us a limited license to:
+
+
+- Host, store, and process your content to provide the Service
+- Use aggregated, anonymized data to improve our AI capabilities
+- Display your surveys to intended respondents
+
+### Respondent Data
+
+As a survey creator, you are responsible for:
+
+
+- Complying with applicable privacy laws (GDPR, CCPA, etc.)
+- Providing appropriate disclosures to respondents
+- Obtaining necessary consents for data collection
+- Using collected data responsibly and lawfully
+
+## Subscription and Billing
+
+### Paid Plans
+
+Our paid plans are billed monthly and include:
+
+
+- Starter Plan: $19/month for 1,000 conversations
+- Pro Plan: $49/month for 10,000 conversations
+- Business Plan: Custom pricing for unlimited conversations
+
+### Billing Terms
+
+- Payments are processed securely through third-party payment processors
+- Subscriptions automatically renew unless cancelled
+- No refunds for partial months or unused conversations
+- Price changes will be communicated 30 days in advance
+- Overages beyond plan limits may result in additional charges
+
+### Cancellation
+
+You may cancel your subscription at any time. Cancellation takes effect at the end of your current billing period. Your data will remain accessible during any paid period.
+
+
+## Intellectual Property Rights
+
+The Service and its original content, features, and functionality are owned by Barmuda and are protected by copyright, trademark, and other intellectual property laws.
+
+
+You may not copy, modify, distribute, sell, or lease any part of our Service without our express written permission.
+
+
+## Privacy
+
+Your privacy is important to us. Please review our Privacy Policy, which explains how we collect, use, and protect your information when you use our Service. By using our Service, you agree to our privacy practices.
+
+
+## Service Availability
+
+We strive to maintain high service availability but cannot guarantee uninterrupted service. We may:
+
+
+- Perform scheduled maintenance with advance notice
+- Experience unexpected downtime due to technical issues
+- Modify or discontinue features with reasonable notice
+
+We are not liable for any downtime or service interruptions.
+
+
+## Disclaimers and Limitations
+
+### AI Accuracy
+
+Our AI-powered features are provided "as is." While we strive for accuracy, we cannot guarantee that:
+
+
+- Survey generation will perfectly match your intent
+- Response extraction will be 100% accurate
+- Conversation flows will handle all edge cases perfectly
+
+### Service Limitations
+
+THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE DISCLAIM ALL WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+
+## Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, BARMUDA SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, OR USE, INCURRED BY YOU OR ANY THIRD PARTY.
+
+
+Our total liability to you for all claims shall not exceed the amount you paid us in the 12 months preceding the claim.
+
+
+## Indemnification
+
+You agree to indemnify and hold harmless Barmuda from any claims, damages, losses, or expenses (including attorney fees) arising from your use of the Service, violation of these Terms, or infringement of any third-party rights.
+
+
+## Governing Law and Disputes
+
+These Terms are governed by the laws of the State of Delaware, United States, without regard to conflict of law principles.
+
+
+Any disputes arising from these Terms or your use of the Service will be resolved through binding arbitration, except for claims involving intellectual property rights or injunctive relief.
+
+
+## Changes to Terms
+
+We may modify these Terms at any time. We will notify you of significant changes by email or through the Service. Continued use after changes constitutes acceptance of the updated Terms. If you disagree with changes, you should discontinue using the Service.
+
+
+## Severability
+
+If any provision of these Terms is found to be unenforceable, the remaining provisions will remain in full force and effect. The unenforceable provision will be modified to the minimum extent necessary to make it enforceable.
+
+
+## Entire Agreement
+
+These Terms, together with our Privacy Policy, constitute the entire agreement between you and Barmuda regarding the Service and supersede all prior agreements and understandings.
+
+
+## Contact Information
+
+If you have any questions about these Terms of Service, please contact us at:
+
+
+Email: legal@barmuda.in
+
+We'll respond to legal inquiries within 30 days.
+
