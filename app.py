@@ -1003,6 +1003,7 @@ def infer_form():
                     "title": inferred_form["title"],
                     "questions": inferred_form["questions"],
                     "demographics": inferred_form.get("demographics", {}),
+                    "profile_data": inferred_form.get("profile_data", {}),  # NEW: Profile data section
                     "bot_context": "",  # Empty by default in inference, can be added in editing
                     "creator_id": user_id,
                     "active": False,  # Key field - survey is inactive
@@ -1252,6 +1253,7 @@ def save_form():
             "title": form_data["title"],
             "questions": form_data["questions"],
             "demographics": form_data.get("demographics", {}),
+            "profile_data": form_data.get("profile_data", {}),  # NEW: Profile data section
             "bot_context": form_data.get("bot_context", ""),
             "creator_id": user_id,
             "created_at": datetime.utcnow().isoformat(),
@@ -1285,6 +1287,13 @@ def save_form():
                             [
                                 k
                                 for k, v in form_data.get("demographics", {}).items()
+                                if v
+                            ]
+                        ),
+                        "profile_data_enabled": len(
+                            [
+                                k
+                                for k, v in form_data.get("profile_data", {}).items()
                                 if v
                             ]
                         ),
@@ -1376,6 +1385,7 @@ def update_form(form_id):
             "title": form_data["title"],
             "questions": form_data["questions"],
             "demographics": form_data.get("demographics", {}),
+            "profile_data": form_data.get("profile_data", {}),  # NEW: Profile data section
             "bot_context": form_data.get("bot_context", ""),
             "active": form_data.get(
                 "active", existing_form.get("active", False)
@@ -1417,6 +1427,13 @@ def update_form(form_id):
                             [
                                 k
                                 for k, v in form_data.get("demographics", {}).items()
+                                if v
+                            ]
+                        ),
+                        "profile_data_enabled": len(
+                            [
+                                k
+                                for k, v in form_data.get("profile_data", {}).items()
                                 if v
                             ]
                         ),
@@ -1465,6 +1482,7 @@ def get_form(form_id):
                         "title": form_data.get("title"),
                         "questions": form_data.get("questions", []),
                         "demographics": form_data.get("demographics", {}),
+                        "profile_data": form_data.get("profile_data", {}),  # NEW: Include in response
                     },
                     "metadata": {
                         "form_id": form_id,

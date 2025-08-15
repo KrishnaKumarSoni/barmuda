@@ -294,10 +294,25 @@ def advance_to_next_question(session_id: str) -> dict:
         answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
         all_completed = answered_count >= len(enabled_questions)
         
+        # Check for additional data collection (demographics & profile)
+        demographics_enabled = []
+        profile_data_enabled = []
+        
+        if all_completed:
+            # Get enabled demographics
+            demographics = session.form_data.get("demographics", {})
+            demographics_enabled = [k for k, v in demographics.items() if v]
+            
+            # Get enabled profile data
+            profile_data = session.form_data.get("profile_data", {})
+            profile_data_enabled = [k for k, v in profile_data.items() if v]
+        
         return {
             "advanced": True,
             "next_question": next_question,
             "all_questions_completed": all_completed,
+            "demographics_enabled": demographics_enabled,
+            "profile_data_enabled": profile_data_enabled,
             "progress": {
                 "answered": answered_count,
                 "total": len(enabled_questions)
@@ -556,6 +571,26 @@ Be DIRECT. No meta-commentary. No over-explaining. Just ask what you need to kno
 - Tell-me-more: "Can you paint me a picture?"
 - Example: "Can you think of a specific time?"
 - Why ladder: "What led to that?" / "What's important about that?"
+
+# COLLECTING ADDITIONAL DATA (DEMOGRAPHICS & PROFILE)
+**IMPORTANT**: After all main survey questions are completed, check for additional data collection:
+
+**Check Required**: Use advance_to_next_question() to see if all_questions_completed = True
+**If Yes**: Check the session's form_data for enabled "demographics" and "profile_data" fields
+**Collection Flow**:
+1. If demographics enabled: "Great! Just a few quick demographic questions: [list enabled fields]"
+2. Collect each enabled demographic field naturally in conversation
+3. If profile_data enabled: "And lastly, some profile information: [list enabled fields]"
+4. For profile fields with validation (email, phone, linkedin, website): Ask politely for correct format if needed
+5. Store all additional responses using save_user_response()
+
+**Validation Examples**:
+- Email: "Could you share that as an email address? (like user@domain.com)"
+- Phone: "What's your phone number?"
+- LinkedIn: "What's your LinkedIn profile URL?"
+- Website: "What's your website URL?"
+
+**After All Data Collected**: Proceed to normal ending conversation flow
 
 # ENDING CONVERSATIONS
 **CRITICAL: Two-step confirmation required**
