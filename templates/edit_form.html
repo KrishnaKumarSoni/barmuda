@@ -148,6 +148,25 @@
             </div>
         </div>
         
+        <!-- Profile Data Section -->
+        <div class="border-t border-gray-300 pt-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="font-jakarta font-bold text-3xl text-bermuda-orange tracking-tight">profile data</h2>
+                <button 
+                    id="profileDataToggle"
+                    onclick="toggleProfileData()"
+                    class="w-20 h-12"
+                >
+                    <i class="ph ph-toggle-left text-gray-400 text-5xl"></i>
+                </button>
+            </div>
+            
+            <!-- Profile Data Grid -->
+            <div id="profileDataGrid" class="grid grid-cols-3 gap-4 hidden">
+                <!-- Profile data options will be populated here -->
+            </div>
+        </div>
+        
         <!-- Action Buttons -->
         <div class="flex justify-center gap-4 mt-16">
             <button 
@@ -307,6 +326,18 @@
             'Age', 'Education', 'Experience', 'Income', 'Occupation', 'Weight',
             'Home city', 'Gender', 'Height'
         ];
+        
+        // Profile Data options with validation info
+        const profileDataOptions = [
+            { name: 'Name', key: 'name', validation: false },
+            { name: 'Email Address', key: 'email', validation: true, tooltip: 'Basic email format validation (user@domain.com)' },
+            { name: 'Phone Number', key: 'phone', validation: true, tooltip: 'Basic phone number format validation' },
+            { name: 'Company', key: 'company', validation: false },
+            { name: 'Job Title', key: 'jobtitle', validation: false },
+            { name: 'LinkedIn Profile', key: 'linkedin', validation: true, tooltip: 'Basic LinkedIn URL validation (linkedin.com/in/username)' },
+            { name: 'Website', key: 'website', validation: true, tooltip: 'Basic website URL validation (http/https)' },
+            { name: 'Social Media Handle', key: 'socialmedia', validation: false }
+        ];
 
         // Initialize form data from URL parameter, session storage, or existing form
         function initializeForm() {
@@ -393,6 +424,9 @@
             
             // Render demographics
             renderDemographics();
+            
+            // Render profile data
+            renderProfileData();
         }
 
         // Render questions
@@ -747,6 +781,106 @@
             formData.demographics[option] = !formData.demographics[option];
             renderDemographics();
         }
+        
+        // Profile Data functions
+        function renderProfileData() {
+            const grid = document.getElementById('profileDataGrid');
+            
+            // Don't render items when profile data section is hidden
+            if (grid.classList.contains('hidden')) {
+                return;
+            }
+            
+            grid.innerHTML = '';
+            
+            // Check if profile data section is enabled (main toggle state)
+            const profileDataEnabled = !grid.classList.contains('hidden');
+            
+            profileDataOptions.forEach(option => {
+                const isEnabled = profileDataEnabled && formData.profile_data && formData.profile_data[option.key] || false;
+                
+                const optionDiv = document.createElement('div');
+                optionDiv.className = `bg-white rounded-lg border border-bermuda-border p-4 flex items-center justify-between ${!profileDataEnabled ? 'opacity-50' : ''}`;
+                
+                // Create the label section with optional shield icon
+                let labelSection = `<span class="font-dm text-base text-bermuda-text tracking-tight">${option.name}</span>`;
+                
+                if (option.validation) {
+                    labelSection = `
+                        <div class="flex items-center gap-2">
+                            <span class="font-dm text-base text-bermuda-text tracking-tight">${option.name}</span>
+                            <div class="relative group">
+                                <i class="ph ph-shield-check text-bermuda-orange text-sm opacity-70 hover:opacity-100 cursor-help"></i>
+                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
+                                    ${option.tooltip}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                optionDiv.innerHTML = `
+                    <div class="flex items-center">
+                        ${labelSection}
+                    </div>
+                    <button 
+                        onclick="${profileDataEnabled ? `toggleProfileDataOption('${option.key}')` : 'return false'}"
+                        class="w-20 h-12 ${!profileDataEnabled ? 'cursor-not-allowed' : ''}"
+                    >
+                        <i class="ph ${isEnabled ? 'ph-toggle-right text-[#cc5500]' : 'ph-toggle-left text-gray-400'} text-5xl"></i>
+                    </button>
+                `;
+                
+                grid.appendChild(optionDiv);
+            });
+        }
+        
+        function toggleProfileData() {
+            const grid = document.getElementById('profileDataGrid');
+            const toggle = document.getElementById('profileDataToggle');
+            
+            if (grid.classList.contains('hidden')) {
+                // Show profile data section - enable it
+                grid.classList.remove('hidden');
+                toggle.innerHTML = '<i class="ph ph-toggle-right text-[#cc5500] text-5xl"></i>';
+                
+                // Initialize profile data if not set
+                if (!formData.profile_data) {
+                    formData.profile_data = {};
+                    // Set all to false initially
+                    profileDataOptions.forEach(opt => {
+                        formData.profile_data[opt.key] = false;
+                    });
+                }
+            } else {
+                // Hide profile data section - disable all profile data
+                grid.classList.add('hidden');
+                toggle.innerHTML = '<i class="ph ph-toggle-left text-gray-400 text-5xl"></i>';
+                
+                // Disable all profile data when hiding section
+                if (!formData.profile_data) formData.profile_data = {};
+                profileDataOptions.forEach(opt => {
+                    formData.profile_data[opt.key] = false;
+                });
+            }
+            
+            renderProfileData();
+        }
+        
+        function toggleProfileDataOption(optionKey) {
+            // Only allow toggling if profile data section is visible
+            const grid = document.getElementById('profileDataGrid');
+            if (grid.classList.contains('hidden')) {
+                return;
+            }
+            
+            if (!formData.profile_data) {
+                formData.profile_data = {};
+            }
+            
+            formData.profile_data[optionKey] = !formData.profile_data[optionKey];
+            renderProfileData();
+        }
 
 
         // Form validation
@@ -1048,11 +1182,21 @@
                 if (currentQuestionIndex >= enabledQuestions.length) {
                     // Show demographics if enabled
                     const enabledDemographics = Object.keys(formData.demographics || {}).filter(key => formData.demographics[key]);
-                    if (enabledDemographics.length > 0) {
+                    const enabledProfileData = Object.keys(formData.profile_data || {}).filter(key => formData.profile_data[key]);
+                    
+                    if (enabledDemographics.length > 0 || enabledProfileData.length > 0) {
                         setTimeout(() => {
-                            addChatMessage('assistant', `Great! Just a few quick demographic questions to wrap up: ${enabledDemographics.join(', ')}.`);
+                            let additionalQuestions = [];
+                            if (enabledDemographics.length > 0) {
+                                additionalQuestions.push(`demographic questions (${enabledDemographics.join(', ')})`);
+                            }
+                            if (enabledProfileData.length > 0) {
+                                additionalQuestions.push(`profile information (${enabledProfileData.join(', ')})`);
+                            }
+                            
+                            addChatMessage('assistant', `Great! Just a few quick additional questions to wrap up: ${additionalQuestions.join(' and ')}.`);
                             setTimeout(() => {
-                                addChatMessage('user', '[User answers demographic questions...]', true);
+                                addChatMessage('user', '[User provides demographic and profile information...]', true);
                                 setTimeout(() => {
                                     addChatMessage('assistant', 'Perfect! Thank you for completing the form. Your responses have been recorded.');
                                 }, 1500);
