@@ -705,9 +705,14 @@ def dashboard():
                 form_data = doc.to_dict()
                 form_data["form_id"] = doc.id
 
-                # Count responses for this form
+                # Count responses for this form more efficiently
+                # Use limit to avoid loading all documents
                 responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", doc.id))
-                response_count = len(list(responses_ref.stream()))
+                response_docs = responses_ref.limit(100).stream()
+                response_count = sum(1 for _ in response_docs)
+                # If we hit the limit, show 100+
+                if response_count == 100:
+                    response_count = "100+"
                 form_data["response_count"] = response_count
 
                 forms.append(form_data)
@@ -720,9 +725,14 @@ def dashboard():
                 form_data = doc.to_dict()
                 form_data["form_id"] = doc.id
 
-                # Count responses for this form
+                # Count responses for this form more efficiently
+                # Use limit to avoid loading all documents
                 responses_ref = db.collection("responses").where(filter=FieldFilter("form_id", "==", doc.id))
-                response_count = len(list(responses_ref.stream()))
+                response_docs = responses_ref.limit(100).stream()
+                response_count = sum(1 for _ in response_docs)
+                # If we hit the limit, show 100+
+                if response_count == 100:
+                    response_count = "100+"
                 form_data["response_count"] = response_count
 
                 forms.append(form_data)
