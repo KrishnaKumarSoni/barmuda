@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>Survey Guides - AI User Interviews & Conversational Survey Best Practices</title>
+    
+    <!-- Enhanced SEO Meta Tags -->
+    {% set page_title = "Survey Guides - AI User Interviews & Conversational Survey Best Practices" %}
+    {% set meta_description = "Expert guides on AI user interviews, conversational surveys vs traditional forms, and survey response rate optimization. Learn from Barmuda's research and best practices." %}
+    {% set og_title = "Survey Guides - AI User Interviews & Conversational Survey Best Practices" %}
+    {% set og_description = "Expert guides on AI user interviews, conversational surveys vs traditional forms, and survey response rate optimization. Learn from Barmuda's research and best practices." %}
+    {% set canonical_url = "https://barmuda.in/guides" %}
+    {% set og_url = "https://barmuda.in/guides" %}
+    {% set hreflang_url = "https://barmuda.in/guides" %}
+    {% set page_type = "article" %}
+    {% include 'partials/seo_head.html' %}
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bermuda-orange': '#cc5500',
+                        'bermuda-red': '#d12b2e',
+                        'bermuda-cream': '#fff5e0',
+                        'bermuda-light-cream': '#fffcf4',
+                        'bermuda-border': '#fb9a9a',
+                        'bermuda-nav-border': '#fff0cf',
+                        'bermuda-text': '#1e1e1e',
+                        'bermuda-gray': '#c3c3c3'
+                    },
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                        'dm': ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-white relative min-h-screen font-['Inter']">
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        {% set nav_type = 'guides' %}
+        {% include 'partials/nav.html' %}
+
+        <!-- Hero Section -->
+        <section class="pt-32 pb-20 px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-full text-sm font-medium mb-8">
+                    <i class="ph-fill ph-book-open"></i>
+                    Expert Guides
+                </div>
+                
+                <h1 class="font-['Inter'] font-bold text-4xl md:text-6xl text-gray-900 mb-6 leading-tight">
+                    Survey Research <br>
+                    <span class="text-orange-500">Guides & Best Practices</span>
+                </h1>
+                
+                <p class="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+                    Expert guides on AI user interviews, conversational surveys, and getting better response rates. 
+                    Learn from research and real-world data.
+                </p>
+            </div>
+        </section>
+
+        <!-- Featured Guides -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- AI User Interviews Guide -->
+                    <a href="/guides/ai-user-interviews" class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
+                        <div class="flex items-start gap-4 mb-6">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="ph ph-robot text-blue-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 mb-2 group-hover:text-orange-500 transition-colors">Complete Guide to AI User Interviews</h2>
+                                <p class="text-gray-600">How to conduct scalable user research with AI. Get qualitative insights at quantitative scale.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-6">
+                            <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                                <span>🕒 15 min read</span>
+                                <span>📊 Research-backed</span>
+                                <span>🎯 Actionable</span>
+                            </div>
+                            <div class="flex items-center text-orange-500 font-medium">
+                                Read Guide <i class="ph ph-arrow-right ml-2"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Conversational vs Traditional -->
+                    <a href="/guides/conversational-vs-traditional-surveys" class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
+                        <div class="flex items-start gap-4 mb-6">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="ph ph-chart-line text-green-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 mb-2 group-hover:text-orange-500 transition-colors">Conversational vs Traditional Surveys</h2>
+                                <p class="text-gray-600">Data-driven comparison of survey methods. Why conversations get 3x higher response rates.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-6">
+                            <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                                <span>🕒 12 min read</span>
+                                <span>📈 Data analysis</span>
+                                <span>📋 Comparison</span>
+                            </div>
+                            <div class="flex items-center text-orange-500 font-medium">
+                                Read Guide <i class="ph ph-arrow-right ml-2"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coming Soon -->
+        <section class="py-20">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">More Guides Coming Soon</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        We're constantly adding new research and best practices for modern survey design.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 rounded-xl p-8 border border-gray-100">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="ph ph-microphone text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Voice Survey Design</h3>
+                        <p class="text-gray-600 text-sm mb-4">Best practices for audio-based user research and voice conversations.</p>
+                        <span class="text-sm text-gray-500">Coming Q2 2025</span>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-8 border border-gray-100">
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="ph ph-target text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Survey Response Optimization</h3>
+                        <p class="text-gray-600 text-sm mb-4">Tactics to maximize completion rates and data quality.</p>
+                        <span class="text-sm text-gray-500">Coming Q2 2025</span>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-8 border border-gray-100">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="ph ph-scales text-yellow-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Barmuda vs Competitors</h3>
+                        <p class="text-gray-600 text-sm mb-4">Feature comparisons with Typeform, Google Forms, and other tools.</p>
+                        <span class="text-sm text-gray-500">Coming Q2 2025</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-12 text-white">
+                    <h2 class="text-3xl font-bold mb-4">Ready to try conversational surveys?</h2>
+                    <p class="text-xl mb-8 opacity-90">
+                        Put these guides into practice with Barmuda's AI survey maker.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="/" class="bg-white text-orange-500 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            Create your first survey
+                        </a>
+                        <a href="/why" class="border border-white/30 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
+                            Learn more
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Reusable Footer -->
+    {% include 'partials/footer.html' %}
+</body>
+</html>
