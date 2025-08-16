@@ -1131,6 +1131,31 @@ def why():
     """Why Barmuda page - explains the science and research behind conversational surveys"""
     return render_template("why.html")
 
+@app.route("/guides")
+def guides():
+    """Guides hub - SEO content for AI user interviews and conversational surveys"""
+    return render_template("guides.html")
+
+@app.route("/guides/ai-user-interviews")
+def ai_user_interviews_guide():
+    """Complete Guide to AI User Interviews - hero SEO content"""
+    return render_template("guides/ai-user-interviews.html")
+
+@app.route("/guides/conversational-vs-traditional-surveys")
+def conversational_vs_traditional():
+    """Conversational vs Traditional Surveys comparison guide"""
+    return render_template("guides/conversational-vs-traditional.html")
+
+@app.route("/vs-typeform")
+def vs_typeform():
+    """Barmuda vs Typeform comparison page"""
+    return render_template("comparisons/vs-typeform.html")
+
+@app.route("/vs-google-forms")
+def vs_google_forms():
+    """Barmuda vs Google Forms comparison page"""
+    return render_template("comparisons/vs-google-forms.html")
+
 
 # SEO and crawling routes
 @app.route("/robots.txt")
