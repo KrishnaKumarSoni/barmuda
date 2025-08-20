@@ -294,6 +294,9 @@
                         // Add greeting (welcome back)
                         addMessage('assistant', data.greeting);
                         
+                        // Check for chip options in the latest message
+                        checkForChipOptions(data.greeting);
+                        
                         // Enable input
                         document.getElementById('message-input').disabled = false;
                         document.getElementById('send-button').disabled = false;
@@ -302,6 +305,9 @@
                         // New session
                         // Add initial greeting
                         addMessage('assistant', data.greeting);
+                        
+                        // Check for chip options in the initial greeting
+                        checkForChipOptions(data.greeting);
                         
                         // Enable input
                         document.getElementById('message-input').disabled = false;
@@ -483,6 +489,33 @@
                 setTimeout(() => {
                     showCompletionScreen();
                 }, 1500);
+            }
+        }
+
+        // Check for chip options in a message (for greetings and resumed sessions)
+        async function checkForChipOptions(message) {
+            if (!sessionId || !message) return;
+            
+            try {
+                const response = await fetch('/api/chat/check_chips', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.chip_options && data.chip_options.show_chips) {
+                    addChipOptions(data.chip_options);
+                }
+            } catch (error) {
+                console.error('Error checking for chip options:', error);
+                // Fail silently - chips are optional enhancement
             }
         }
 

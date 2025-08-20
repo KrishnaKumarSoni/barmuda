@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Chip System Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .widget-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #cc5500;
+        }
+        
+        .widget-info h3 {
+            margin-top: 0;
+            color: #cc5500;
+        }
+        
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Barmuda Widget Chip System Test</h1>
+        
+        <div class="description">
+            <p>This page tests the <strong>embed widget functionality</strong> with the new polished chip system. The widget should:</p>
+            <ul>
+                <li>✅ Display as a floating action button (bottom-right)</li>
+                <li>✅ Open a modal with full chat functionality</li>
+                <li>✅ Show clickable chips for MCQ/Yes-No/Rating questions</li>
+                <li>✅ Maintain smooth animations and professional styling</li>
+                <li>✅ Work seamlessly across different domains</li>
+            </ul>
+        </div>
+        
+        <div class="widget-info">
+            <h3>📋 Test Form Details</h3>
+            <p><strong>Form:</strong> Brand Awareness and Perception Study</p>
+            <p><strong>Form ID:</strong> <code>5ak80wmsFBIB8yAS12bT</code></p>
+            <p><strong>Question Types:</strong> Multiple Choice, Rating, Text</p>
+            <p><strong>Widget Position:</strong> Bottom-right</p>
+            <p><strong>Expected Chips:</strong> Yes for MCQ/Rating, No for Text</p>
+        </div>
+        
+        <div class="footer">
+            <p>Widget embedded below ↘️ • Testing production chip system • Powered by barmuda.in</p>
+        </div>
+    </div>
+
+    <!-- Barmuda Widget Embed -->
+    <script>
+    (function() {
+        var script = document.createElement('script');
+        script.src = 'https://barmuda.in/widget.js';
+        script.setAttribute('data-form-id', '5ak80wmsFBIB8yAS12bT');
+        script.setAttribute('data-position', 'bottom-right');
+        script.setAttribute('data-color', '#cc5500');
+        document.head.appendChild(script);
+    })();
+    </script>
+</body>
+</html>
