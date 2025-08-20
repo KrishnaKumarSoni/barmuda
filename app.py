@@ -2361,6 +2361,106 @@ def get_chat_status(session_id):
         return jsonify({"error": "Session not found"}), 404
 
 
+@app.route("/api/chat/check_chips", methods=["POST"])
+def check_chips():
+    """Check if a message should have chip options"""
+    try:
+        data = request.get_json()
+        session_id = data.get("session_id")
+        message = data.get("message")
+        
+        if not session_id or not message:
+            return jsonify({"success": False, "error": "Missing session_id or message"}), 400
+            
+        # Get the chat session
+        chat_session = chat_sessions.get(session_id)
+        if not chat_session:
+            return jsonify({"success": False, "error": "Session not found"}), 404
+            
+        # Get form data
+        form_doc = db.collection('forms').document(chat_session.form_id).get()
+        if not form_doc.exists:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+            
+        form_data = form_doc.to_dict()
+        
+        # Use the intelligent chip detection tools
+        tools = [
+            get_question_type_tool(),
+            detect_chip_options_tool(),
+            validate_chip_response_tool()
+        ]
+        
+        # Create agent to analyze the message
+        agent = Agent(
+            model="gpt-4o-mini",
+            tools=tools,
+            instructions="""You are a conversational form analysis agent. Your job is to analyze the latest assistant message and determine if it should have clickable chip options based on the question type.
+            
+CRITICAL: Only show chips for questions that are:
+- multiple_choice: Show option chips
+- yes_no: Show "Yes" and "No" chips  
+- rating: Show 1-5 rating chips
+- For text/number questions: NO CHIPS
+
+Use your tools to:
+1. Determine the question type from the message
+2. Generate appropriate chip options if needed
+3. Return chip_options with show_chips: true/false"""
+        )
+        
+        # Analyze the message for chip options
+        response = agent.run(
+            messages=[{
+                "role": "user", 
+                "content": f"Analyze this assistant message and determine if it needs chips: '{message}'\n\nForm questions: {json.dumps(form_data.get('questions', []))}"
+            }],
+            stream=False
+        )
+        
+        # Parse the response for chip information
+        chip_options = {"show_chips": False}
+        
+        # Look for chip options in the response
+        if hasattr(response, 'messages') and response.messages:
+            last_message = response.messages[-1]
+            if hasattr(last_message, 'content') and last_message.content:
+                # Try to extract chip data from agent response
+                content = str(last_message.content)
+                
+                # Simple patterns to detect if chips should be shown
+                if any(keyword in content.lower() for keyword in ['multiple choice', 'options', 'choose', 'select']):
+                    # This is likely a multiple choice question
+                    chip_options = {
+                        "show_chips": True,
+                        "question_type": "multiple_choice",
+                        "options": ["Option 1", "Option 2", "Option 3"]  # Fallback options
+                    }
+                elif any(keyword in content.lower() for keyword in ['yes or no', 'yes/no', 'do you']):
+                    # This is likely a yes/no question
+                    chip_options = {
+                        "show_chips": True,
+                        "question_type": "yes_no", 
+                        "options": ["Yes", "No"]
+                    }
+                elif any(keyword in content.lower() for keyword in ['rate', 'rating', '1-5', 'scale']):
+                    # This is likely a rating question
+                    chip_options = {
+                        "show_chips": True,
+                        "question_type": "rating",
+                        "options": ["1", "2", "3", "4", "5"]
+                    }
+        
+        return jsonify({
+            "success": True,
+            "chip_options": chip_options
+        })
+        
+    except Exception as e:
+        print(f"Error checking chips: {str(e)}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+
 # Rate limiting helper
 chat_rate_limits = {}
 

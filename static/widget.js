@@ -763,6 +763,7 @@
                     }
                     
                     addMessage('assistant', data.greeting);
+                    checkForChipOptions(data.greeting);
                     setTimeout(() => {
                         showCompletionScreen();
                     }, 1500);
@@ -779,9 +780,11 @@
                         }
                     });
                     addMessage('assistant', data.greeting);
+                    checkForChipOptions(data.greeting);
                     enableInput();
                 } else {
                     addMessage('assistant', data.greeting);
+                    checkForChipOptions(data.greeting);
                     enableInput();
                 }
             } else {
@@ -793,6 +796,33 @@
             console.error('Error initializing chat:', error);
             hideTypingIndicator();
             addMessage('system', 'Sorry, there was an error starting the chat. Please try again.');
+        }
+    }
+    
+    // Check for chip options in a message (for greetings and resumed sessions)
+    async function checkForChipOptions(message) {
+        if (!sessionId || !message) return;
+        
+        try {
+            const response = await fetch(`${baseUrl}/api/chat/check_chips`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    message: message
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.chip_options && data.chip_options.show_chips) {
+                addChipOptions(data.chip_options);
+            }
+        } catch (error) {
+            console.error('Error checking for chip options:', error);
+            // Fail silently - chips are optional enhancement
         }
     }
     
