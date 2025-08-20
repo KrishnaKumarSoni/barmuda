@@ -855,6 +855,11 @@
             if (data.success) {
                 addMessage('assistant', data.response);
                 
+                // Add chip options if available
+                if (data.chip_options && data.chip_options.show_chips) {
+                    addChipOptions(data.chip_options);
+                }
+                
                 if (data.ended) {
                     isEnded = true;
                     setTimeout(() => {
@@ -898,6 +903,102 @@
     function hideTypingIndicator() {
         const typingMessages = document.querySelectorAll('.barmuda-typing-message');
         typingMessages.forEach(msg => msg.remove());
+    }
+    
+    // Add chip options below the bot message
+    function addChipOptions(chipData) {
+        const messagesContainer = document.getElementById('barmuda-chat-messages');
+        
+        // Remove any existing chips first
+        const existingChips = messagesContainer.querySelectorAll('.barmuda-chip-container');
+        existingChips.forEach(chip => chip.remove());
+        
+        if (!chipData.options || chipData.options.length === 0) {
+            return;
+        }
+        
+        const chipContainer = document.createElement('div');
+        chipContainer.className = 'barmuda-chip-container';
+        chipContainer.style.cssText = `
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 16px;
+            justify-content: flex-start;
+            max-width: 320px;
+        `;
+        
+        chipData.options.forEach(option => {
+            const chip = document.createElement('button');
+            chip.className = 'barmuda-chip-option';
+            chip.style.cssText = `
+                background: #f9fafb;
+                border: 1px solid #e5e7eb;
+                color: #374151;
+                padding: 6px 12px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 400;
+                cursor: pointer;
+                transition: all 200ms;
+                outline: none;
+                font-family: 'DM Sans', system-ui, sans-serif;
+            `;
+            chip.textContent = option;
+            chip.setAttribute('data-chip-value', option);
+            
+            // Hover effects
+            chip.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f3f4f6';
+                this.style.borderColor = '#d1d5db';
+            });
+            
+            chip.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '#f9fafb';
+                this.style.borderColor = '#e5e7eb';
+            });
+            
+            chip.addEventListener('click', function(e) {
+                e.preventDefault();
+                handleChipClick(option);
+            });
+            
+            chipContainer.appendChild(chip);
+        });
+        
+        messagesContainer.appendChild(chipContainer);
+        
+        // Add entrance animation
+        chipContainer.style.opacity = '0';
+        chipContainer.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            chipContainer.style.transition = 'opacity 300ms, transform 300ms';
+            chipContainer.style.opacity = '1';
+            chipContainer.style.transform = 'translateY(0)';
+        }, 100);
+        
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // Handle chip click
+    function handleChipClick(chipValue) {
+        // Remove all chip containers
+        const chipContainers = document.querySelectorAll('.barmuda-chip-container');
+        chipContainers.forEach(container => {
+            container.style.transition = 'opacity 200ms';
+            container.style.opacity = '0';
+            setTimeout(() => container.remove(), 200);
+        });
+        
+        // Set the value in the input and send
+        const input = document.getElementById('barmuda-message-input');
+        input.value = chipValue;
+        
+        // Trigger send message
+        setTimeout(() => {
+            sendMessage();
+        }, 250); // Small delay for smooth animation
     }
     
     function enableInput() {

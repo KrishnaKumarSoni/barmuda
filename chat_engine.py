@@ -413,6 +413,330 @@ def _get_recent_responses(session: ChatSession, limit: int = 3) -> List[Dict]:
 
 
 # ============================================================
+# NEW INTELLIGENT TOOLS FOR PROMPT REFACTORING
+# ============================================================
+
+@function_tool
+def validate_response(session_id: str, response: str, question_type: str, validation_type: str = None) -> dict:
+    """Validate user response format and quality
+    
+    Args:
+        session_id: Current session ID
+        response: User's response text
+        question_type: text/multiple_choice/yes_no/rating/number
+        validation_type: Optional - email/phone/linkedin/website/nonsense/vague
+    
+    Returns validation result with suggestions
+    """
+    import re
+    
+    try:
+        # Normalize response
+        response = response.strip().lower()
+        
+        # Check for nonsense/off-topic
+        nonsense_patterns = [
+            r'^[0-9]+$',  # Just numbers for non-number questions
+            r'^(ola|bhoot|ringa|la+|ha+|lol|lmao|rofl|omg|wtf|idk).*',  # Common nonsense
+            r'^[^a-zA-Z0-9\s]{3,}$',  # Special chars only
+            r'^(.)\1{4,}',  # Repeated chars (aaaaa, !!!!!!)
+            r'^(asdf|qwerty|zxcv|test|hello world).*',  # Keyboard mashing
+        ]
+        
+        if question_type not in ['number', 'rating'] and validation_type != 'email':
+            for pattern in nonsense_patterns:
+                if re.match(pattern, response):
+                    return {
+                        "valid": False,
+                        "reason": "nonsense",
+                        "suggestion": "I need a real answer here. Can you give me an actual response?",
+                        "confidence": 0.9
+                    }
+        
+        # Check for vague responses
+        vague_responses = ['meh', 'idk', 'dunno', 'whatever', 'nothing', 'none', 'idc', 'maybe', 'perhaps']
+        if response in vague_responses:
+            return {
+                "valid": False,
+                "reason": "vague",
+                "suggestion": "Can you be more specific? Even a rough idea would help!",
+                "confidence": 0.8
+            }
+        
+        # Validation by type
+        if validation_type == 'email':
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if re.match(email_pattern, response):
+                return {"valid": True, "cleaned_value": response, "confidence": 1.0}
+            return {
+                "valid": False,
+                "reason": "invalid_email",
+                "suggestion": "Could you share that as an email address? (like user@domain.com)",
+                "confidence": 0.9
+            }
+            
+        elif validation_type == 'phone':
+            # Remove common separators
+            cleaned = re.sub(r'[\s\-\(\)\+\.]', '', response)
+            if re.match(r'^[0-9]{10,15}$', cleaned):
+                return {"valid": True, "cleaned_value": cleaned, "confidence": 1.0}
+            return {
+                "valid": False,
+                "reason": "invalid_phone",
+                "suggestion": "What's your phone number? (10-15 digits)",
+                "confidence": 0.9
+            }
+            
+        elif validation_type == 'linkedin':
+            if 'linkedin.com/in/' in response or re.match(r'^[a-zA-Z0-9\-]+$', response):
+                return {"valid": True, "cleaned_value": response, "confidence": 1.0}
+            return {
+                "valid": False,
+                "reason": "invalid_linkedin",
+                "suggestion": "What's your LinkedIn profile URL or username?",
+                "confidence": 0.8
+            }
+            
+        elif validation_type == 'website':
+            url_pattern = r'^(https?://)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}.*$'
+            if re.match(url_pattern, response):
+                return {"valid": True, "cleaned_value": response, "confidence": 1.0}
+            return {
+                "valid": False,
+                "reason": "invalid_website",
+                "suggestion": "What's your website URL?",
+                "confidence": 0.8
+            }
+            
+        elif question_type == 'rating':
+            if response in ['1', '2', '3', '4', '5']:
+                return {"valid": True, "cleaned_value": response, "confidence": 1.0}
+            # Try to extract number from text
+            numbers = re.findall(r'\b[1-5]\b', response)
+            if numbers:
+                return {"valid": True, "cleaned_value": numbers[0], "confidence": 0.8}
+            return {
+                "valid": False,
+                "reason": "invalid_rating",
+                "suggestion": "How would you rate that from 1 to 5?",
+                "confidence": 0.9
+            }
+            
+        elif question_type == 'yes_no':
+            yes_patterns = ['yes', 'yeah', 'yep', 'sure', 'definitely', 'absolutely', 'correct', 'right', 'true', 'y']
+            no_patterns = ['no', 'nope', 'nah', 'negative', 'false', 'wrong', 'incorrect', 'n']
+            
+            if any(pattern in response for pattern in yes_patterns):
+                return {"valid": True, "cleaned_value": "yes", "confidence": 0.9}
+            elif any(pattern in response for pattern in no_patterns):
+                return {"valid": True, "cleaned_value": "no", "confidence": 0.9}
+            return {
+                "valid": False,
+                "reason": "unclear_yes_no",
+                "suggestion": "Is that a yes or no?",
+                "confidence": 0.7
+            }
+            
+        elif question_type == 'number':
+            numbers = re.findall(r'\b\d+\b', response)
+            if numbers:
+                return {"valid": True, "cleaned_value": numbers[0], "confidence": 0.9}
+            return {
+                "valid": False,
+                "reason": "no_number",
+                "suggestion": "Can you give me a number?",
+                "confidence": 0.8
+            }
+        
+        # Default for text questions - almost always valid unless nonsense
+        return {"valid": True, "cleaned_value": response, "confidence": 0.7}
+        
+    except Exception as e:
+        return {"valid": True, "error": str(e), "confidence": 0.5}
+
+
+@function_tool
+def check_content_sensitivity(text: str) -> dict:
+    """Detect concerning or emotional content and suggest appropriate responses
+    
+    Args:
+        text: User's message to analyze
+    
+    Returns sensitivity analysis with suggested acknowledgment
+    """
+    try:
+        text_lower = text.lower()
+        
+        # Concerning content patterns
+        concerning_keywords = [
+            'suicide', 'kill myself', 'end my life', 'death', 'dying', 'dead',
+            'bomb', 'bombing', 'explosion', 'violence', 'murder', 'killing',
+            'gun', 'weapon', 'shoot', 'attack', 'terrorism', 'harm', 'hurt',
+            'self-harm', 'cutting', 'bleeding', 'overdose'
+        ]
+        
+        # Emotional content patterns
+        emotional_keywords = [
+            'angry', 'frustrated', 'sad', 'depressed', 'anxious', 'scared',
+            'hate', 'upset', 'crying', 'miserable', 'lonely', 'hopeless',
+            'stressed', 'overwhelmed', 'disappointed', 'heartbroken'
+        ]
+        
+        # Check for concerning content
+        for keyword in concerning_keywords:
+            if keyword in text_lower:
+                return {
+                    "severity": "concerning",
+                    "category": "serious_content",
+                    "suggested_response": "That's really heavy. I hear you.",
+                    "requires_acknowledgment": True,
+                    "never_say": ["No worries!", "Cool!", "Thanks for sharing!", "Got it!", "Interesting!"],
+                    "confidence": 0.95
+                }
+        
+        # Check for emotional content
+        for keyword in emotional_keywords:
+            if keyword in text_lower:
+                return {
+                    "severity": "emotional",
+                    "category": "feelings",
+                    "suggested_response": "That sounds really tough.",
+                    "requires_acknowledgment": True,
+                    "never_say": ["Got it!", "Cool!", "No worries!"],
+                    "confidence": 0.85
+                }
+        
+        # Normal content
+        return {
+            "severity": "normal",
+            "category": "standard",
+            "suggested_response": None,
+            "requires_acknowledgment": False,
+            "confidence": 0.9
+        }
+        
+    except Exception as e:
+        return {
+            "severity": "normal",
+            "category": "error",
+            "error": str(e),
+            "confidence": 0.5
+        }
+
+
+def _get_natural_question_data(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
+    """Helper function to get natural question data (used both by tool and chip extraction)"""
+    try:
+        session = load_session(session_id)
+        questions = session.form_data.get("questions", [])
+        current_q = questions[question_index] if question_index < len(questions) else {}
+        
+        # Common conversational starters
+        starters = ["Hey!", "So,", "Alright,", "Cool,", "Nice,", "Great,"]
+        starter = starters[question_index % len(starters)] if question_index > 0 else "Hey!"
+        
+        # Transform based on type
+        text_lower = question_text.lower()
+        
+        # Natural transformations
+        transformations = {
+            # Demographics
+            "what is your age": f"{starter} How old are you?",
+            "age": "How old are you?",
+            "what's your age": "How old are you?",
+            "gender": "What's your gender?",
+            "location": "Where are you from?",
+            "occupation": "What do you do for work?",
+            
+            # Common patterns
+            "how satisfied": "How satisfied are you with this?",
+            "rate your": "How would you rate this?",
+            "do you": f"{starter} Do you",
+            "are you": f"{starter} Are you",
+            "what is your": f"{starter} What's your",
+            "tell us about": f"{starter} Tell me about",
+            "describe": f"{starter} Can you describe",
+            "how often": f"{starter} How often do you",
+            "how many": f"{starter} How many",
+        }
+        
+        # Find matching transformation
+        natural_question = None
+        for pattern, replacement in transformations.items():
+            if pattern in text_lower:
+                natural_question = text_lower.replace(pattern, replacement)
+                break
+        
+        if not natural_question:
+            # Default transformations by type
+            if question_type == "yes_no":
+                natural_question = f"{starter} {question_text}" if not question_text.startswith(("Do", "Are", "Is", "Can", "Would")) else question_text
+            elif question_type == "rating":
+                natural_question = f"How would you rate {question_text.lower().replace('rate', '').strip()}?"
+            elif question_type == "multiple_choice":
+                natural_question = f"{starter} {question_text.rstrip('?')}?"
+            else:
+                natural_question = f"{starter} {question_text}"
+        
+        # Prepare UI options for chips
+        ui_options = []
+        show_chips = False
+        
+        if question_type == "yes_no":
+            ui_options = ["Yes", "No"]
+            show_chips = True
+        elif question_type == "rating":
+            ui_options = ["1", "2", "3", "4", "5"]
+            show_chips = True
+        elif question_type == "multiple_choice" and current_q.get("options"):
+            ui_options = current_q["options"][:5]  # Limit to 5 for UI
+            show_chips = True
+        
+        # Add follow-up prompts
+        follow_ups = [
+            "Tell me more about that",
+            "Why's that?",
+            "Can you elaborate?",
+            "What makes you say that?",
+            "Interesting, why?"
+        ]
+        
+        return {
+            "natural_question": natural_question.capitalize(),
+            "show_chips": show_chips,
+            "chip_options": ui_options,
+            "chip_type": question_type if show_chips else None,
+            "follow_up_prompts": follow_ups[:2],
+            "question_index": question_index,
+            "original_text": question_text
+        }
+        
+    except Exception as e:
+        # Fallback to original question
+        return {
+            "natural_question": question_text,
+            "show_chips": False,
+            "chip_options": [],
+            "error": str(e)
+        }
+
+
+@function_tool
+def get_natural_question(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
+    """Transform formal questions into natural conversation with optional UI hints
+    
+    Args:
+        session_id: Current session ID
+        question_text: Original question text
+        question_type: text/multiple_choice/yes_no/rating/number
+        question_index: Current question number
+    
+    Returns natural phrasing and UI options for chips
+    """
+    return _get_natural_question_data(session_id, question_text, question_type, question_index)
+
+
+# ============================================================
 # MAIN CHAT AGENT CLASS
 # ============================================================
 
@@ -454,12 +778,76 @@ class FormChatAgent:
                 get_conversation_state,
                 save_user_response,
                 advance_to_next_question,
-                update_session_state
+                update_session_state,
+                validate_response,
+                check_content_sensitivity,
+                get_natural_question
             ],
         )
 
+    def _get_system_instructions_v2(self) -> str:
+        """Simplified system instructions using new intelligent tools"""
+        return """You are Barney, a friendly survey assistant. Keep responses under 20 words. Be casual and direct.
+
+🚨 MANDATORY: You MUST use tools for EVERY action. Never act without calling tools first.
+
+# REQUIRED WORKFLOW FOR EVERY CONVERSATION:
+
+## STEP 1: ALWAYS START WITH THIS
+1. CALL get_conversation_state(session_id) to understand where we are
+2. If asking a question: CALL get_natural_question(session_id, question_text, type, index) 
+3. Use the natural_question from the tool result - NEVER use raw question text
+
+## STEP 2: WHEN USER RESPONDS
+1. CALL check_content_sensitivity(user_response) first
+2. If severity="concerning" or "emotional": Use the suggested_response exactly
+3. CALL validate_response(session_id, response, question_type) 
+4. If valid=false: Use the suggestion from the tool, try up to 3 times
+5. If valid=true: CALL save_user_response() → CALL advance_to_next_question()
+
+## TOOL CALLING IS MANDATORY
+- NEVER guess what to do - ALWAYS call get_conversation_state first
+- NEVER ask questions without calling get_natural_question first  
+- NEVER accept responses without calling validate_response first
+- NEVER handle sensitive content without calling check_content_sensitivity first
+
+# EXAMPLES OF CORRECT BEHAVIOR:
+
+Starting conversation:
+1. Call get_conversation_state(session_id)
+2. Call get_natural_question(session_id, "What's your age?", "multiple_choice", 0)
+3. Say: "Hey! What's your age?" (from tool result)
+
+User responds "I hate everything":
+1. Call check_content_sensitivity("I hate everything") 
+2. Tool returns severity="emotional", suggested_response="That sounds really tough."
+3. Say: "That sounds really tough. Let's continue..."
+4. Call validate_response(session_id, "I hate everything", "multiple_choice")
+5. Handle based on tool result
+
+# CRITICAL RULES
+🚨 ANTI-BIAS: NEVER reveal options/scales in your response text!
+- MCQ: Say "What's your favorite color?" NOT "Red, Blue, or Green"
+- Rating: Say "How satisfied are you?" NOT "Rate from 1 to 5"  
+- Yes/No: Say "Do you like pizza?" NOT "Yes or No"
+- The UI will show clickable options automatically from get_natural_question
+
+Other rules:
+- Skip requests: "No worries! 😊" → call update_session_state("skip") → call advance_to_next_question()
+- End requests: call update_session_state("request_end_confirmation") first
+- Invalid responses: Use validate_response suggestion exactly
+
+You MUST call tools before every action. No exceptions. NEVER reveal options in text."""
+
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent"""
+        # Toggle between old (175 lines) and new (40 lines) prompt versions
+        USE_SIMPLIFIED_PROMPT = False  # Set to True to activate new system
+        
+        if USE_SIMPLIFIED_PROMPT:
+            return self._get_system_instructions_v2()
+        
+        # Original prompt (keeping for safety/rollback)
         return """# YOUR OBJECTIVE
 🎯 Your goal is to collect HIGH-QUALITY, MEANINGFUL responses for all survey questions. Quality matters more than speed. Don't accept nonsense or off-topic answers - probe for real insights.
 
@@ -814,11 +1202,53 @@ Use your tools to understand the situation and respond naturally."""
             # Reload session to get any updates from tool calls
             updated_session = load_session(session_id)
 
+            # Extract chip options by calling get_natural_question for current state
+            chip_options = None
+            try:
+                current_q_idx = updated_session.current_question_index
+                questions = updated_session.form_data.get("questions", [])
+                ended = updated_session.metadata.get("ended", False)
+                
+                print(f"DEBUG: current_q_idx={current_q_idx}, questions_count={len(questions)}, ended={ended}")
+                
+                # If we're asking a question (not ended), get chip options
+                if current_q_idx < len(questions) and not ended:
+                    current_q = questions[current_q_idx]
+                    q_type = current_q.get("type", "text")
+                    q_text = current_q.get("text", "")
+                    
+                    print(f"DEBUG: current question - type={q_type}, text={q_text}")
+                    
+                    natural_q_result = _get_natural_question_data(
+                        session_id, 
+                        q_text, 
+                        q_type, 
+                        current_q_idx
+                    )
+                    print(f"DEBUG: get_natural_question result: {natural_q_result}")
+                    
+                    if natural_q_result.get("show_chips"):
+                        chip_options = {
+                            "show_chips": True,
+                            "chip_type": natural_q_result.get("chip_type"),
+                            "options": natural_q_result.get("chip_options", [])
+                        }
+                        print(f"DEBUG: Setting chip_options: {chip_options}")
+                    else:
+                        print(f"DEBUG: No chips to show for type {q_type}")
+                else:
+                    print(f"DEBUG: Not showing chips - ended or no more questions")
+            except Exception as e:
+                print(f"DEBUG: Error extracting chip options: {e}")
+                import traceback
+                print(f"DEBUG: Traceback: {traceback.format_exc()}")
+
             return {
                 "success": True,
                 "response": agent_response,
                 "session_updated": True,
                 "metadata": updated_session.metadata,
+                "chip_options": chip_options,  # Add chip support
                 "debug_signature": "NEW_OPENAI_AGENTS_v2.0",  # Version signature
             }
 

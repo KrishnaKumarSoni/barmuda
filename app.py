@@ -3067,4 +3067,6 @@ def admin_export_user_data(user_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get('FLASK_RUN_PORT', 5555))
+    app.run(debug=True, port=port)
