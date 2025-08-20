@@ -443,6 +443,11 @@
                     // Add assistant response
                     addMessage('assistant', data.response);
                     
+                    // Add chip options if available
+                    if (data.chip_options && data.chip_options.show_chips) {
+                        addChipOptions(data.chip_options);
+                    }
+                    
                     // Handle complete response
                     handleCompleteResponse(data);
                 } else {
@@ -512,6 +517,74 @@
             }, 10);
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Add chip options below the bot message
+        function addChipOptions(chipData) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            // Remove any existing chips first
+            const existingChips = messagesContainer.querySelectorAll('.chip-container');
+            existingChips.forEach(chip => chip.remove());
+            
+            if (!chipData.options || chipData.options.length === 0) {
+                return;
+            }
+            
+            const chipContainer = document.createElement('div');
+            chipContainer.className = 'chip-container flex flex-wrap gap-2 px-3 md:px-4 pb-3 justify-start';
+            
+            const chipsWrapper = document.createElement('div');
+            chipsWrapper.className = 'flex flex-wrap gap-2 max-w-[280px] md:max-w-[320px]';
+            
+            chipData.options.forEach(option => {
+                const chip = document.createElement('button');
+                chip.className = 'chip-option bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-gray-300 shadow-sm';
+                chip.textContent = option;
+                chip.setAttribute('data-chip-value', option);
+                
+                chip.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleChipClick(option);
+                });
+                
+                chipsWrapper.appendChild(chip);
+            });
+            
+            chipContainer.appendChild(chipsWrapper);
+            messagesContainer.appendChild(chipContainer);
+            
+            // Add entrance animation
+            chipContainer.style.opacity = '0';
+            chipContainer.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                chipContainer.style.transition = 'opacity 300ms, transform 300ms';
+                chipContainer.style.opacity = '1';
+                chipContainer.style.transform = 'translateY(0)';
+            }, 100);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Handle chip click
+        function handleChipClick(chipValue) {
+            // Remove all chip containers
+            const chipContainers = document.querySelectorAll('.chip-container');
+            chipContainers.forEach(container => {
+                container.style.transition = 'opacity 200ms';
+                container.style.opacity = '0';
+                setTimeout(() => container.remove(), 200);
+            });
+            
+            // Set the value in the input and send
+            const input = document.getElementById('message-input');
+            input.value = chipValue;
+            
+            // Trigger send message
+            setTimeout(() => {
+                sendMessage();
+            }, 250); // Small delay for smooth animation
         }
 
         // Hide typing indicator
