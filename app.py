@@ -1125,22 +1125,32 @@ def refine_user_prompt(original_prompt, max_retries=2):
             
             # Create refinement prompt
             refinement_prompt = f"""
-You are an expert at helping users create clear, detailed prompts for survey and form generation. Your job is to refine and improve the user's input to make it more specific, actionable, and effective for generating high-quality surveys.
+You are a prompt optimization specialist. Your job is to take a user's rough description and turn it into a clear, well-structured prompt that will be fed to a form-generation AI.
 
-Guidelines for refinement:
-- Make the prompt clearer and more specific
-- Add context about survey goals if missing
-- Suggest question types naturally
-- Keep the user's original intent
-- Make it more structured but still conversational
-- Don't make it too long or overly complex
-- Focus on what data they want to collect and why
+CONTEXT: The downstream AI follows this process:
+1. Identifies the main intent/purpose of the form
+2. Determines 5-10 key questions needed
+3. Selects appropriate input types (text, multiple_choice, yes_no, number, rating)
+4. Generates logical answer options where needed
+
+Your job: Refine the user's input to make step 1 (identifying intent/purpose) crystal clear for the downstream AI.
+
+GOOD refined prompts include:
+- Clear statement of what the form is for
+- Who will be filling it out (target audience)
+- What specific insights/data they want to collect
+- The context or use case
+
+AVOID:
+- Suggesting specific questions or question types
+- Over-engineering or adding complexity
+- Changing the user's core intent
+- Being too prescriptive about structure
 
 Original user input:
 "{original_prompt}"
 
-Please refine this input to be a clearer, more effective prompt for survey generation. Return only the refined prompt text, no explanations or additional text.
-"""
+Refined prompt:"""
             
             # Generate response using OpenAI client
             response = openai_client.chat.completions.create(
@@ -1148,11 +1158,11 @@ Please refine this input to be a clearer, more effective prompt for survey gener
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert at refining prompts for survey generation. Always return only the refined prompt text, no explanations."
+                        "content": "You are a prompt optimization specialist. Your job is to refine user inputs into better prompts that will be fed to a form-generation AI. You are NOT generating forms yourself - just writing better prompts for another AI to use. Return only the refined prompt text, no explanations."
                     },
                     {"role": "user", "content": refinement_prompt}
                 ],
-                temperature=0.3,  # Slightly more creative than form generation
+                temperature=0.1,  # Low temperature for clarity and consistency
                 max_tokens=1000,
             )
             
