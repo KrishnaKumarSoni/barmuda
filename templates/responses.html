@@ -403,7 +403,10 @@
                             <span class="text-[#797878] text-xs">${response.created_at ? new Date(response.created_at).toLocaleDateString() : 'Unknown date'}</span>
                         </div>
                     </div>
-                    <div class="space-y-3">
+                    
+                    <!-- Structured Responses -->
+                    <div class="space-y-3 mb-4">
+                        <h5 class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-sm mb-2">Extracted Responses</h5>
                 `;
 
                 questions.forEach((question, qIndex) => {
@@ -419,9 +422,74 @@
                 });
 
                 html += '</div>';
+                
+                // Add Chat Transcript if available
+                if (response.chat_transcript && response.chat_transcript.length > 0) {
+                    html += `
+                        <div class="border-t border-[#fce9c1] pt-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-sm">Chat Transcript</h5>
+                                <button onclick="toggleChatTranscript(${index})" class="text-[#cc5500] text-xs hover:text-[#d12b2e] transition-colors">
+                                    <span id="toggle-text-${index}">Show</span>
+                                    <i id="toggle-icon-${index}" class="ph ph-caret-down ml-1"></i>
+                                </button>
+                            </div>
+                            <div id="chat-transcript-${index}" class="hidden bg-[#fef9ee] rounded-lg p-3 max-h-64 overflow-y-auto">
+                                <div class="space-y-2">
+                    `;
+                    
+                    response.chat_transcript.forEach((message, msgIndex) => {
+                        if (message.role === 'user' || message.role === 'assistant') {
+                            const isUser = message.role === 'user';
+                            const time = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
+                            
+                            html += `
+                                <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+                                    <div class="max-w-xs ${isUser ? 'bg-[#cc5500] text-white' : 'bg-white border border-[#e5e7eb]'} rounded-lg px-3 py-2">
+                                        <div class="text-xs ${isUser ? 'text-white' : 'text-[#1e1e1e]'} font-['DM_Sans']">${message.content}</div>
+                                        ${time ? `<div class="text-xs ${isUser ? 'text-white/70' : 'text-[#797878]'} font-['DM_Sans'] mt-1">${time}</div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="border-t border-[#fce9c1] pt-4">
+                            <div class="text-center py-4 text-[#797878] text-xs">
+                                <i class="ph ph-chat-circle text-2xl mb-2 block"></i>
+                                No chat transcript available for this response
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 responseCard.innerHTML = html;
                 container.appendChild(responseCard);
             });
+        }
+        
+        // Function to toggle chat transcript visibility
+        function toggleChatTranscript(index) {
+            const transcript = document.getElementById(`chat-transcript-${index}`);
+            const toggleText = document.getElementById(`toggle-text-${index}`);
+            const toggleIcon = document.getElementById(`toggle-icon-${index}`);
+            
+            if (transcript.classList.contains('hidden')) {
+                transcript.classList.remove('hidden');
+                toggleText.textContent = 'Hide';
+                toggleIcon.className = 'ph ph-caret-up ml-1';
+            } else {
+                transcript.classList.add('hidden');
+                toggleText.textContent = 'Show';
+                toggleIcon.className = 'ph ph-caret-down ml-1';
+            }
         }
 
         // Tab switching function
