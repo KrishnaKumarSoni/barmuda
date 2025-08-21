@@ -91,7 +91,7 @@ class EmailService:
             """
             
             params: resend.Emails.SendParams = {
-                "from": "Barmuda <onboarding@resend.dev>",
+                "from": "Krishna from Barmuda <krishna@barmuda.in>",
                 "to": [user_email],
                 "subject": subject,
                 "html": html_content,
@@ -192,7 +192,7 @@ class EmailService:
             """
             
             params: resend.Emails.SendParams = {
-                "from": "Barmuda <onboarding@resend.dev>",
+                "from": "Krishna from Barmuda <krishna@barmuda.in>",
                 "to": [user_email],
                 "subject": subject,
                 "html": html_content,
@@ -310,7 +310,7 @@ class EmailService:
             """
             
             params: resend.Emails.SendParams = {
-                "from": "Barmuda <onboarding@resend.dev>",
+                "from": "Krishna from Barmuda <krishna@barmuda.in>",
                 "to": [user_email],
                 "subject": subject,
                 "html": html_content,
