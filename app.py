@@ -620,6 +620,16 @@ def google_auth():
                 }
                 user_ref.set(user_data)
                 logger.info(f"Created new user: {email}")
+                
+                # Send welcome email to new user
+                try:
+                    email_result = email_service.send_welcome_email(email, name)
+                    if email_result.get("success"):
+                        logger.info(f"Welcome email sent to {email}")
+                    else:
+                        logger.warning(f"Failed to send welcome email to {email}: {email_result.get('error')}")
+                except Exception as e:
+                    logger.error(f"Error sending welcome email to {email}: {str(e)}")
             else:
                 logger.info(f"User login: {email}")
         except Exception as firestore_error:
@@ -2489,6 +2499,7 @@ def check_rate_limit(session_id, ip_address):
 
 # Import the data extraction function
 from data_extraction import extract_chat_responses
+from email_service import email_service
 
 # ================================
 # MODULE 6: RESPONSE VIEWING ROUTES
@@ -2840,9 +2851,47 @@ def update_form_status(form_id):
 
         # Update active status (convert string to boolean)
         is_active = new_status == "active"
-        db.collection("forms").document(form_id).update(
-            {"active": is_active, "updated_at": datetime.now().isoformat()}
-        )
+        
+        # Check if this is first time going live (for email notification)
+        was_previously_active = form_data.get("active", False)
+        first_time_active = is_active and not was_previously_active and not form_data.get("first_activated", False)
+        
+        update_data = {
+            "active": is_active, 
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        # Track first activation to avoid duplicate emails
+        if first_time_active:
+            update_data["first_activated"] = True
+            update_data["first_activated_at"] = datetime.now().isoformat()
+        
+        db.collection("forms").document(form_id).update(update_data)
+        
+        # Send email notification for first time activation
+        if first_time_active:
+            try:
+                creator_id = form_data.get("creator_id")
+                form_title = form_data.get("title", "Untitled Form")
+                
+                # Get creator email and name
+                if creator_id:
+                    creator_doc = db.collection("users").document(creator_id).get()
+                    if creator_doc.exists:
+                        creator_data = creator_doc.to_dict()
+                        creator_email = creator_data.get("email")
+                        creator_name = creator_data.get("name")
+                        
+                        if creator_email:
+                            email_result = email_service.send_survey_live_email(
+                                creator_email, form_title, form_id, creator_name
+                            )
+                            if email_result.get("success"):
+                                logger.info(f"Survey live email sent to {creator_email} for form {form_id}")
+                            else:
+                                logger.warning(f"Failed to send survey live email: {email_result.get('error')}")
+            except Exception as e:
+                logger.error(f"Error sending survey live email: {str(e)}")
 
         return jsonify({"success": True, "status": new_status})
 
