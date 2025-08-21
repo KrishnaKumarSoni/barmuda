@@ -52,6 +52,8 @@ class EmailService:
                         .mobile-padding {{ padding: 20px !important; }}
                         .mobile-font {{ font-size: 16px !important; }}
                         .mobile-button {{ padding: 12px 24px !important; font-size: 16px !important; }}
+                        .number-circle {{ min-width: 24px !important; width: 24px !important; height: 24px !important; }}
+                        .number-circle td {{ width: 24px !important; height: 24px !important; min-width: 24px !important; }}
                     }}
                 </style>
             </head>
@@ -112,10 +114,10 @@ class EmailService:
                                                             <td style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #cc5500; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #cc5500; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">1</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">1</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
@@ -128,10 +130,10 @@ class EmailService:
                                                                 
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #cc5500; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #cc5500; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">2</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">2</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
@@ -144,10 +146,10 @@ class EmailService:
                                                                 
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #cc5500; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #cc5500; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">3</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">3</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
@@ -264,6 +266,8 @@ class EmailService:
                         .mobile-padding {{ padding: 20px !important; }}
                         .mobile-font {{ font-size: 16px !important; }}
                         .mobile-button {{ padding: 12px 24px !important; font-size: 16px !important; }}
+                        .number-circle {{ min-width: 24px !important; width: 24px !important; height: 24px !important; }}
+                        .number-circle td {{ width: 24px !important; height: 24px !important; min-width: 24px !important; }}
                     }}
                 </style>
             </head>
@@ -453,6 +457,8 @@ class EmailService:
                         .mobile-font {{ font-size: 16px !important; }}
                         .mobile-button {{ padding: 12px 24px !important; font-size: 16px !important; }}
                         .mobile-stack {{ display: block !important; width: 100% !important; margin-bottom: 12px !important; }}
+                        .number-circle {{ min-width: 24px !important; width: 24px !important; height: 24px !important; }}
+                        .number-circle td {{ width: 24px !important; height: 24px !important; min-width: 24px !important; }}
                     }}
                 </style>
             </head>
@@ -534,10 +540,10 @@ class EmailService:
                                                             <td style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #7c3aed; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #7c3aed; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">1</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">1</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
@@ -550,10 +556,10 @@ class EmailService:
                                                                 
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #7c3aed; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #7c3aed; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">2</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">2</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
@@ -566,10 +572,10 @@ class EmailService:
                                                                 
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #7c3aed; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #7c3aed; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">3</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">3</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
@@ -582,10 +588,10 @@ class EmailService:
                                                                 
                                                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                                                     <tr>
-                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
-                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #059669; border-radius: 50%;">
+                                                                        <td style="width: 24px; min-width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="number-circle" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; background-color: #059669; border-radius: 50%;">
                                                                                 <tr>
-                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">✓</td>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px; width: 24px; height: 24px; min-width: 24px; min-height: 24px;">✓</td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
