@@ -78,23 +78,44 @@
                         oninput="validateInput()"
                     ></textarea>
                     
-                    <!-- Generate Button (Inside the box) -->
-                    <button 
-                        id="generateBtn"
-                        onclick="generateForm()"
-                        class="absolute bottom-4 right-4 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-4 py-2.5 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm transition-all duration-200 flex items-center gap-2 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
-                        disabled
-                    >
-                        <span id="buttonText">Generate</span>
-                        <div id="buttonSpinner" class="hidden">
-                            <div class="flex space-x-1">
-                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-                                <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                    <!-- Action Buttons Container (Inside the box) -->
+                    <div class="absolute bottom-4 right-4 flex items-center gap-2">
+                        <!-- Refine Prompt Button -->
+                        <button 
+                            id="refineBtn"
+                            onclick="refinePrompt()"
+                            class="border border-[#cc5500] text-[#cc5500] rounded-xl px-3 py-2.5 font-['Plus_Jakarta_Sans'] font-medium text-sm transition-all duration-200 flex items-center gap-1.5 hover:bg-[#cc5500] hover:text-white disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#cc5500]"
+                            disabled
+                            title="Improve your prompt"
+                        >
+                            <i id="refineIcon" class="ph ph-magic-wand text-sm"></i>
+                            <div id="refineSpinner" class="hidden">
+                                <div class="flex space-x-1">
+                                    <div class="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                                    <div class="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                                    <div class="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                                </div>
                             </div>
-                        </div>
-                        <i class="ph ph-arrow-right text-sm"></i>
-                    </button>
+                        </button>
+                        
+                        <!-- Generate Button -->
+                        <button 
+                            id="generateBtn"
+                            onclick="generateForm()"
+                            class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-xl px-4 py-2.5 text-white font-['Plus_Jakarta_Sans'] font-medium text-sm transition-all duration-200 flex items-center gap-2 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
+                            disabled
+                        >
+                            <span id="buttonText">Generate</span>
+                            <div id="buttonSpinner" class="hidden">
+                                <div class="flex space-x-1">
+                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                                </div>
+                            </div>
+                            <i class="ph ph-arrow-right text-sm"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Validation Message (Outside the box) -->
@@ -615,16 +636,17 @@
         function validateInput() {
             const input = document.getElementById('formDump');
             const generateBtn = document.getElementById('generateBtn');
+            const refineBtn = document.getElementById('refineBtn');
             const validationMessage = document.getElementById('validationMessage');
             const inputCard = document.getElementById('inputCard');
             
             console.log('validateInput called');
-            console.log('Elements found:', { input: !!input, generateBtn: !!generateBtn, validationMessage: !!validationMessage, inputCard: !!inputCard });
+            console.log('Elements found:', { input: !!input, generateBtn: !!generateBtn, refineBtn: !!refineBtn, validationMessage: !!validationMessage, inputCard: !!inputCard });
             
             // Check if all required elements exist
-            if (!input || !generateBtn || !validationMessage || !inputCard) {
+            if (!input || !generateBtn || !refineBtn || !validationMessage || !inputCard) {
                 console.warn('Some required elements not found in validateInput');
-                console.warn('Missing:', { input: !input, generateBtn: !generateBtn, validationMessage: !validationMessage, inputCard: !inputCard });
+                console.warn('Missing:', { input: !input, generateBtn: !generateBtn, refineBtn: !refineBtn, validationMessage: !validationMessage, inputCard: !inputCard });
                 return;
             }
             
@@ -636,11 +658,15 @@
                 
                 console.log('Validation result:', { text: text, length: text.length, validation: validation });
                 
+                // For refine button, we use more lenient validation (just needs some text)
+                const canRefine = text.length >= 10 && !/^(.)\1+$/.test(text); // At least 10 chars and not just repeated chars
+                
                 if (validation.isValid) {
                     // Valid input
                     isValid = true;
                     generateBtn.disabled = false;
-                    console.log('Button enabled!');
+                    refineBtn.disabled = !canRefine;
+                    console.log('Buttons enabled!');
                     validationMessage.classList.add('hidden');
                     inputCard.classList.remove('border-red-300');
                     inputCard.classList.add('border-[#fb9a9a]');
@@ -648,6 +674,7 @@
                     // Invalid input
                     isValid = false;
                     generateBtn.disabled = true;
+                    refineBtn.disabled = !canRefine;
                     if (validation.message && text.length > 0) {
                         validationMessage.textContent = validation.message;
                         validationMessage.classList.remove('hidden');
@@ -723,32 +750,38 @@
             const generateBtn = document.getElementById('generateBtn');
             const buttonText = document.getElementById('buttonText');
             const buttonSpinner = document.getElementById('buttonSpinner');
+            const refineBtn = document.getElementById('refineBtn');
             
-            if (!generateBtn || !buttonText || !buttonSpinner) return;
+            if (!generateBtn || !buttonText || !buttonSpinner || !refineBtn) return;
             
             switch(state) {
                 case 'validating':
                     generateBtn.disabled = true;
                     buttonText.textContent = 'validating...';
                     buttonSpinner.classList.remove('hidden');
+                    // Don't disable refine button during form generation
                     break;
                 case 'generating':
                     buttonText.textContent = 'generating';
                     buttonSpinner.classList.remove('hidden');
+                    // Don't disable refine button during form generation
                     break;
                 case 'redirecting':
                     buttonText.textContent = 'redirecting...';
                     buttonSpinner.classList.remove('hidden');
+                    // Don't disable refine button during form generation
                     break;
                 case 'idle':
                     generateBtn.disabled = !isValid;
                     buttonText.textContent = 'generate form';
                     buttonSpinner.classList.add('hidden');
+                    // Refine button state is managed by validateInput()
                     break;
                 case 'error':
                     generateBtn.disabled = false;
                     buttonText.textContent = 'try again';
                     buttonSpinner.classList.add('hidden');
+                    // Don't change refine button state on error
                     break;
             }
         }
@@ -775,6 +808,7 @@
             // Progressive loading states
             setButtonState('validating');
             errorState.classList.add('hidden');
+            formGenerationInProgress = true;
             
             try {
                 // Small delay for UX
@@ -822,12 +856,14 @@
                     }
                 } else {
                     setButtonState('error');
+                    formGenerationInProgress = false;
                     showError(data.error || 'Failed to generate form');
                 }
                 
             } catch (error) {
                 console.error('Generate form error:', error);
                 setButtonState('error');
+                formGenerationInProgress = false;
                 
                 if (error.message.includes('401') || error.message.includes('Unauthorized')) {
                     showError('Please sign in to generate forms');
@@ -846,6 +882,131 @@
             errorState.classList.remove('hidden');
         }
         
+        // Track if operations are in progress to prevent concurrent calls
+        let refineInProgress = false;
+        let formGenerationInProgress = false;
+        
+        // Refine prompt function with animation
+        async function refinePrompt() {
+            const dumpInput = document.getElementById('formDump');
+            const refineBtn = document.getElementById('refineBtn');
+            const refineIcon = document.getElementById('refineIcon');
+            const refineSpinner = document.getElementById('refineSpinner');
+            const errorState = document.getElementById('errorState');
+            
+            const originalPrompt = dumpInput.value.trim();
+            
+            // Prevent concurrent refine calls or refining during form generation
+            if (refineInProgress) {
+                console.log('Refine already in progress, ignoring request');
+                return;
+            }
+            
+            if (formGenerationInProgress) {
+                console.log('Form generation in progress, cannot refine now');
+                showError('Please wait for form generation to complete');
+                return;
+            }
+            
+            // Enhanced validation
+            if (originalPrompt.length < 10) {
+                showError('Please provide more text to refine (minimum 10 characters)');
+                return;
+            }
+            
+            if (originalPrompt.length > 4000) {
+                showError('Text is too long to refine (maximum 4000 characters)');
+                return;
+            }
+            
+            // Check for potentially problematic input
+            if (originalPrompt.match(/^\s*(.)\1{20,}\s*$/)) {
+                showError('Please provide meaningful text to refine');
+                return;
+            }
+            
+            console.log('Refining prompt:', originalPrompt.substring(0, 100) + '...');
+            
+            try {
+                // Set refine in progress flag
+                refineInProgress = true;
+                
+                // Set loading state
+                refineBtn.disabled = true;
+                refineIcon.classList.add('hidden');
+                refineSpinner.classList.remove('hidden');
+                errorState.classList.add('hidden');
+                
+                console.log('Sending request to /api/refine_prompt');
+                
+                // Add timeout to prevent hanging requests
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
+                const response = await authenticatedFetch('/api/refine_prompt', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt: originalPrompt }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Backend response:', data);
+                
+                if (data.success && data.refined_prompt) {
+                    // Update the textarea with refined prompt
+                    dumpInput.value = data.refined_prompt;
+                    
+                    // Trigger validation to update button states
+                    validateInput();
+                    
+                    // Focus at end of text
+                    dumpInput.focus();
+                    dumpInput.setSelectionRange(dumpInput.value.length, dumpInput.value.length);
+                    
+                    console.log('Successfully refined prompt');
+                    
+                    // Optional: Show a subtle success indication
+                    refineBtn.classList.add('bg-green-50', 'border-green-400', 'text-green-600');
+                    setTimeout(() => {
+                        refineBtn.classList.remove('bg-green-50', 'border-green-400', 'text-green-600');
+                    }, 1500);
+                    
+                } else {
+                    console.error('Refinement failed:', data.error);
+                    showError(data.error || 'Failed to refine prompt');
+                }
+                
+            } catch (error) {
+                console.error('Error refining prompt:', error);
+                
+                if (error.name === 'AbortError') {
+                    showError('Request timed out. Please try again with shorter text.');
+                } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    showError('Please sign in to refine prompts');
+                } else if (error.message.includes('429') || error.message.includes('Rate limit')) {
+                    showError('Too many requests. Please wait a moment and try again.');
+                } else {
+                    showError('Network error. Please check your connection and try again.');
+                }
+                
+            } finally {
+                // Clear refine in progress flag
+                refineInProgress = false;
+                
+                // Reset button state
+                refineBtn.disabled = false;
+                refineIcon.classList.remove('hidden');
+                refineSpinner.classList.add('hidden');
+                
+                // Re-check if refine button should be enabled based on current content
+                validateInput();
+            }
+        }
+        
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Create form page loaded');
@@ -855,9 +1016,11 @@
             
             // Initial validation state
             const generateBtn = document.getElementById('generateBtn');
-            console.log('Generate button found:', !!generateBtn);
+            const refineBtn = document.getElementById('refineBtn');
+            console.log('Buttons found:', { generateBtn: !!generateBtn, refineBtn: !!refineBtn });
             generateBtn.disabled = true;
-            console.log('Generate button disabled initially');
+            refineBtn.disabled = true;
+            console.log('Buttons disabled initially');
             
             // Check for pending form description from unauthenticated flow
             const pendingDescription = sessionStorage.getItem('pendingFormDescription');
@@ -978,6 +1141,12 @@
                         e.preventDefault();
                         if (isValid) {
                             generateForm();
+                        }
+                    } else if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        const refineBtn = document.getElementById('refineBtn');
+                        if (refineBtn && !refineBtn.disabled) {
+                            refinePrompt();
                         }
                     }
                 });
