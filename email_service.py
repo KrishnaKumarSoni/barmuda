@@ -110,29 +110,53 @@ class EmailService:
                                                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
                                                         <tr>
                                                             <td style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
-                                                                <div style="display: flex; margin-bottom: 16px;">
-                                                                    <div style="background-color: #cc5500; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0;">1</div>
-                                                                    <div>
-                                                                        <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Create your first survey</h3>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">Just paste your questions - our AI handles the rest</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #cc5500; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">1</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Create your first survey</h3>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">Just paste your questions - our AI handles the rest</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                                 
-                                                                <div style="display: flex; margin-bottom: 16px;">
-                                                                    <div style="background-color: #cc5500; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0;">2</div>
-                                                                    <div>
-                                                                        <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Share the link</h3>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">People chat with AI instead of filling boring forms</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #cc5500; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">2</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Share the link</h3>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">People chat with AI instead of filling boring forms</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                                 
-                                                                <div style="display: flex;">
-                                                                    <div style="background-color: #cc5500; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0;">3</div>
-                                                                    <div>
-                                                                        <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Watch responses roll in</h3>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">Way higher completion rates than traditional surveys</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #cc5500; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">3</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Watch responses roll in</h3>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">Way higher completion rates than traditional surveys</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -508,37 +532,69 @@ class EmailService:
                                                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
                                                         <tr>
                                                             <td style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
-                                                                <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                                                                    <div style="background-color: #7c3aed; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">1</div>
-                                                                    <div>
-                                                                        <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">People click your link and start chatting immediately</p>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">No overwhelming forms - just a friendly conversation</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #7c3aed; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">1</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">People click your link and start chatting immediately</p>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">No overwhelming forms - just a friendly conversation</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                                 
-                                                                <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                                                                    <div style="background-color: #7c3aed; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">2</div>
-                                                                    <div>
-                                                                        <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">AI guides them through your questions naturally</p>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">One question at a time, like texting a friend</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #7c3aed; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">2</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">AI guides them through your questions naturally</p>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">One question at a time, like texting a friend</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                                 
-                                                                <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                                                                    <div style="background-color: #7c3aed; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">3</div>
-                                                                    <div>
-                                                                        <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">You get notified when responses come in</p>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">Real-time alerts for every completed conversation</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #7c3aed; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">3</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">You get notified when responses come in</p>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">Real-time alerts for every completed conversation</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                                 
-                                                                <div style="display: flex; align-items: flex-start;">
-                                                                    <div style="background-color: #059669; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">✓</div>
-                                                                    <div>
-                                                                        <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Much higher completion rates than traditional surveys</p>
-                                                                        <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">People finish because it doesn't feel like work</p>
-                                                                    </div>
-                                                                </div>
+                                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                                    <tr>
+                                                                        <td style="width: 24px; vertical-align: top; padding-right: 12px; padding-top: 2px;">
+                                                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 24px; height: 24px; background-color: #059669; border-radius: 50%;">
+                                                                                <tr>
+                                                                                    <td style="text-align: center; vertical-align: middle; color: white; font-size: 12px; font-weight: 600; line-height: 24px;">✓</td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td style="vertical-align: top;">
+                                                                            <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Much higher completion rates than traditional surveys</p>
+                                                                            <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4;">People finish because it doesn't feel like work</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                             </td>
                                                         </tr>
                                                     </table>
