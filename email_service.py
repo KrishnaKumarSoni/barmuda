@@ -15,7 +15,8 @@ class EmailService:
     def __init__(self):
         self.resend_api_key = os.getenv("RESEND_API_KEY")
         if self.resend_api_key:
-            resend.api_key = self.resend_api_key
+            # Strip any whitespace/newlines that might be in the key
+            resend.api_key = self.resend_api_key.strip()
         else:
             print("WARNING: RESEND_API_KEY not found in environment variables")
     
