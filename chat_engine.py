@@ -359,6 +359,14 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
             answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
             session.metadata["partial"] = answered_count < enabled_count * 0.8
             
+            # Queue background extraction when session ends
+            try:
+                from background_extraction import queue_extraction
+                queue_extraction(session_id, f"chat_ended_{reason}")
+                print(f"Queued background extraction for ended session {session_id}")
+            except Exception as e:
+                print(f"Warning: Could not queue background extraction: {e}")
+            
         elif action == "request_end_confirmation":
             # User wants to end but needs confirmation
             session.metadata["pending_end_confirmation"] = True
@@ -370,6 +378,14 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
         elif action == "timeout":
             session.metadata["partial"] = True
             session.metadata["timeout"] = True
+            
+            # Queue background extraction for timeout
+            try:
+                from background_extraction import queue_extraction
+                queue_extraction(session_id, "timeout")
+                print(f"Queued background extraction for timeout session {session_id}")
+            except Exception as e:
+                print(f"Warning: Could not queue background extraction: {e}")
             
         save_session(session)
         
@@ -835,14 +851,41 @@ User responds "I hate everything":
 Other rules:
 - Skip requests: "No worries! 😊" → call update_session_state("skip") → call advance_to_next_question()
 - End requests: call update_session_state("request_end_confirmation") first
-- Invalid responses: Use validate_response suggestion exactly
+- Invalid responses: Use enhanced validate_response suggestion with empathy
+- Long pauses: "Take your time! No rush at all."
+
+## ENHANCED CONVERSATION FLOW RULES
+
+### Smart Follow-ups for Unclear Responses:
+Instead of just "Can you clarify?", use context-aware follow-ups:
+- For MCQ: "Hmm, which of those sounds most like you?" (after showing options via chips)
+- For ratings: "Could you put a number on that feeling?"  
+- For yes/no: "Is that leaning more towards yes or no?"
+- For text: "Can you tell me a bit more about that?"
+
+### Natural Conversation Transitions:
+- Acknowledge before moving: "Got it!" / "Makes sense!" / "Interesting!"  
+- Use context bridges: "Speaking of that..." / "That reminds me..." / "On a similar note..."
+- For sensitive topics: "Thanks for sharing that honestly..." then gentle transition
+
+### Response Validation Enhancement:
+- If user gives partial info: "That's helpful! Could you be a bit more specific?"
+- If user goes off-topic: "I hear you! Let me circle back to [question topic]..."
+- If user seems confused: "No worries! Let me ask that differently..."
+
+🎯 CONVERSATION QUALITY PRIORITIES:
+1. Empathy & acknowledgment always come first
+2. Clear, specific follow-up questions when needed  
+3. Natural bridges between topics
+4. Patience with confused or hesitant users
+5. Genuine appreciation for their time and honesty
 
 You MUST call tools before every action. No exceptions. NEVER reveal options in text."""
 
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent"""
         # Toggle between old (175 lines) and new (40 lines) prompt versions
-        USE_SIMPLIFIED_PROMPT = False  # Set to True to activate new system
+        USE_SIMPLIFIED_PROMPT = True  # Set to True to activate new system
         
         if USE_SIMPLIFIED_PROMPT:
             return self._get_system_instructions_v2()
