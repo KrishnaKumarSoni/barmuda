@@ -1111,6 +1111,124 @@ def infer_form():
         )
 
 
+def refine_user_prompt(original_prompt, max_retries=2):
+    """Use OpenAI GPT-4o-mini to refine and improve user prompts for form generation"""
+    
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        logger.error("OPENAI_API_KEY environment variable not found!")
+        return None, "OpenAI API key not configured"
+    
+    for attempt in range(max_retries + 1):
+        try:
+            logger.info(f"Prompt refinement attempt {attempt + 1} for: {original_prompt[:100]}...")
+            
+            # Create refinement prompt
+            refinement_prompt = f"""
+You are an expert at helping users create clear, detailed prompts for survey and form generation. Your job is to refine and improve the user's input to make it more specific, actionable, and effective for generating high-quality surveys.
+
+Guidelines for refinement:
+- Make the prompt clearer and more specific
+- Add context about survey goals if missing
+- Suggest question types naturally
+- Keep the user's original intent
+- Make it more structured but still conversational
+- Don't make it too long or overly complex
+- Focus on what data they want to collect and why
+
+Original user input:
+"{original_prompt}"
+
+Please refine this input to be a clearer, more effective prompt for survey generation. Return only the refined prompt text, no explanations or additional text.
+"""
+            
+            # Generate response using OpenAI client
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert at refining prompts for survey generation. Always return only the refined prompt text, no explanations."
+                    },
+                    {"role": "user", "content": refinement_prompt}
+                ],
+                temperature=0.3,  # Slightly more creative than form generation
+                max_tokens=1000,
+            )
+            
+            refined_text = response.choices[0].message.content.strip()
+            
+            # Basic validation of refined text
+            if len(refined_text) < 10:
+                logger.warning(f"Attempt {attempt + 1} produced very short output: {refined_text}")
+                if attempt == max_retries:
+                    return None, "Refined prompt too short"
+                continue
+            
+            # Remove quotes if the AI wrapped the response in quotes
+            if refined_text.startswith('"') and refined_text.endswith('"'):
+                refined_text = refined_text[1:-1]
+            
+            logger.info(f"Successfully refined prompt on attempt {attempt + 1}")
+            return refined_text, None
+            
+        except Exception as e:
+            logger.error(f"Error during prompt refinement attempt {attempt + 1}: {str(e)}")
+            if attempt == max_retries:
+                return None, f"Failed to refine prompt after {max_retries + 1} attempts: {str(e)}"
+    
+    return None, "Unexpected error in prompt refinement"
+
+
+@app.route("/api/refine_prompt", methods=["POST"])
+@login_required
+def refine_prompt():
+    """
+    Refine user prompt to be clearer and more structured for form generation
+    
+    Expected JSON payload:
+    {
+        "prompt": "original user text"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "refined_prompt": "improved text"
+    }
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data or "prompt" not in data:
+            return jsonify({"success": False, "error": "Prompt is required in request body"}), 400
+        
+        original_prompt = data["prompt"].strip()
+        
+        # Basic validation
+        if len(original_prompt) < 5:
+            return jsonify({"success": False, "error": "Prompt too short to refine"}), 400
+        
+        if len(original_prompt) > 5000:
+            return jsonify({"success": False, "error": "Prompt too long to refine"}), 400
+        
+        logger.info(f"Prompt refinement requested by user {request.user['uid']} for: {original_prompt[:100]}...")
+        
+        # Call OpenAI to refine the prompt
+        refined_text, error = refine_user_prompt(original_prompt)
+        
+        if refined_text:
+            logger.info(f"Successfully refined prompt from {len(original_prompt)} to {len(refined_text)} characters")
+            return jsonify({"success": True, "refined_prompt": refined_text})
+        else:
+            logger.error(f"Prompt refinement failed: {error}")
+            return jsonify({"success": False, "error": error or "Failed to refine prompt"}), 500
+            
+    except Exception as e:
+        logger.error(f"Unexpected error in /api/refine_prompt: {str(e)}")
+        return jsonify({"success": False, "error": "Internal server error during prompt refinement"}), 500
+
+
 @app.route("/create-form")
 @login_required
 def create_form():
@@ -2269,6 +2387,9 @@ def process_chat_message():
 
         # Check if conversation ended
         conversation_ended = result.get("metadata", {}).get("ended", False)
+        
+        # Get chat length for partial extraction triggers
+        chat_length = result.get("metadata", {}).get("chat_length", 0)
 
         response_data = {
             "response": result["response"],
@@ -2278,17 +2399,19 @@ def process_chat_message():
             "debug_signature": result.get("debug_signature"),  # Pass through debug info
         }
 
-        # If ended, trigger data extraction
-        if conversation_ended:
+        # Background extraction is now handled automatically by chat_engine.py
+        # No need for synchronous extraction here
+        
+        # Trigger partial extraction every 5 messages for long conversations
+        if not conversation_ended and chat_length > 0 and chat_length % 5 == 0:
             try:
-                extraction_result = extract_chat_responses(session_id)
-                response_data["extraction_triggered"] = True
-                response_data["extraction_success"] = extraction_result.get(
-                    "success", False
-                )
+                from background_extraction import queue_extraction
+                queue_extraction(session_id, f"partial_extraction_msg_{chat_length}")
+                print(f"Queued partial extraction for session {session_id} at message {chat_length}")
             except Exception as e:
-                print(f"Extraction error: {str(e)}")
-                response_data["extraction_triggered"] = False
+                print(f"Warning: Could not queue partial extraction: {e}")
+                
+        response_data["background_extraction"] = True
 
         return jsonify(response_data)
 
@@ -2382,84 +2505,57 @@ def check_chips():
         if not session_id or not message:
             return jsonify({"success": False, "error": "Missing session_id or message"}), 400
             
-        # Get the chat session
-        chat_session = chat_sessions.get(session_id)
-        if not chat_session:
-            return jsonify({"success": False, "error": "Session not found"}), 404
-            
-        # Get form data
-        form_doc = db.collection('forms').document(chat_session.form_id).get()
-        if not form_doc.exists:
-            return jsonify({"success": False, "error": "Form not found"}), 404
-            
-        form_data = form_doc.to_dict()
+        # Get the chat session from chat_engine
+        from chat_engine import load_session, _get_natural_question_data
         
-        # Use the intelligent chip detection tools
-        tools = [
-            get_question_type_tool(),
-            detect_chip_options_tool(),
-            validate_chip_response_tool()
-        ]
-        
-        # Create agent to analyze the message
-        agent = Agent(
-            model="gpt-4o-mini",
-            tools=tools,
-            instructions="""You are a conversational form analysis agent. Your job is to analyze the latest assistant message and determine if it should have clickable chip options based on the question type.
+        try:
+            session = load_session(session_id)
+        except Exception as e:
+            return jsonify({"success": False, "error": f"Session not found: {str(e)}"}), 404
             
-CRITICAL: Only show chips for questions that are:
-- multiple_choice: Show option chips
-- yes_no: Show "Yes" and "No" chips  
-- rating: Show 1-5 rating chips
-- For text/number questions: NO CHIPS
-
-Use your tools to:
-1. Determine the question type from the message
-2. Generate appropriate chip options if needed
-3. Return chip_options with show_chips: true/false"""
+        # Get current question being asked
+        questions = session.form_data.get("questions", [])
+        current_q_idx = session.current_question_index
+        
+        # Check if we have a valid current question
+        if current_q_idx >= len(questions):
+            return jsonify({
+                "success": True,
+                "chip_options": {"show_chips": False}
+            })
+            
+        current_q = questions[current_q_idx]
+        
+        # Skip if this question is not enabled
+        if not current_q.get("enabled", True):
+            return jsonify({
+                "success": True,
+                "chip_options": {"show_chips": False}
+            })
+            
+        # Skip if already answered
+        if str(current_q_idx) in session.responses:
+            return jsonify({
+                "success": True,
+                "chip_options": {"show_chips": False}
+            })
+        
+        # Use the existing logic from chat_engine to determine chips
+        natural_q_data = _get_natural_question_data(
+            session_id, 
+            current_q.get("text", ""), 
+            current_q.get("type", "text"), 
+            current_q_idx
         )
         
-        # Analyze the message for chip options
-        response = agent.run(
-            messages=[{
-                "role": "user", 
-                "content": f"Analyze this assistant message and determine if it needs chips: '{message}'\n\nForm questions: {json.dumps(form_data.get('questions', []))}"
-            }],
-            stream=False
-        )
-        
-        # Parse the response for chip information
-        chip_options = {"show_chips": False}
-        
-        # Look for chip options in the response
-        if hasattr(response, 'messages') and response.messages:
-            last_message = response.messages[-1]
-            if hasattr(last_message, 'content') and last_message.content:
-                # Try to extract chip data from agent response
-                content = str(last_message.content)
-                
-                # Simple patterns to detect if chips should be shown
-                if any(keyword in content.lower() for keyword in ['multiple choice', 'options', 'choose', 'select']):
-                    # This is likely a multiple choice question
-                    chip_options = {
-                        "show_chips": True,
-                        "question_type": "multiple_choice",
-                        "options": ["Option 1", "Option 2", "Option 3"]  # Fallback options
-                    }
-                elif any(keyword in content.lower() for keyword in ['yes or no', 'yes/no', 'do you']):
-                    # This is likely a yes/no question
-                    chip_options = {
-                        "show_chips": True,
-                        "question_type": "yes_no", 
-                        "options": ["Yes", "No"]
-                    }
-                elif any(keyword in content.lower() for keyword in ['rate', 'rating', '1-5', 'scale']):
-                    # This is likely a rating question
-                    chip_options = {
-                        "show_chips": True,
-                        "question_type": "rating",
-                        "options": ["1", "2", "3", "4", "5"]
-                    }
+        if natural_q_data.get("show_chips"):
+            chip_options = {
+                "show_chips": True,
+                "question_type": natural_q_data.get("chip_type"),
+                "options": natural_q_data.get("chip_options", [])
+            }
+        else:
+            chip_options = {"show_chips": False}
         
         return jsonify({
             "success": True,
@@ -2468,6 +2564,8 @@ Use your tools to:
         
     except Exception as e:
         print(f"Error checking chips: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
