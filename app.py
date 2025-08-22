@@ -1284,6 +1284,21 @@ def conversational_vs_traditional():
     """Conversational vs Traditional Surveys comparison guide"""
     return render_template("guides/conversational-vs-traditional.html")
 
+@app.route("/financial-consultants")
+def financial_consultants():
+    """Landing page for Financial Consultants persona"""
+    return render_template("financial-consultants.html")
+
+@app.route("/therapists")
+def therapists():
+    """Landing page for Mental Health Professionals persona"""
+    return render_template("therapists.html")
+
+@app.route("/market-research")
+def market_research():
+    """Landing page for Market Researchers persona"""
+    return render_template("market-research.html")
+
 @app.route("/vs-typeform")
 def vs_typeform():
     """Barmuda vs Typeform comparison page"""
