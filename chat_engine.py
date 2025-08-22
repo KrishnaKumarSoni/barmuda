@@ -368,13 +368,40 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
             answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
             session.metadata["partial"] = answered_count < enabled_count * 0.8
             
-            # Queue background extraction when session ends
-            try:
-                from background_extraction import queue_extraction
-                queue_extraction(session_id, f"chat_ended_{reason}")
-                print(f"Queued background extraction for ended session {session_id}")
-            except Exception as e:
-                print(f"Warning: Could not queue background extraction: {e}")
+            # Handle extraction based on environment
+            # Vercel cannot run background threads, so we do synchronous extraction
+            if os.environ.get("VERCEL"):
+                # Synchronous extraction for Vercel/serverless
+                try:
+                    from data_extraction import DataExtractionChain
+                    extractor = DataExtractionChain()
+                    
+                    # Load session for extraction
+                    session_data = {
+                        "session_id": session_id,
+                        "form_id": session.form_id,
+                        "form_data": session.form_data,
+                        "responses": session.responses,
+                        "chat_history": session.chat_history,
+                        "metadata": session.metadata
+                    }
+                    
+                    # Extract and save responses synchronously
+                    result = extractor.save_extracted_responses(session_data)
+                    if result.get("success"):
+                        print(f"Synchronous extraction completed for session {session_id}")
+                    else:
+                        print(f"Synchronous extraction failed: {result.get('error')}")
+                except Exception as e:
+                    print(f"Error in synchronous extraction: {e}")
+            else:
+                # Background extraction for local development
+                try:
+                    from background_extraction import queue_extraction
+                    queue_extraction(session_id, f"chat_ended_{reason}")
+                    print(f"Queued background extraction for ended session {session_id}")
+                except Exception as e:
+                    print(f"Warning: Could not queue background extraction: {e}")
             
         elif action == "request_end_confirmation":
             # User wants to end but needs confirmation
@@ -388,13 +415,39 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
             session.metadata["partial"] = True
             session.metadata["timeout"] = True
             
-            # Queue background extraction for timeout
-            try:
-                from background_extraction import queue_extraction
-                queue_extraction(session_id, "timeout")
-                print(f"Queued background extraction for timeout session {session_id}")
-            except Exception as e:
-                print(f"Warning: Could not queue background extraction: {e}")
+            # Handle extraction based on environment (same as above)
+            if os.environ.get("VERCEL"):
+                # Synchronous extraction for Vercel/serverless
+                try:
+                    from data_extraction import DataExtractionChain
+                    extractor = DataExtractionChain()
+                    
+                    # Load session for extraction
+                    session_data = {
+                        "session_id": session_id,
+                        "form_id": session.form_id,
+                        "form_data": session.form_data,
+                        "responses": session.responses,
+                        "chat_history": session.chat_history,
+                        "metadata": session.metadata
+                    }
+                    
+                    # Extract and save responses synchronously
+                    result = extractor.save_extracted_responses(session_data)
+                    if result.get("success"):
+                        print(f"Synchronous extraction completed for timeout session {session_id}")
+                    else:
+                        print(f"Synchronous extraction failed: {result.get('error')}")
+                except Exception as e:
+                    print(f"Error in synchronous extraction: {e}")
+            else:
+                # Background extraction for local development
+                try:
+                    from background_extraction import queue_extraction
+                    queue_extraction(session_id, "timeout")
+                    print(f"Queued background extraction for timeout session {session_id}")
+                except Exception as e:
+                    print(f"Warning: Could not queue background extraction: {e}")
             
         save_session(session)
         
