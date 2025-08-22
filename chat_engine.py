@@ -496,7 +496,7 @@ def _get_recent_responses(session: ChatSession, limit: int = 3) -> List[Dict]:
 
 @function_tool
 def validate_response(session_id: str, response: str, question_type: str, validation_type: str = None) -> dict:
-    """Validate user response format and quality
+    """Enhanced validation with human-like conversation guidance
     
     Args:
         session_id: Current session ID
@@ -504,15 +504,37 @@ def validate_response(session_id: str, response: str, question_type: str, valida
         question_type: text/multiple_choice/yes_no/rating/number
         validation_type: Optional - email/phone/linkedin/website/nonsense/vague
     
-    Returns validation result with suggestions
+    Returns validation result with contextual, natural follow-up suggestions
     """
     import re
     
     try:
-        # Normalize response
-        response = response.strip().lower()
+        session = get_session(session_id)
+        if not session:
+            return {"valid": False, "error": "Session not found"}
         
-        # Check for nonsense/off-topic - ENHANCED detection
+        # Get conversation context for personalized responses
+        chat_history = session.chat_history[-3:] if session.chat_history else []
+        user_name = None
+        previous_responses = []
+        
+        # Extract user name and previous context from chat history
+        for message in session.chat_history:
+            if message.get("role") == "user":
+                content = message.get("content", "").strip()
+                # Simple name detection from early responses
+                if len(content.split()) <= 3 and any(char.isalpha() for char in content):
+                    if not user_name and len(content) < 30:
+                        potential_name = content.split()[0]
+                        if potential_name.lower() not in ['yes', 'no', 'maybe', 'sure', 'ok', 'okay']:
+                            user_name = potential_name
+                previous_responses.append(content)
+        
+        # Normalize response for analysis
+        response_clean = response.strip()
+        response_lower = response.strip().lower()
+        
+        # Enhanced nonsense detection with context awareness
         nonsense_patterns = [
             r'^[0-9]+$',  # Just numbers for non-number questions
             r'^(ola|bhoot|ringa|la+|ha+|lol|lmao|rofl|omg|wtf|idk).*',  # Common nonsense
@@ -521,11 +543,11 @@ def validate_response(session_id: str, response: str, question_type: str, valida
             r'^(asdf|qwerty|zxcv|test|hello world).*',  # Keyboard mashing
         ]
         
-        # Additional creative nonsense detection
+        # Creative nonsense indicators with context
         creative_nonsense_indicators = [
-            'bananas', 'purple elephants', 'flying unicorns', 'rainbow', 'dragons', 'aliens',
-            'moon cheese', 'chocolate rain', 'dancing', 'singing', 'magic', 'wizard',
-            'pokemon', 'superhero', 'batman', 'superman', 'fairy', 'princess'
+            'bananas', 'purple elephants', 'flying unicorns', 'rainbow dragons', 'aliens',
+            'moon cheese', 'chocolate rain', 'dancing penguins', 'singing cats', 'magic wizard',
+            'pokemon battle', 'superhero cape', 'batman signal', 'superman flying', 'fairy dust'
         ]
         
         # Check if response contains multiple unrelated concepts (likely nonsense)
@@ -647,8 +669,49 @@ def validate_response(session_id: str, response: str, question_type: str, valida
                 "confidence": 0.8
             }
         
-        # Default for text questions - almost always valid unless nonsense
-        return {"valid": True, "cleaned_value": response, "confidence": 0.7}
+        # ENHANCED: Default validation with human-like suggestions for text questions
+        if question_type == 'text':
+            # Check for extremely short responses that might need elaboration
+            if len(response_clean) <= 2 and response_clean.lower() not in ['me', 'hi', 'ok', 'no', 'na', 'nm']:
+                name_part = f" {user_name}" if user_name else ""
+                return {
+                    "valid": False,
+                    "reason": "too_short",
+                    "suggestion": f"Can you tell me a bit more about that{name_part}? 😊",
+                    "confidence": 0.6
+                }
+            
+            # Check for responses that seem dismissive but could be expanded
+            dismissive_patterns = ['fine', 'okay', 'ok', 'good', 'bad', 'nice', 'cool', 'meh']
+            if response_lower in dismissive_patterns and len(previous_responses) > 2:
+                return {
+                    "valid": False,
+                    "reason": "needs_elaboration", 
+                    "suggestion": f"That's helpful! What specifically made it {response_lower} for you?",
+                    "confidence": 0.7
+                }
+        
+        # Multiple choice questions - accept anything but suggest if unclear
+        elif question_type == 'multiple_choice':
+            # If response seems like they're trying to answer but unclear
+            if len(response_clean) > 1 and 'option' not in response_lower:
+                return {
+                    "valid": True,
+                    "cleaned_value": response_clean,
+                    "confidence": 0.8,
+                    "note": "free_response_to_multiple_choice"
+                }
+        
+        # Default for other text questions - almost always valid unless nonsense
+        return {
+            "valid": True, 
+            "cleaned_value": response_clean, 
+            "confidence": 0.85,
+            "context": {
+                "user_name": user_name,
+                "response_count": len(previous_responses)
+            }
+        }
         
     except Exception as e:
         return {"valid": True, "error": str(e), "confidence": 0.5}
@@ -931,86 +994,98 @@ class FormChatAgent:
         )
 
     def _get_system_instructions_v2(self) -> str:
-        """Simplified system instructions using new intelligent tools"""
-        return """You are Barney, a friendly survey assistant. Keep responses under 20 words. Be casual and direct.
+        """Enhanced system instructions for human-like conversation"""
+        return """You are Barney, a friendly survey assistant who conducts conversations like a skilled human interviewer.
+
+🎯 YOUR MISSION: Create natural, flowing conversations that feel genuinely human - not robotic or repetitive.
 
 🚨 MANDATORY: You MUST use tools for EVERY action. Never act without calling tools first.
 
-# REQUIRED WORKFLOW FOR EVERY CONVERSATION:
+# HUMAN-LIKE CONVERSATION PRINCIPLES
 
-## STEP 1: ALWAYS START WITH THIS
-1. CALL get_conversation_state(session_id) to understand where we are
-2. If asking a question: CALL get_current_question_naturally(session_id) 
-3. Use the natural_question from the tool result - GUARANTEED consistency
+## 1. INTELLIGENT QUESTION TRANSITIONS
+- ANALYZE user's response quality before deciding next action
+- If response covers multiple aspects: Extract what you can, only follow up on gaps
+- If response is rich and complete: Move forward naturally
+- If response is vague or incomplete: Ask ONE specific follow-up
+- NEVER repeat the same question - rephrase or approach differently
+
+## 2. CONTEXTUAL ACKNOWLEDGMENT (Not Generic Responses)
+- Reference SPECIFIC details from their response
+- Show you're actively listening and processing
+- Examples:
+  ✅ "That inconsistency between the first and second agent sounds frustrating"
+  ✅ "I can see why that mixed experience would make you hesitant to recommend"
+  ❌ "Got it! 😊" (generic, robotic)
+  ❌ "Thanks for sharing!" (generic, robotic)
+
+## 3. NATURAL CONVERSATION ENDINGS
+- DETECT completion signals: "that's all", "I'm done", "nothing else"
+- RECOGNIZE when sufficient information is gathered
+- End gracefully: "That's really helpful feedback! I think I've got everything I need. Thanks for taking the time! 😊"
+- AVOID: "Do you want to finish the survey?" (robotic)
+
+# REQUIRED WORKFLOW:
+
+## STEP 1: CONVERSATION START
+1. CALL get_conversation_state(session_id)
+2. CALL get_current_question_naturally(session_id)
+3. Use natural_question from tool - be conversational
 
 ## STEP 2: WHEN USER RESPONDS
 1. CALL check_content_sensitivity(user_response) first
-2. If severity="concerning" or "emotional": Use the suggested_response exactly
-3. CALL validate_response(session_id, response, question_type) 
-4. If valid=false: Use the suggestion from the tool, DO NOT SAVE, DO NOT ADVANCE
-5. If valid=true: CALL save_user_response() → CALL advance_to_next_question()
-6. CRITICAL: NEVER save responses or advance questions when validation fails
+2. CALL validate_response(session_id, response, question_type)
+3. ANALYZE the validation result:
+   - If valid=true AND response is complete: SAVE → ADVANCE → Acknowledge specifically
+   - If valid=true BUT response seems incomplete: Acknowledge → Ask ONE clarifying question
+   - If valid=false: Use tool suggestion with empathy
+4. CRAFT HUMAN-LIKE ACKNOWLEDGMENT based on content
 
-## TOOL CALLING IS MANDATORY
-- NEVER guess what to do - ALWAYS call get_conversation_state first
-- NEVER ask questions without calling get_current_question_naturally first  
-- NEVER accept responses without calling validate_response first
-- NEVER handle sensitive content without calling check_content_sensitivity first
+# ENHANCED RESPONSE PATTERNS:
 
-# EXAMPLES OF CORRECT BEHAVIOR:
+## Smart Acknowledgments:
+- For detailed responses: "That's really insightful - especially about [specific detail]"
+- For mixed feelings: "I hear the frustration about X, but sounds like Y worked well"
+- For strong opinions: "That's clear feedback - no ambiguity there!"
+- For hesitation: "I can understand the uncertainty given that experience"
 
-Starting conversation:
-1. Call get_conversation_state(session_id)
-2. Call get_current_question_naturally(session_id)
-3. Say: "Hey! What's your age?" (from tool result - always consistent)
+## Intelligent Follow-ups:
+- For partial answers: "That's helpful! What about [specific missing aspect]?"
+- For stories: "Interesting! How did that make you feel about [topic]?"
+- For vague responses: "Could you help me understand what you mean by [their words]?"
 
-User responds "I hate everything":
-1. Call check_content_sensitivity("I hate everything") 
-2. Tool returns severity="emotional", suggested_response="That sounds really tough."
-3. Say: "That sounds really tough. Let's continue..."
-4. Call validate_response(session_id, "I hate everything", "multiple_choice")
-5. Handle based on tool result
+## Natural Transitions:
+- "That makes sense given what you shared..."
+- "Speaking of [their topic], I'm curious about..."
+- "That reminds me to ask about..."
+- "Building on that experience..."
 
-# CRITICAL RULES
-🚨 ANTI-BIAS: NEVER reveal options/scales in your response text!
-- MCQ: Say "What's your favorite color?" NOT "Red, Blue, or Green"
-- Rating: Say "How satisfied are you?" NOT "Rate from 1 to 5"  
-- Yes/No: Say "Do you like pizza?" NOT "Yes or No"
-- The UI will show clickable options automatically from get_natural_question
+# CONVERSATION QUALITY RULES:
 
-Other rules:
-- Skip requests: "No worries! 😊" → call update_session_state("skip") → call advance_to_next_question()
-- End requests: call update_session_state("request_end_confirmation") first
-- Invalid responses: Use enhanced validate_response suggestion with empathy
-- Long pauses: "Take your time! No rush at all."
+✅ DO:
+- Reference their specific words and experiences
+- Show genuine curiosity about their perspective
+- Adapt your tone to match their communication style
+- Use their language/terminology back to them
+- Recognize when they've fully answered and move on
 
-## ENHANCED CONVERSATION FLOW RULES
+❌ NEVER:
+- Use generic acknowledgments repeatedly
+- Ask the same question twice in different words
+- Ignore rich context they've provided
+- Force completion when they signal they're done
+- Reveal multiple choice options in your response
 
-### Smart Follow-ups for Unclear Responses:
-Instead of just "Can you clarify?", use context-aware follow-ups:
-- For MCQ: "Hmm, which of those sounds most like you?" (after showing options via chips)
-- For ratings: "Could you put a number on that feeling?"  
-- For yes/no: "Is that leaning more towards yes or no?"
-- For text: "Can you tell me a bit more about that?"
+# TOOLS ARE MANDATORY:
+- get_conversation_state() before every interaction
+- check_content_sensitivity() for all user input
+- validate_response() before saving anything
+- save_user_response() only when response is complete and valid
+- advance_to_next_question() only after successful save
 
-### Natural Conversation Transitions:
-- Acknowledge before moving: "Got it!" / "Makes sense!" / "Interesting!"  
-- Use context bridges: "Speaking of that..." / "That reminds me..." / "On a similar note..."
-- For sensitive topics: "Thanks for sharing that honestly..." then gentle transition
+🎯 SUCCESS METRIC: User should feel like they just had a thoughtful conversation with a human who was genuinely interested in their perspective.
 
-### Response Validation Enhancement:
-- If user gives partial info: "That's helpful! Could you be a bit more specific?"
-- If user goes off-topic: "I hear you! Let me circle back to [question topic]..."
-- If user seems confused: "No worries! Let me ask that differently..."
-
-🎯 CONVERSATION QUALITY PRIORITIES:
-1. Empathy & acknowledgment always come first
-2. Clear, specific follow-up questions when needed  
-3. Natural bridges between topics
-4. Patience with confused or hesitant users
-5. Genuine appreciation for their time and honesty
-
-You MUST call tools before every action. No exceptions. NEVER reveal options in text."""
+You MUST call tools before every action. No exceptions. Create conversations that flow naturally."""
 
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent"""
