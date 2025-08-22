@@ -84,10 +84,10 @@
                     
                     <!-- CTAs -->
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="/auth/google" class="hero-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-all duration-200 shadow-lg">
+                        <button onclick="signInWithGoogle()" class="hero-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-all duration-200 shadow-lg">
                             <i class="ph ph-lightbulb"></i>
                             Get Real Insights
-                        </a>
+                        </button>
                     </div>
                 </div>
                 
@@ -406,10 +406,10 @@
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/auth/google" class="bg-white text-[#cc5500] px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-all duration-200 shadow-lg">
+                <button onclick="signInWithGoogle()" class="bg-white text-[#cc5500] px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-all duration-200 shadow-lg">
                     <i class="ph ph-lightbulb"></i>
                     Get Better Insights Today
-                </a>
+                </button>
             </div>
             
             <div class="mt-8 text-white/80 text-sm">
@@ -418,45 +418,8 @@
         </div>
     </section>
     
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12 px-4">
-        <div class="container mx-auto max-w-6xl">
-            <div class="grid md:grid-cols-4 gap-8">
-                <div class="md:col-span-2">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-8 h-8 hero-gradient rounded-lg flex items-center justify-center">
-                            <i class="ph ph-chat-circle text-white"></i>
-                        </div>
-                        <span class="font-bold text-xl">Barmuda</span>
-                    </div>
-                    <p class="text-gray-400 mb-4">
-                        Conversational research that reveals authentic insights. Built for market researchers who need the truth, not just data.
-                    </p>
-                </div>
-                
-                <div>
-                    <h4 class="font-semibold mb-4">Research Tools</h4>
-                    <div class="space-y-2">
-                        <a href="/pricing" class="text-gray-400 hover:text-white transition-colors block">Pricing</a>
-                        <a href="/guides" class="text-gray-400 hover:text-white transition-colors block">Research Guide</a>
-                        <a href="/vs-typeform" class="text-gray-400 hover:text-white transition-colors block">vs. Traditional</a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h4 class="font-semibold mb-4">Company</h4>
-                    <div class="space-y-2">
-                        <a href="/privacy" class="text-gray-400 hover:text-white transition-colors block">Privacy Policy</a>
-                        <a href="/terms" class="text-gray-400 hover:text-white transition-colors block">Terms of Service</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 Barmuda. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <!-- Reusable Footer with Grouped Links -->
+    {% include 'partials/footer.html' %}
     
 </body>
 </html>
