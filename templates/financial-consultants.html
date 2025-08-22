@@ -138,10 +138,10 @@
                     
                     <!-- CTAs -->
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="/auth/google" class="accent-gradient text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity focus-ring">
+                        <button onclick="signInWithGoogle()" class="accent-gradient text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity focus-ring">
                             <i class="ph ph-rocket-launch"></i>
                             <span>Start Free Trial</span>
-                        </a>
+                        </button>
                     </div>
                 </div>
                 
@@ -422,10 +422,10 @@
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="/auth/google" class="accent-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center gap-2 hover:opacity-90 transition-opacity focus-ring">
+                <button onclick="signInWithGoogle()" class="accent-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center gap-2 hover:opacity-90 transition-opacity focus-ring">
                     <i class="ph ph-rocket-launch"></i>
                     <span>Start Free Trial</span>
-                </a>
+                </button>
             </div>
             
             <div class="mt-8 text-slate-400 text-sm">
@@ -434,54 +434,8 @@
         </div>
     </section>
     
-    <!-- Footer - Using original reusable component -->
-    <footer class="bg-[#0f0f0f] py-12 md:py-16 relative z-10">
-        <div class="max-w-4xl mx-auto px-4 md:px-8">
-            <div class="grid md:grid-cols-3 gap-8 md:gap-12">
-                <!-- Logo & Description -->
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="bg-center bg-cover bg-no-repeat h-6 w-5"
-                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
-                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-white">
-                            Barmuda
-                        </h3>
-                    </div>
-                    <p class="font-['DM_Sans'] text-[#9ca3af] text-sm leading-relaxed">
-                        Transform boring surveys into engaging conversations.
-                    </p>
-                </div>
-                
-                <!-- Product Links -->
-                <div>
-                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-white mb-4">Product</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/dashboard" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Dashboard</a></li>
-                        <li><a href="/pricing" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Pricing</a></li>
-                        <li><a href="/why" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Why Barmuda</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Legal -->
-                <div>
-                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-white mb-4">Legal</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/privacy" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="/terms" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Terms of Service</a></li>
-                        <li><a href="mailto:support@barmuda.in" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Contact</a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-[#1f2937] mt-8 pt-6">
-                <div class="text-center">
-                    <p class="font-['DM_Sans'] text-[#9ca3af] text-sm">
-                        © 2025 Barmuda. Made with ❤️ for better surveys.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- Reusable Footer with Grouped Links -->
+    {% include 'partials/footer.html' %}
     
     <!-- Firebase Authentication Script -->
     <script>
