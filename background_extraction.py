@@ -23,12 +23,56 @@ load_dotenv()
 # Initialize OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Firebase should already be initialized by app.py
-try:
-    firestore_db = firestore.client()
-except Exception as e:
-    print(f"Warning: Could not get Firestore client immediately: {e}")
-    firestore_db = None
+# Initialize Firebase Admin SDK if not already initialized
+def init_firebase():
+    """Initialize Firebase Admin SDK if not already done"""
+    global firestore_db
+    
+    if not firebase_admin._apps:
+        # Check if running on Vercel/production with environment variables
+        if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
+            # Production Firebase initialization
+            service_account_info = {
+                "type": "service_account",
+                "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
+                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+                "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace(
+                    "\\n", "\n"
+                ),
+                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+                "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
+            }
+            
+            cred = firebase_admin.credentials.Certificate(service_account_info)
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': 'https://barmuda-in-default-rtdb.us-central1.firebasedatabase.app/'
+            })
+            print("Firebase Admin SDK initialized for production")
+        else:
+            # Local development - try to use service account key file
+            try:
+                cred = firebase_admin.credentials.Certificate("barmuda-in-firebase-adminsdk.json")
+                firebase_admin.initialize_app(cred, {
+                    'databaseURL': 'https://barmuda-in-default-rtdb.us-central1.firebasedatabase.app/'
+                })
+                print("Firebase Admin SDK initialized for development")
+            except Exception as e:
+                print(f"Warning: Could not initialize Firebase Admin SDK: {e}")
+                return None
+    
+    try:
+        firestore_db = firestore.client()
+        return firestore_db
+    except Exception as e:
+        print(f"Warning: Could not get Firestore client: {e}")
+        return None
+
+# Initialize Firebase
+firestore_db = init_firebase()
 
 # Background extraction queue
 extraction_queue = queue.Queue()
@@ -106,7 +150,10 @@ class BackgroundExtractor:
         try:
             global firestore_db
             if firestore_db is None:
-                firestore_db = firestore.client()
+                firestore_db = init_firebase()
+            
+            if firestore_db is None:
+                return {"success": False, "error": "Firebase not initialized"}
             
             # Load session data
             session_doc = firestore_db.collection("chat_sessions").document(session_id).get()
