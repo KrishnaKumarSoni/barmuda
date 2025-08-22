@@ -5,6 +5,15 @@ Allow: /pricing
 Allow: /why
 Allow: /privacy
 Allow: /terms
+Allow: /financial-consultants
+Allow: /therapists
+Allow: /market-research
+Allow: /vs-typeform
+Allow: /vs-google-forms
+Allow: /guides
+Allow: /guides/ai-user-interviews
+Allow: /guides/conversational-vs-traditional-surveys
+Allow: /llms.txt
 
 # Specifically allow AI crawlers and LLMs
 User-agent: GPTBot
@@ -14,6 +23,15 @@ Allow: /pricing
 Allow: /why
 Allow: /privacy
 Allow: /terms
+Allow: /financial-consultants
+Allow: /therapists
+Allow: /market-research
+Allow: /vs-typeform
+Allow: /vs-google-forms
+Allow: /guides
+Allow: /guides/ai-user-interviews
+Allow: /guides/conversational-vs-traditional-surveys
+Allow: /llms.txt
 
 User-agent: ChatGPT-User
 Allow: /
@@ -22,6 +40,15 @@ Allow: /pricing
 Allow: /why
 Allow: /privacy
 Allow: /terms
+Allow: /financial-consultants
+Allow: /therapists
+Allow: /market-research
+Allow: /vs-typeform
+Allow: /vs-google-forms
+Allow: /guides
+Allow: /guides/ai-user-interviews
+Allow: /guides/conversational-vs-traditional-surveys
+Allow: /llms.txt
 
 User-agent: CCBot
 Allow: /
@@ -30,6 +57,15 @@ Allow: /pricing
 Allow: /why
 Allow: /privacy
 Allow: /terms
+Allow: /financial-consultants
+Allow: /therapists
+Allow: /market-research
+Allow: /vs-typeform
+Allow: /vs-google-forms
+Allow: /guides
+Allow: /guides/ai-user-interviews
+Allow: /guides/conversational-vs-traditional-surveys
+Allow: /llms.txt
 
 User-agent: anthropic-ai
 Allow: /
@@ -38,6 +74,15 @@ Allow: /pricing
 Allow: /why
 Allow: /privacy
 Allow: /terms
+Allow: /financial-consultants
+Allow: /therapists
+Allow: /market-research
+Allow: /vs-typeform
+Allow: /vs-google-forms
+Allow: /guides
+Allow: /guides/ai-user-interviews
+Allow: /guides/conversational-vs-traditional-surveys
+Allow: /llms.txt
 
 User-agent: Claude-Web
 Allow: /
@@ -46,6 +91,15 @@ Allow: /pricing
 Allow: /why
 Allow: /privacy
 Allow: /terms
+Allow: /financial-consultants
+Allow: /therapists
+Allow: /market-research
+Allow: /vs-typeform
+Allow: /vs-google-forms
+Allow: /guides
+Allow: /guides/ai-user-interviews
+Allow: /guides/conversational-vs-traditional-surveys
+Allow: /llms.txt
 
 # Block authenticated pages and API endpoints
 Disallow: /dashboard
@@ -66,7 +120,7 @@ Disallow: /*.log
 Disallow: /*.backup
 
 # Sitemap location
-Sitemap: https://barmuda.in/sitemap.xml
+Sitemap: https://www.barmuda.in/sitemap.xml
 
 # Crawl-delay for being polite
 Crawl-delay: 1
