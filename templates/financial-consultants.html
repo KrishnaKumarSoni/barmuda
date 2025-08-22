@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barmuda for Financial Consultants - Stop Losing Clients to Boring Forms</title>
+    <meta name="description" content="70% of first meetings fail because advisors can't uncover deep pain points. Replace checkbox questionnaires with conversational client profiling that actually works.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Firebase SDK for real Google authentication -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        .hero-bg {
+            background: 
+                linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%),
+                radial-gradient(ellipse 1200px 600px at 50% -100px, rgba(15, 23, 42, 0.03) 0%, transparent 50%),
+                linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%);
+        }
+        .accent-gradient {
+            background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+        }
+        .premium-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            box-shadow: 
+                0 20px 25px -5px rgba(15, 23, 42, 0.04),
+                0 10px 10px -5px rgba(15, 23, 42, 0.02),
+                0 1px 0 0 rgba(255, 255, 255, 0.9) inset;
+        }
+        .subtle-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .subtle-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 25px 50px -12px rgba(15, 23, 42, 0.08),
+                0 10px 25px -5px rgba(15, 23, 42, 0.04);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .metric-card {
+            background: linear-gradient(145deg, #f8fafc 0%, #ffffff 100%);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+        .nav-blur {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .grid-pattern {
+            background-image: 
+                linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .focus-ring:focus {
+            outline: 2px solid #dc2626;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body class="hero-bg font-['DM_Sans'] antialiased">
+    
+    <!-- Subtle background pattern -->
+    <div class="fixed inset-0 grid-pattern opacity-50 pointer-events-none"></div>
+    
+    <!-- Navigation - Using original reusable component -->
+    <nav class="absolute bg-white rounded-[100px] border border-[#fff0cf] top-8 left-1/2 translate-x-[-50%] px-6 py-3 z-10">
+        <div class="flex items-center gap-6">
+            <!-- Logo Section -->
+            <div class="flex items-center gap-3">
+                <div class="bg-center bg-cover bg-no-repeat h-11 w-[30px]"
+                     style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[24px] text-[#cc5500] tracking-[-0.24px]">
+                    Barmuda
+                </h1>
+            </div>
+            
+            <!-- Auth Section -->
+            <div class="flex items-center">
+                <button onclick="signInWithGoogle()" 
+                        class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-[100px] px-4 py-2.5 flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                    <span class="font-['DM_Sans'] text-[18px] text-white">Sign in</span>
+                    <i class="ph ph-sign-in text-white text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 px-4">
+        <div class="container mx-auto max-w-6xl">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                
+                <!-- Left Content -->
+                <div class="space-y-12">
+                    <!-- Badge -->
+                    <div class="inline-flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-full px-4 py-2">
+                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span class="text-sm font-medium text-slate-700 uppercase tracking-wide">For Financial Advisors</span>
+                    </div>
+                    
+                    <!-- Main Headline -->
+                    <div class="space-y-8">
+                        <h1 class="text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight">
+                            Stop Losing 
+                            <span class="text-gradient">70%</span> of 
+                            <br>First Meetings
+                        </h1>
+                        <p class="text-xl text-slate-600 leading-relaxed max-w-xl">
+                            Replace ineffective checkbox questionnaires with conversational client profiling that uncovers deep pain points and builds trust from day one.
+                        </p>
+                    </div>
+                    
+                    <!-- Key Problems -->
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <i class="ph ph-x-circle text-red-500 text-lg flex-shrink-0"></i>
+                            <span class="text-slate-700">70% of meetings fail due to poor discovery</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <i class="ph ph-clock text-amber-500 text-lg flex-shrink-0"></i>
+                            <span class="text-slate-700">2+ hours of admin work per meeting</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <i class="ph ph-user-minus text-orange-500 text-lg flex-shrink-0"></i>
+                            <span class="text-slate-700">40% prospects disengage early</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <i class="ph ph-shield-slash text-purple-500 text-lg flex-shrink-0"></i>
+                            <span class="text-slate-700">Missing compliance audit trails</span>
+                        </div>
+                    </div>
+                    
+                    <!-- CTAs -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="/auth/google" class="accent-gradient text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity focus-ring">
+                            <i class="ph ph-rocket-launch"></i>
+                            <span>Start Free Trial</span>
+                        </a>
+                        <a href="#demo" class="border border-slate-300 text-slate-700 px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors focus-ring">
+                            <i class="ph ph-play-circle"></i>
+                            <span>Watch Demo</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Right Visual -->
+                <div class="relative">
+                    <!-- Main product preview -->
+                    <div class="premium-card p-6 rounded-2xl subtle-hover">
+                        <div class="space-y-6">
+                            <!-- Chat Interface Preview -->
+                            <div class="bg-white rounded-xl p-5 border border-slate-100">
+                                <div class="flex items-center gap-3 mb-5">
+                                    <div class="w-10 h-10 accent-gradient rounded-xl flex items-center justify-center">
+                                        <i class="ph ph-robot text-white"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-slate-900 text-sm">Financial Advisor AI</div>
+                                        <div class="text-xs text-slate-500">Active now</div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="hero-gradient text-white p-3 rounded-xl rounded-bl-sm max-w-[260px] text-sm">
+                                        What's keeping you up at night about your financial future?
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-xl rounded-br-sm max-w-[220px] ml-auto text-sm text-slate-700">
+                                        I'm worried I'm not saving enough for retirement...
+                                    </div>
+                                    <div class="hero-gradient text-white p-3 rounded-xl rounded-bl-sm max-w-[280px] text-sm">
+                                        Tell me more about what "enough" means to you. What lifestyle are you hoping for?
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Key Metrics -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="metric-card text-center p-4 rounded-xl">
+                                    <div class="text-gradient text-2xl font-bold mb-1">85%</div>
+                                    <div class="text-slate-600 text-xs">Higher satisfaction</div>
+                                </div>
+                                <div class="metric-card text-center p-4 rounded-xl">
+                                    <div class="text-gradient text-2xl font-bold mb-1">2.3x</div>
+                                    <div class="text-slate-600 text-xs">Faster discovery</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Subtle accent -->
+                    <div class="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full opacity-60"></div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+    
+    <!-- Problems Section -->
+    <section class="py-20 px-4 bg-white">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                    Why Traditional Forms Are 
+                    <span class="hero-gradient bg-clip-text text-transparent">Killing Your Business</span>
+                </h2>
+                <p class="text-xl text-gray-600">The financial advisory industry loses $10 billion annually to poor client onboarding</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Problem 1 -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 p-8 rounded-2xl">
+                    <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mb-6">
+                        <i class="ph ph-x-circle text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Discovery Failure</h3>
+                    <div class="space-y-3 text-gray-600">
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-red-500 rounded-full mt-2"></div>
+                            <span>70% of first meetings fail - clients feel unheard</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-red-500 rounded-full mt-2"></div>
+                            <span>Generic questionnaires miss nuanced situations</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-red-500 rounded-full mt-2"></div>
+                            <span>50% struggle with goal-based questioning</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Problem 2 -->
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-8 rounded-2xl">
+                    <div class="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mb-6">
+                        <i class="ph ph-clock text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Time Drain</h3>
+                    <div class="space-y-3 text-gray-600">
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2"></div>
+                            <span>2+ hours backend work per client meeting</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2"></div>
+                            <span>40% of details lost in manual note-taking</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2"></div>
+                            <span>No real-time transcription for compliance</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Problem 3 -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-8 rounded-2xl">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-6">
+                        <i class="ph ph-users text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Client Experience</h3>
+                    <div class="space-y-3 text-gray-600">
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2"></div>
+                            <span>50% younger clients frustrated by assessments</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2"></div>
+                            <span>92% would switch over bad tech experiences</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2"></div>
+                            <span>Generic onboarding feels impersonal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Solution Section -->
+    <section class="py-20 px-4 gradient-bg">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                    Conversational Client Profiling That 
+                    <span class="hero-gradient bg-clip-text text-transparent">Actually Works</span>
+                </h2>
+                <p class="text-xl text-gray-600">Turn every prospect into a qualified lead with human-like conversations</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <!-- Feature 1 -->
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 hero-gradient rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i class="ph ph-chat-circle-dots text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Deep Discovery Conversations</h3>
+                            <p class="text-gray-600">AI asks follow-up questions, uncovers emotional drivers, and captures nuanced financial situations that forms miss.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 2 -->
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 hero-gradient rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i class="ph ph-shield-check text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">SEC/FINRA Compliant</h3>
+                            <p class="text-gray-600">Automatic audit trails, encrypted data, and secure client feedback collection that meets all regulatory requirements.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 3 -->
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 hero-gradient rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i class="ph ph-lightning text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Real-Time Insights</h3>
+                            <p class="text-gray-600">Get structured client profiles instantly. No more manual note-taking or lost details from rushed meetings.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results Dashboard Mockup -->
+                <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl card-shadow">
+                    <h4 class="font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <i class="ph ph-chart-bar text-[#cc5500]"></i>
+                        Client Profile Dashboard
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="bg-[#fef5e0] p-4 rounded-xl">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-gray-900">Risk Tolerance</span>
+                                <span class="text-[#cc5500] font-bold">Moderate-Aggressive</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="hero-gradient h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#fef5e0] p-4 rounded-xl">
+                            <div class="text-sm text-gray-600 mb-1">Key Pain Points</div>
+                            <div class="font-medium text-gray-900">"Worried about retirement timing and healthcare costs"</div>
+                        </div>
+                        
+                        <div class="bg-[#fef5e0] p-4 rounded-xl">
+                            <div class="text-sm text-gray-600 mb-1">Priority Goals</div>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 hero-gradient rounded-full"></div>
+                                    <span class="text-gray-900 text-sm">Retirement by age 65</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 hero-gradient rounded-full"></div>
+                                    <span class="text-gray-900 text-sm">Children's college fund</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="py-20 px-4 bg-white">
+        <div class="container mx-auto max-w-4xl text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                Results That Matter
+            </h2>
+            <p class="text-xl text-gray-600 mb-16">Financial advisors using conversational profiling see dramatic improvements</p>
+            
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="p-6">
+                    <div class="hero-gradient bg-clip-text text-transparent text-4xl font-bold mb-2">+85%</div>
+                    <div class="text-gray-600 font-medium">Client satisfaction scores</div>
+                </div>
+                <div class="p-6">
+                    <div class="hero-gradient bg-clip-text text-transparent text-4xl font-bold mb-2">-60%</div>
+                    <div class="text-gray-600 font-medium">Administrative time</div>
+                </div>
+                <div class="p-6">
+                    <div class="hero-gradient bg-clip-text text-transparent text-4xl font-bold mb-2">+40%</div>
+                    <div class="text-gray-600 font-medium">Prospect conversion</div>
+                </div>
+                <div class="p-6">
+                    <div class="hero-gradient bg-clip-text text-transparent text-4xl font-bold mb-2">100%</div>
+                    <div class="text-gray-600 font-medium">Compliance ready</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="py-24 px-4 bg-slate-900">
+        <div class="container mx-auto max-w-4xl text-center">
+            <h2 class="text-4xl lg:text-5xl font-bold text-white mb-6">
+                Ready to transform your client discovery?
+            </h2>
+            <p class="text-xl text-slate-300 mb-12 max-w-2xl mx-auto">
+                Join hundreds of financial advisors using conversational profiling to build stronger client relationships.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="/auth/google" class="accent-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center gap-2 hover:opacity-90 transition-opacity focus-ring">
+                    <i class="ph ph-rocket-launch"></i>
+                    <span>Start Free Trial</span>
+                </a>
+                <a href="#demo" class="border border-slate-600 text-slate-300 px-8 py-4 rounded-lg font-semibold text-lg flex items-center gap-2 hover:bg-slate-800 transition-colors focus-ring">
+                    <i class="ph ph-calendar"></i>
+                    <span>Schedule Demo</span>
+                </a>
+            </div>
+            
+            <div class="mt-8 text-slate-400 text-sm">
+                ✓ No credit card required &nbsp;&nbsp; ✓ 14-day free trial &nbsp;&nbsp; ✓ Cancel anytime
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer - Using original reusable component -->
+    <footer class="bg-[#0f0f0f] py-12 md:py-16 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+                <!-- Logo & Description -->
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-center bg-cover bg-no-repeat h-6 w-5"
+                             style="background-image: url('/static/assets/fd8df05e393cbb3743a17079ba585dca07a12cd4.png')"></div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-white">
+                            Barmuda
+                        </h3>
+                    </div>
+                    <p class="font-['DM_Sans'] text-[#9ca3af] text-sm leading-relaxed">
+                        Transform boring surveys into engaging conversations.
+                    </p>
+                </div>
+                
+                <!-- Product Links -->
+                <div>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-white mb-4">Product</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/dashboard" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Dashboard</a></li>
+                        <li><a href="/pricing" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="/why" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Why Barmuda</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Legal -->
+                <div>
+                    <h4 class="font-['Plus_Jakarta_Sans'] font-semibold text-white mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/privacy" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="/terms" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="mailto:support@barmuda.in" class="font-['DM_Sans'] text-sm text-[#9ca3af] hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-[#1f2937] mt-8 pt-6">
+                <div class="text-center">
+                    <p class="font-['DM_Sans'] text-[#9ca3af] text-sm">
+                        © 2025 Barmuda. Made with ❤️ for better surveys.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Firebase Authentication Script -->
+    <script>
+        // Firebase configuration - REAL config for barmuda-in
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Sign in with Google
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider)
+            .then((result) => {
+                // Get the ID token
+                return result.user.getIdToken();
+            })
+            .then((idToken) => {
+                // Send token to backend
+                return fetch('/firebase-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ idToken: idToken })
+                });
+            })
+            .then(response => response.json())
+            .then((data) => {
+                if (data.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Authentication failed');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Sign in failed');
+            });
+        }
+    </script>
+    
+</body>
+</html>
