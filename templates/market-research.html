@@ -441,37 +441,51 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         
-        // Sign in with Google
+        // Simple, Reliable Google Sign In (Redirect-Only)
         function signInWithGoogle() {
+            console.log('Starting Google sign-in (redirect flow)');
+            
+            // Simple redirect - always works, no popup blocking
             const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-            .then((result) => {
-                // Get the ID token
-                return result.user.getIdToken();
-            })
-            .then((idToken) => {
-                // Send token to backend
-                return fetch('/firebase-auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ idToken: idToken })
-                });
-            })
-            .then(response => response.json())
-            .then((data) => {
-                if (data.success) {
-                    window.location.href = '/dashboard';
-                } else {
-                    alert('Authentication failed');
+            firebase.auth().signInWithRedirect(provider);
+            
+            // Page will redirect to Google, then back to our site
+        }
+        
+        // Handle redirect result when page loads
+        firebase.auth().getRedirectResult()
+            .then(async (result) => {
+                if (result && result.user) {
+                    console.log('Google sign-in successful:', result.user.email);
+                    
+                    try {
+                        const idToken = await result.user.getIdToken();
+                        
+                        const response = await fetch('/firebase-auth', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ idToken })
+                        });
+                        
+                        if (response.ok) {
+                            console.log('Authentication successful!');
+                            window.location.href = '/dashboard';
+                        } else {
+                            alert('Authentication failed. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Auth error:', error);
+                        alert('Sign-in failed. Please try again.');
+                    }
                 }
             })
             .catch((error) => {
-                console.error('Error:', error);
-                alert('Sign in failed');
+                console.error('Sign-in error:', error);
+                alert('Sign-in failed: ' + error.message);
             });
-        }
     </script>
     
 </body>
