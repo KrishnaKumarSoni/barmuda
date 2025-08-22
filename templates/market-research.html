@@ -19,19 +19,99 @@
     
     <!-- Custom Styles -->
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #fff5e0 0%, #fef9ee 100%);
+        .hero-bg {
+            background: 
+                radial-gradient(ellipse 1000px 800px at 50% -200px, rgba(14, 165, 233, 0.03) 0%, transparent 50%),
+                linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
         }
-        .hero-gradient {
-            background: linear-gradient(135deg, #cc5500 0%, #d12b2e 100%);
+        .accent-gradient {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
         }
-        .card-shadow {
-            box-shadow: 0 20px 40px rgba(204, 85, 0, 0.08);
+        .accent-gradient-alt {
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+        }
+        .premium-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(14, 165, 233, 0.1);
+            box-shadow: 
+                0 32px 64px -12px rgba(14, 165, 233, 0.08),
+                0 20px 25px -5px rgba(0, 0, 0, 0.04),
+                0 1px 0 0 rgba(255, 255, 255, 0.95) inset;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 24px 48px -12px rgba(0, 0, 0, 0.18),
+                0 16px 32px -8px rgba(0, 0, 0, 0.12);
+        }
+        .modern-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modern-hover:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 
+                0 40px 80px -12px rgba(14, 165, 233, 0.15),
+                0 20px 40px -8px rgba(0, 0, 0, 0.08);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-modern {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-effect {
+            box-shadow: 
+                0 0 0 1px rgba(14, 165, 233, 0.2),
+                0 0 20px rgba(14, 165, 233, 0.15),
+                0 0 40px rgba(14, 165, 233, 0.08);
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 20px rgba(14, 165, 233, 0.2); }
+            to { box-shadow: 0 0 30px rgba(14, 165, 233, 0.4); }
         }
     </style>
 </head>
 
-<body class="gradient-bg font-['DM_Sans'] antialiased">
+<body class="hero-bg font-['DM_Sans'] antialiased text-white">
+    
+    <!-- Modern Navigation -->
+    <nav class="fixed top-6 left-1/2 transform -translate-x-1/2 nav-modern rounded-2xl px-6 py-3 z-50">
+        <div class="flex items-center justify-between w-full max-w-4xl">
+            <!-- Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <i class="ph-bold ph-chart-bar text-white text-lg"></i>
+                </div>
+                <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-white">
+                    Barmuda
+                </h1>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="/pricing" class="text-slate-300 hover:text-white transition-colors font-medium">Pricing</a>
+                <a href="/dashboard" class="text-slate-300 hover:text-white transition-colors font-medium">Dashboard</a>
+                <a href="/" class="text-slate-300 hover:text-white transition-colors font-medium">Home</a>
+            </div>
+            
+            <!-- CTA Button -->
+            <a href="/auth/google" class="accent-gradient px-6 py-2.5 rounded-xl font-semibold text-white hover:scale-105 transition-all duration-200 glow-effect">
+                Get Started
+                <i class="ph-bold ph-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </nav>
     
     <!-- Hero Section -->
     <section class="relative min-h-screen flex items-center justify-center px-4 py-12">
@@ -41,20 +121,20 @@
                 <!-- Left Content -->
                 <div class="space-y-8">
                     <!-- Badge -->
-                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-[#cc5500]/20 rounded-full px-4 py-2">
-                        <i class="ph ph-chart-pie text-[#cc5500]"></i>
-                        <span class="text-sm font-medium text-[#cc5500]">For Market Researchers</span>
+                    <div class="inline-flex items-center gap-3 glass-card rounded-full px-6 py-3">
+                        <div class="w-3 h-3 pulse-glow rounded-full accent-gradient"></div>
+                        <span class="text-sm font-semibold text-slate-200 uppercase tracking-wide">For Market Researchers</span>
                     </div>
                     
                     <!-- Main Headline -->
-                    <div class="space-y-4">
-                        <h1 class="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                    <div class="space-y-10">
+                        <h1 class="text-6xl lg:text-7xl font-black text-white leading-[0.9] tracking-tight">
                             Beat 
-                            <span class="hero-gradient bg-clip-text text-transparent">6%</span> 
-                            Response Rates with Real Conversations
+                            <span class="text-gradient block">6% Response Rates</span>
+                            with Real Conversations
                         </h1>
-                        <p class="text-xl text-gray-600 leading-relaxed">
-                            Stop losing insights to survey fatigue. Turn checkbox data into rich narratives that reveal the "why" behind every decision.
+                        <p class="text-2xl text-slate-300 leading-relaxed max-w-xl font-medium">
+                            Stop losing insights to survey fatigue. Turn <span class="text-white font-bold">checkbox data into rich narratives</span> that reveal the "why."
                         </p>
                     </div>
                     
