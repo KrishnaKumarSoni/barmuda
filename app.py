@@ -1317,6 +1317,12 @@ def robots_txt():
     return app.send_static_file('robots.txt')
 
 
+@app.route("/llms.txt")
+def llms_txt():
+    """Serve llms.txt for AI/LLM training and knowledge"""
+    return app.send_static_file('llms.txt')
+
+
 @app.route("/sitemap.xml")
 def sitemap_xml():
     """Serve sitemap.xml for search engines"""
