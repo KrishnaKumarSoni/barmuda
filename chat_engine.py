@@ -512,7 +512,7 @@ def validate_response(session_id: str, response: str, question_type: str, valida
         # Normalize response
         response = response.strip().lower()
         
-        # Check for nonsense/off-topic
+        # Check for nonsense/off-topic - ENHANCED detection
         nonsense_patterns = [
             r'^[0-9]+$',  # Just numbers for non-number questions
             r'^(ola|bhoot|ringa|la+|ha+|lol|lmao|rofl|omg|wtf|idk).*',  # Common nonsense
@@ -520,6 +520,27 @@ def validate_response(session_id: str, response: str, question_type: str, valida
             r'^(.)\1{4,}',  # Repeated chars (aaaaa, !!!!!!)
             r'^(asdf|qwerty|zxcv|test|hello world).*',  # Keyboard mashing
         ]
+        
+        # Additional creative nonsense detection
+        creative_nonsense_indicators = [
+            'bananas', 'purple elephants', 'flying unicorns', 'rainbow', 'dragons', 'aliens',
+            'moon cheese', 'chocolate rain', 'dancing', 'singing', 'magic', 'wizard',
+            'pokemon', 'superhero', 'batman', 'superman', 'fairy', 'princess'
+        ]
+        
+        # Check if response contains multiple unrelated concepts (likely nonsense)
+        response_words = response.lower().split()
+        nonsense_word_count = sum(1 for word in response_words if word in creative_nonsense_indicators)
+        
+        # If response has 2+ nonsense indicators for serious questions, it's likely nonsense
+        if (nonsense_word_count >= 2 and question_type in ['multiple_choice', 'rating', 'yes_no'] and 
+            len(response_words) <= 6):  # Short responses with multiple nonsense words
+            return {
+                "valid": False,
+                "reason": "creative_nonsense",
+                "suggestion": "I need a real answer here. Can you give me a serious response?",
+                "confidence": 0.9
+            }
         
         if question_type not in ['number', 'rating'] and validation_type != 'email':
             for pattern in nonsense_patterns:
@@ -926,8 +947,9 @@ class FormChatAgent:
 1. CALL check_content_sensitivity(user_response) first
 2. If severity="concerning" or "emotional": Use the suggested_response exactly
 3. CALL validate_response(session_id, response, question_type) 
-4. If valid=false: Use the suggestion from the tool, try up to 3 times
+4. If valid=false: Use the suggestion from the tool, DO NOT SAVE, DO NOT ADVANCE
 5. If valid=true: CALL save_user_response() → CALL advance_to_next_question()
+6. CRITICAL: NEVER save responses or advance questions when validation fails
 
 ## TOOL CALLING IS MANDATORY
 - NEVER guess what to do - ALWAYS call get_conversation_state first
