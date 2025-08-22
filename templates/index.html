@@ -1183,181 +1183,101 @@
             }
         }
         
-        // Enhanced Google Sign In with form data preservation
-        async function signInWithGoogle() {
-            try {
-                console.log('Starting Google sign in...');
-                showAuthLoading('Signing in...');
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('email');
-                provider.addScope('profile');
-                
-                // Try popup first, fallback to redirect if blocked
-                console.log('Attempting popup sign-in...');
-                let result;
-                try {
-                    result = await auth.signInWithPopup(provider);
-                    console.log('Popup successful, user:', result.user.email);
-                } catch (popupError) {
-                    // Check if it's a popup blocked error
-                    if (popupError.code === 'auth/popup-blocked' || 
-                        popupError.code === 'auth/popup-closed-by-user' ||
-                        popupError.code === 'auth/cancelled-popup-request') {
-                        console.log('Popup blocked, using redirect method instead...');
-                        // Store pending data before redirect
-                        const pendingDescription = sessionStorage.getItem('pendingFormDescription');
-                        if (pendingDescription) {
-                            localStorage.setItem('pendingFormDescription', pendingDescription);
-                        }
-                        // Use redirect method as fallback
-                        return auth.signInWithRedirect(provider);
-                    }
-                    throw popupError;
-                }
-                
-                const user = result.user;
-                console.log('Got user from popup:', user.email);
-                
-                // Use synchronized backend sync
-                const success = await syncTokenToBackend(user, 'popup');
-                
-                if (success) {
-                    console.log('Authentication successful!');
-                    
-                    // Track login event
-                    if (analytics) {
-                        analytics.logEvent('login', {
-                            method: 'google'
-                        });
-                    }
-                    
-                    // Check if we have pending form description
-                    const pendingDescription = sessionStorage.getItem('pendingFormDescription');
-                    if (pendingDescription) {
-                        // Redirect to create-form page (form will be auto-populated there)
-                        window.location.href = '/create-form';
-                    } else {
-                        window.location.href = '/create-form';
-                    }
-                } else {
-                    console.error('Backend error:', response.status);
-                    const errorText = await response.text();
-                    console.error('Error details:', errorText);
-                    let errorMsg = 'Authentication failed';
-                    try {
-                        const error = JSON.parse(errorText);
-                        errorMsg = error.error || error.message || errorMsg;
-                    } catch (e) {
-                        errorMsg = errorText || errorMsg;
-                    }
-                    alert(errorMsg);
-                    setUnauthButtonState('idle');
-                    hideAuthLoading();
-                }
-            } catch (error) {
-                console.error('Sign in error full details:', {
-                    name: error.name,
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack
-                });
-                alert('Sign in failed: ' + error.message);
-                setUnauthButtonState('idle');
-                hideAuthLoading();
+        // Simple, Reliable Google Sign In (Redirect-Only)
+        function signInWithGoogle() {
+            console.log('Starting Google sign-in (redirect flow)');
+            showAuthLoading('Redirecting to Google...');
+            
+            // Save any pending form data before redirect
+            const formDescription = sessionStorage.getItem('pendingFormDescription');
+            if (formDescription) {
+                localStorage.setItem('pendingFormDescription', formDescription);
+                console.log('Saved form data for after redirect');
             }
+            
+            // Simple redirect - always works, no popup blocking
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithRedirect(provider);
+            
+            // Page will redirect to Google, then back to our site
+            // getRedirectResult() will handle the return
         }
         
-        // Synchronized token exchange function with retry logic
-        async function syncTokenToBackend(user, source = 'unknown', retryCount = 0) {
-            if (authSyncInProgress && retryCount === 0) {
-                console.log(`Auth sync already in progress, skipping ${source}...`);
-                return false;
-            }
-            
-            if (retryCount === 0) {
-                authSyncInProgress = true;
-                showAuthLoading('Authenticating...');
-            }
-            
-            console.log(`Starting auth sync from ${source} (attempt ${retryCount + 1})...`);
+        // Simple backend sync with timeout protection
+        async function syncWithBackend(user) {
+            console.log('Syncing authentication with backend...');
+            showAuthLoading('Completing sign-in...');
             
             try {
-                const idToken = await user.getIdToken(true); // Force refresh token
+                const idToken = await user.getIdToken(true);
+                
+                // Add timeout protection to prevent infinite hangs
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                
                 const response = await fetch('/firebase-auth', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ idToken })
+                    body: JSON.stringify({ idToken }),
+                    signal: controller.signal
                 });
-
+                
+                clearTimeout(timeoutId);
+                
                 if (response.ok) {
-                    console.log(`Auth sync successful from ${source}`);
-                    if (retryCount === 0) hideAuthLoading();
+                    const data = await response.json();
+                    console.log('Backend sync successful:', data);
                     return true;
                 } else {
-                    console.error(`Backend authentication failed (${source}):`, response.status);
-                    
-                    // Retry logic for certain errors
-                    if (retryCount < maxRetries && (response.status >= 500 || response.status === 401)) {
-                        console.log(`Retrying auth sync (${retryCount + 1}/${maxRetries})...`);
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
-                        return syncTokenToBackend(user, source, retryCount + 1);
-                    }
-                    
+                    console.error('Backend authentication failed:', response.status);
                     return false;
                 }
             } catch (error) {
-                console.error(`Auth sync error (${source}):`, error);
-                
-                // Retry on network errors
-                if (retryCount < maxRetries && (error.name === 'TypeError' || error.name === 'NetworkError')) {
-                    console.log(`Retrying auth sync due to network error (${retryCount + 1}/${maxRetries})...`);
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
-                    return syncTokenToBackend(user, source, retryCount + 1);
+                if (error.name === 'AbortError') {
+                    console.error('Backend sync timeout');
+                    alert('Sign-in is taking too long. Please try again.');
+                } else {
+                    console.error('Backend sync error:', error);
+                    alert('Sign-in failed. Please try again.');
                 }
-                
                 return false;
             } finally {
-                if (retryCount === 0) {
-                    authSyncInProgress = false;
-                    hideAuthLoading();
-                }
+                hideAuthLoading();
             }
         }
 
-        // Handle redirect result when page loads - PRIORITY HANDLER
-        auth.getRedirectResult().then(async (result) => {
-            if (result && result.user) {
-                console.log('Redirect sign-in successful:', result.user.email);
-                redirectProcessed = true;
-                
-                const success = await syncTokenToBackend(result.user, 'redirect');
-                
-                if (success) {
-                    console.log('Authentication successful!');
+        // Handle redirect result when page loads
+        firebase.auth().getRedirectResult()
+            .then(async (result) => {
+                if (result && result.user) {
+                    console.log('Google sign-in successful:', result.user.email);
                     
-                    // Check for pending form data in localStorage (survives redirect)
-                    const pendingDescription = localStorage.getItem('pendingFormDescription');
-                    if (pendingDescription) {
-                        sessionStorage.setItem('pendingFormDescription', pendingDescription);
-                        localStorage.removeItem('pendingFormDescription');
+                    const success = await syncWithBackend(result.user);
+                    
+                    if (success) {
+                        console.log('Authentication complete!');
+                        
+                        // Restore any form data that was saved before redirect
+                        const pendingDescription = localStorage.getItem('pendingFormDescription');
+                        if (pendingDescription) {
+                            sessionStorage.setItem('pendingFormDescription', pendingDescription);
+                            localStorage.removeItem('pendingFormDescription');
+                            window.location.href = '/create-form';
+                        } else {
+                            window.location.href = '/dashboard';
+                        }
                     }
-                    
-                    window.location.href = '/create-form';
-                } else {
-                    console.error('Backend authentication failed after redirect');
-                    alert('Sign-in failed. Please try again.');
+                    // If sync failed, error message already shown by syncWithBackend
                 }
-            } else {
-                console.log('No redirect result found');
-                redirectProcessed = true; // Mark as processed even if no result
-            }
-        }).catch((error) => {
-            console.error('Redirect result error:', error);
-            redirectProcessed = true; // Mark as processed even on error
-        });
+                // If no result, user just loaded the page normally
+            })
+            .catch((error) => {
+                console.error('Sign-in error:', error);
+                alert('Sign-in failed: ' + error.message);
+            });
         
         // Sign out function
         async function signOut() {
