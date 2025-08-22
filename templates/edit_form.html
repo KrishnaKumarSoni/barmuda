@@ -729,6 +729,22 @@
             renderQuestions();
         }
 
+        function deleteQuestion(index) {
+            // Confirm deletion if the question has content
+            const question = formData.questions[index];
+            if (question && question.text && question.text.trim() !== '' && question.text.trim() !== 'New question') {
+                if (!confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+                    return;
+                }
+            }
+            
+            // Remove the question from the array
+            if (formData.questions && index >= 0 && index < formData.questions.length) {
+                formData.questions.splice(index, 1);
+                renderQuestions();
+            }
+        }
+
         // Demographics functions
         function toggleDemographics() {
             const grid = document.getElementById('demographicsGrid');
