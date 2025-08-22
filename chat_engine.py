@@ -201,18 +201,24 @@ def get_conversation_state(session_id: str) -> dict:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
         
-        # Find current unanswered question
+        # Find current unanswered question - USE PERSISTENT INDEX
+        current_question_index = session.metadata.get("current_question_index", 0)
         current_question = None
-        for i, q in enumerate(questions):
+        
+        # Ensure we stay on the correct question until properly answered
+        for i in range(current_question_index, len(questions)):
+            q = questions[i]
             if q.get("enabled", True) and str(i) not in session.responses:
                 current_question = {
                     "question_number": i + 1,
                     "type": q["type"],
                     "index": i,
-                    "text": q.get("text", ""),
                     "has_options": bool(q.get("options", [])),
-                    # CRITICAL: Ask about this topic naturally - DO NOT use verbatim text
+                    # NO raw text exposed - agent must use get_natural_question
                 }
+                # Update session to track current index
+                session.metadata["current_question_index"] = i
+                save_session(session)
                 break
         
         # Calculate progress
@@ -266,17 +272,19 @@ def save_user_response(session_id: str, response_text: str, question_index: int)
 
 @function_tool
 def advance_to_next_question(session_id: str) -> dict:
-    """Move to the next available question"""
+    """Move to the next available question ONLY after current is answered"""
     try:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
         
-        # Find next enabled, unanswered question (NO RAW TEXT EXPOSURE)
+        # Get current index from metadata
+        current_index = session.metadata.get("current_question_index", 0)
+        
+        # Find next enabled, unanswered question
         next_question = None
-        for i, q in enumerate(questions):
-            if (q.get("enabled", True) and 
-                i > session.current_question_index and 
-                str(i) not in session.responses):
+        for i in range(current_index + 1, len(questions)):
+            q = questions[i]
+            if q.get("enabled", True) and str(i) not in session.responses:
                 next_question = {
                     "type": q["type"],
                     "index": i,
@@ -284,7 +292,8 @@ def advance_to_next_question(session_id: str) -> dict:
                     "question_number": i + 1
                     # NO "text" or "options" fields - agent must ask naturally
                 }
-                session.current_question_index = i
+                # Update metadata to track new current question
+                session.metadata["current_question_index"] = i
                 break
         
         save_session(session)
@@ -640,6 +649,39 @@ def check_content_sensitivity(text: str) -> dict:
         }
 
 
+def get_cached_natural_question(session_id: str, question_index: int) -> dict:
+    """Get cached natural question for consistency across conversation"""
+    try:
+        session = load_session(session_id)
+        questions = session.form_data.get("questions", [])
+        
+        if question_index >= len(questions):
+            return {"error": "Question index out of range"}
+        
+        current_q = questions[question_index]
+        cache_key = f"natural_q_{question_index}"
+        
+        # Check if we have cached natural question
+        if cache_key in session.metadata:
+            return session.metadata[cache_key]
+        
+        # Generate and cache natural question
+        natural_data = _get_natural_question_data(
+            session_id, 
+            current_q.get("text", ""), 
+            current_q.get("type", "text"),
+            question_index
+        )
+        
+        # Cache for consistency
+        session.metadata[cache_key] = natural_data
+        save_session(session)
+        
+        return natural_data
+        
+    except Exception as e:
+        return {"error": str(e)}
+
 def _get_natural_question_data(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
     """Helper function to get natural question data (used both by tool and chip extraction)"""
     try:
@@ -738,6 +780,18 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
 
 
 @function_tool
+def get_current_question_naturally(session_id: str) -> dict:
+    """Get the current question to ask naturally with consistency"""
+    try:
+        session = load_session(session_id)
+        current_index = session.metadata.get("current_question_index", 0)
+        
+        return get_cached_natural_question(session_id, current_index)
+        
+    except Exception as e:
+        return {"error": str(e)}
+
+@function_tool
 def get_natural_question(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
     """Transform formal questions into natural conversation with optional UI hints
     
@@ -792,6 +846,7 @@ class FormChatAgent:
             instructions=self._get_system_instructions(),
             tools=[
                 get_conversation_state,
+                get_current_question_naturally,
                 save_user_response,
                 advance_to_next_question,
                 update_session_state,
@@ -811,8 +866,8 @@ class FormChatAgent:
 
 ## STEP 1: ALWAYS START WITH THIS
 1. CALL get_conversation_state(session_id) to understand where we are
-2. If asking a question: CALL get_natural_question(session_id, question_text, type, index) 
-3. Use the natural_question from the tool result - NEVER use raw question text
+2. If asking a question: CALL get_current_question_naturally(session_id) 
+3. Use the natural_question from the tool result - GUARANTEED consistency
 
 ## STEP 2: WHEN USER RESPONDS
 1. CALL check_content_sensitivity(user_response) first
@@ -823,7 +878,7 @@ class FormChatAgent:
 
 ## TOOL CALLING IS MANDATORY
 - NEVER guess what to do - ALWAYS call get_conversation_state first
-- NEVER ask questions without calling get_natural_question first  
+- NEVER ask questions without calling get_current_question_naturally first  
 - NEVER accept responses without calling validate_response first
 - NEVER handle sensitive content without calling check_content_sensitivity first
 
@@ -831,8 +886,8 @@ class FormChatAgent:
 
 Starting conversation:
 1. Call get_conversation_state(session_id)
-2. Call get_natural_question(session_id, "What's your age?", "multiple_choice", 0)
-3. Say: "Hey! What's your age?" (from tool result)
+2. Call get_current_question_naturally(session_id)
+3. Say: "Hey! What's your age?" (from tool result - always consistent)
 
 User responds "I hate everything":
 1. Call check_content_sensitivity("I hate everything") 
