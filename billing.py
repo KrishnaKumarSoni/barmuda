@@ -671,8 +671,9 @@ def get_dodo_client() -> Optional[DodoClient]:
     
     # Use test mode if:
     # 1. The API key looks like a test key, OR
-    # 2. DODO_TEST_MODE is not explicitly set to "false"
-    test_mode = is_test_key or os.environ.get("DODO_TEST_MODE", "true").lower() != "false"
+    # 2. DODO_TEST_MODE is explicitly set to "true"
+    # DEFAULT TO PRODUCTION MODE for live payments
+    test_mode = is_test_key or os.environ.get("DODO_TEST_MODE", "false").lower() == "true"
     
     logger.info(f"Initializing Dodo client in {'test' if test_mode else 'live'} mode (key prefix: {api_key[:5]}...)")
     return DodoClient(api_key, test_mode=test_mode)
