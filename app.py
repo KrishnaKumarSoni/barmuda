@@ -2427,6 +2427,7 @@ def process_chat_message():
             "success": True,
             "session_updated": result.get("session_updated", False),
             "ended": conversation_ended,
+            "chip_options": result.get("chip_options"),  # Include chip options
             "debug_signature": result.get("debug_signature"),  # Pass through debug info
         }
 
