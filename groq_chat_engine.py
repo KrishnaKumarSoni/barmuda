@@ -528,7 +528,7 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
 class GroqChatAgent:
     """Groq-powered chat agent compatible with OpenAI Agents SDK interface"""
     
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3-groq-70b-tool-use"):
         self.model = model
         self.tools = self._define_tools()
         self.system_prompt = self._get_system_prompt()
