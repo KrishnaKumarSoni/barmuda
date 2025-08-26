@@ -2056,6 +2056,47 @@ except ImportError as e:
 
 
 
+@app.route("/api/test/groq")
+def test_groq_direct():
+    """Test Groq API directly to isolate issues"""
+    import traceback
+    
+    try:
+        # Test 1: Import groq
+        from groq import Groq
+        
+        # Test 2: Create client
+        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        
+        # Test 3: Simple API call
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say hello in a friendly way"}
+            ],
+            temperature=0.7,
+            max_tokens=50
+        )
+        
+        return jsonify({
+            "status": "SUCCESS",
+            "response": response.choices[0].message.content,
+            "model": response.model,
+            "usage": {
+                "prompt_tokens": response.usage.prompt_tokens if response.usage else "unknown",
+                "completion_tokens": response.usage.completion_tokens if response.usage else "unknown"
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "FAILED",
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "groq_api_key_set": bool(os.getenv("GROQ_API_KEY"))
+        })
+
 @app.route("/api/form/<form_id>/public")
 def get_form_public(form_id):
     """Get public form metadata (title, active status) for widget usage"""
