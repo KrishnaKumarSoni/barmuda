@@ -414,6 +414,102 @@ def _get_recent_responses(session: ChatSession, limit: int = 3) -> List[Dict]:
     responses.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return responses[:limit]
 
+def _get_natural_question_data(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
+    """Helper function to get natural question data (used both by tool and chip extraction)"""
+    try:
+        session = load_session(session_id)
+        questions = session.form_data.get("questions", [])
+        current_q = questions[question_index] if question_index < len(questions) else {}
+        
+        # Common conversational starters
+        starters = ["Hey!", "So,", "Alright,", "Cool,", "Nice,", "Great,"]
+        starter = starters[question_index % len(starters)] if question_index > 0 else "Hey!"
+        
+        # Transform based on type
+        text_lower = question_text.lower()
+        
+        # Natural transformations
+        transformations = {
+            # Demographics
+            "what is your age": f"{starter} How old are you?",
+            "age": "How old are you?",
+            "what's your age": "How old are you?",
+            "gender": "What's your gender?",
+            "location": "Where are you from?",
+            "occupation": "What do you do for work?",
+            
+            # Common patterns
+            "how satisfied": "How satisfied are you with this?",
+            "rate your": "How would you rate this?",
+            "do you": f"{starter} Do you",
+            "are you": f"{starter} Are you",
+            "what is your": f"{starter} What's your",
+            "tell us about": f"{starter} Tell me about",
+            "describe": f"{starter} Can you describe",
+            "how often": f"{starter} How often do you",
+            "how many": f"{starter} How many",
+        }
+        
+        # Find matching transformation
+        natural_question = None
+        for pattern, replacement in transformations.items():
+            if pattern in text_lower:
+                natural_question = text_lower.replace(pattern, replacement)
+                break
+        
+        if not natural_question:
+            # Default transformations by type
+            if question_type == "yes_no":
+                natural_question = f"{starter} {question_text}" if not question_text.startswith(("Do", "Are", "Is", "Can", "Would")) else question_text
+            elif question_type == "rating":
+                natural_question = f"How would you rate {question_text.lower().replace('rate', '').strip()}?"
+            elif question_type == "multiple_choice":
+                natural_question = f"{starter} {question_text.rstrip('?')}?"
+            else:
+                natural_question = f"{starter} {question_text}"
+        
+        # Prepare UI options for chips
+        ui_options = []
+        show_chips = False
+        
+        if question_type == "yes_no":
+            ui_options = ["Yes", "No"]
+            show_chips = True
+        elif question_type == "rating":
+            ui_options = ["1", "2", "3", "4", "5"]
+            show_chips = True
+        elif question_type == "multiple_choice" and current_q.get("options"):
+            ui_options = current_q["options"][:5]  # Limit to 5 for UI
+            show_chips = True
+        
+        # Add follow-up prompts
+        follow_ups = [
+            "Tell me more about that",
+            "Why's that?",
+            "Can you elaborate?",
+            "What makes you say that?",
+            "Interesting, why?"
+        ]
+        
+        return {
+            "natural_question": natural_question.capitalize(),
+            "show_chips": show_chips,
+            "chip_options": ui_options,
+            "chip_type": question_type if show_chips else None,
+            "follow_up_prompts": follow_ups[:2],
+            "question_index": question_index,
+            "original_text": question_text
+        }
+        
+    except Exception as e:
+        # Fallback to original question
+        return {
+            "natural_question": question_text,
+            "show_chips": False,
+            "chip_options": [],
+            "error": str(e)
+        }
+
 # ============================================================
 # GROQ CHAT AGENT IMPLEMENTATION
 # ============================================================
