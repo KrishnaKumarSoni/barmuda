@@ -1,0 +1,66 @@
+{
+  "OpenAI Agents SDK": {
+    "agent_creation": true,
+    "agent_creation_time": 0.001010894775390625,
+    "session_creation": true,
+    "session_creation_time": 1.7006282806396484,
+    "session_id": "session_20250826_133240_90eac3e1",
+    "form_title": "Product Feedback Survey",
+    "conversation_test": true,
+    "conversation_times": [
+      0.3811609745025635,
+      0.7709197998046875,
+      0.3580310344696045,
+      0.7700400352478027,
+      0.38680076599121094,
+      0.7839882373809814
+    ],
+    "avg_response_time": 0.5751568078994751,
+    "responses": []
+  },
+  "Groq": {
+    "agent_creation": true,
+    "agent_creation_time": 0.00011610984802246094,
+    "session_creation": true,
+    "session_creation_time": 1.7122490406036377,
+    "session_id": "9375d6fa-73a1-4f87-8548-57687dadcf57",
+    "form_title": "Product Feedback Survey",
+    "conversation_test": true,
+    "conversation_times": [
+      2.037783145904541,
+      0.5048167705535889,
+      4.345154047012329,
+      2.775235176086426,
+      2.7882771492004395,
+      2.9084622859954834
+    ],
+    "avg_response_time": 2.5599547624588013,
+    "responses": [
+      {
+        "user": "Hello, I'm ready to start!",
+        "assistant": "\ud83d\ude0a No worries, let's start fresh. I'll get the first question for us. \n<function=get_natural_question...",
+        "time": 2.037783145904541
+      },
+      {
+        "user": "I'd rate it an 8 out of 10",
+        "assistant": "It seems like we got a bit mixed up \ud83d\ude48. Let's take a step back and start again from the beginning. I'...",
+        "time": 4.345154047012329
+      },
+      {
+        "user": "Skip this question please",
+        "assistant": "No worries at all \ud83d\ude0a. It looks like we had a little technical hiccup. Let's try to get back on track....",
+        "time": 2.775235176086426
+      },
+      {
+        "user": "That's a bit random - can we focus on the survey?",
+        "assistant": "Let's get back on track with the survey. It seems like we had some technical issues. I'll try to get...",
+        "time": 2.7882771492004395
+      },
+      {
+        "user": "I'm 25 years old",
+        "assistant": "It looks like we're starting from scratch \ud83c\udf89. Let's begin the survey again. I'll get the first questi...",
+        "time": 2.9084622859954834
+      }
+    ]
+  }
+}
