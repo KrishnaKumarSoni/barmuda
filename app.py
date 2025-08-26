@@ -2058,7 +2058,7 @@ except ImportError as e:
 
 @app.route("/api/test/groq")
 def test_groq_direct():
-    """Test Groq API directly to isolate issues"""
+    """Test Groq API directly to isolate issues - v2"""
     import traceback
     
     try:
