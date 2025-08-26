@@ -695,17 +695,56 @@ class GroqChatAgent:
             }
         ]
     
+    def _parse_xml_function_calls(self, content: str) -> List[Dict]:
+        """Parse XML-style function calls from model response"""
+        import re
+        
+        # Pattern to match <function=name(args)>
+        pattern = r'<function=(\w+)\(({[^}]*})\)>'
+        matches = re.findall(pattern, content)
+        
+        function_calls = []
+        for match in matches:
+            function_name = match[0]
+            args_str = match[1]
+            
+            try:
+                # Parse JSON arguments
+                arguments = json.loads(args_str)
+                function_calls.append({
+                    "name": function_name,
+                    "args": arguments
+                })
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse function arguments: {args_str}, error: {e}")
+                continue
+                
+        return function_calls
+    
+    def _clean_function_calls_from_response(self, content: str) -> str:
+        """Remove XML function calls from response to get clean text"""
+        import re
+        
+        # Remove <function=name(args)> patterns
+        cleaned = re.sub(r'<function=\w+\([^)]*\)>', '', content)
+        
+        # Clean up extra whitespace
+        cleaned = re.sub(r'\n\s*\n', '\n\n', cleaned)
+        cleaned = cleaned.strip()
+        
+        return cleaned
+    
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the chat agent"""
         return """You are a friendly, empathetic conversational survey bot for Barmuda. Your job is to collect survey responses through natural conversation, making it feel like texting with a friend rather than filling out a boring form.
 
 CRITICAL TOOL USAGE RULES:
-- ALWAYS use the proper JSON tool call format - NEVER use XML-style <function=name()> format
+- Use XML-style function calls: <function=function_name({"param": "value"})>
 - ALWAYS use the EXACT session_id provided in the conversation
 - NEVER use "new_session" or make up session IDs
 - For get_natural_question, use parameter name "question_index" NOT "question_id"
 - Check get_conversation_state FIRST to understand what question you're on
-- Use only the provided tool calling mechanism - do NOT generate function calls in text
+- Multiple function calls are allowed in one response
 
 CONVERSATION FLOW:
 1. Start by calling get_conversation_state to understand current progress and get session context
@@ -822,53 +861,35 @@ Remember: You're making surveys feel human and enjoyable, not robotic or tedious
                     "content": msg["content"]
                 })
             
-            # Make Groq API call with tools
+            # Make Groq API call without tools - let model generate XML-style function calls
             response = groq_client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                tools=self.tools,
-                tool_choice="auto",
                 temperature=0.7,
                 max_tokens=1000
             )
             
-            message = response.choices[0].message
+            message_content = response.choices[0].message.content
             
-            # Handle tool calls
-            if message.tool_calls:
-                # Execute each tool call
-                tool_results = []
-                for tool_call in message.tool_calls:
-                    function_name = tool_call.function.name
-                    arguments = json.loads(tool_call.function.arguments)
+            # Parse XML-style function calls from the response
+            function_calls = self._parse_xml_function_calls(message_content)
+            
+            if function_calls:
+                # Execute function calls and get clean response
+                for func_call in function_calls:
+                    function_name = func_call["name"]
+                    arguments = func_call["args"]
                     
-                    result = self._execute_tool(function_name, arguments)
-                    tool_results.append({
-                        "tool_call_id": tool_call.id,
-                        "result": result
-                    })
+                    try:
+                        result = self._execute_tool(function_name, arguments)
+                        print(f"✅ Executed {function_name}: {result}")
+                    except Exception as e:
+                        print(f"❌ Error executing {function_name}: {str(e)}")
                 
-                # Add tool results to conversation and get final response
-                messages.append(message)
-                
-                for tool_result in tool_results:
-                    messages.append({
-                        "role": "tool",
-                        "content": json.dumps(tool_result["result"]),
-                        "tool_call_id": tool_result["tool_call_id"]
-                    })
-                
-                # Get final response after tool execution
-                final_response = groq_client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    temperature=0.7,
-                    max_tokens=1000
-                )
-                
-                assistant_message = final_response.choices[0].message.content
+                # Get clean text response without XML function calls
+                assistant_message = self._clean_function_calls_from_response(message_content)
             else:
-                assistant_message = message.content
+                assistant_message = message_content
             
             # Add assistant response to history
             session.chat_history.append({
