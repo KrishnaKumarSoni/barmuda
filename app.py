@@ -2545,8 +2545,11 @@ def check_chips():
         if not session_id or not message:
             return jsonify({"success": False, "error": "Missing session_id or message"}), 400
             
-        # Get the chat session from chat_engine
-        from chat_engine import load_session, _get_natural_question_data
+        # Get the chat session from the appropriate engine
+        if USE_GROQ:
+            from groq_chat_engine import load_session, _get_natural_question_data
+        else:
+            from chat_engine import load_session, _get_natural_question_data
         
         try:
             session = load_session(session_id)
