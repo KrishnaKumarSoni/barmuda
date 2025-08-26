@@ -11,9 +11,20 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import firebase_admin
-from groq import Groq
 from dotenv import load_dotenv
 from firebase_admin import db, firestore
+
+# Import Groq with better error handling
+try:
+    from groq import Groq
+    print("✅ Groq package imported successfully in groq_chat_engine", file=os.sys.stderr)
+except ImportError as e:
+    print(f"❌ CRITICAL: Cannot import Groq package: {e}", file=os.sys.stderr)
+    print("This means groq==0.13.0 is not installed in this environment", file=os.sys.stderr)
+    raise ImportError(f"groq package not available: {e}")
+except Exception as e:
+    print(f"❌ UNEXPECTED ERROR importing Groq: {e}", file=os.sys.stderr)
+    raise
 
 # Load environment variables
 load_dotenv()
