@@ -2037,19 +2037,77 @@ USE_GROQ = USE_GROQ_RAW.strip().lower() in ["true", "1", "yes", "on"]
 
 try:
     if USE_GROQ:
-        from groq_chat_engine import get_chat_agent
-        print("✅ SUCCESS: Using Groq chat engine (10x faster)", file=sys.stderr)
+        try:
+            from groq_chat_engine import get_chat_agent
+            print("✅ SUCCESS: Using Groq chat engine (10x faster)", file=sys.stderr)
+        except ImportError as e:
+            print(f"⚠️ FALLBACK: Groq engine failed to import ({e}), falling back to OpenAI", file=sys.stderr)
+            from chat_engine import get_chat_agent
+            print("✅ SUCCESS: Using OpenAI Agents SDK chat engine (fallback)", file=sys.stderr)
     else:
         from chat_engine import get_chat_agent
         print("✅ SUCCESS: Using OpenAI Agents SDK chat engine", file=sys.stderr)
 except ImportError as e:
-    print(f"❌ CRITICAL: Failed to import chat engine: {e}", file=sys.stderr)
+    print(f"❌ CRITICAL: Failed to import any chat engine: {e}", file=sys.stderr)
     # Create fallback that will be obvious
     def get_chat_agent():
-        engine_type = "Groq" if USE_GROQ else "OpenAI"
-        raise ImportError(f"{engine_type} chat engine import failed - using fallback")
+        raise ImportError(f"All chat engines failed to import: {e}")
 
 
+
+@app.route("/api/sherlock/debug")
+def sherlock_debug():
+    """Sherlock Holmes style debugging - gather all evidence"""
+    import sys
+    import traceback
+    
+    evidence = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "python_version": sys.version,
+        "python_path": sys.path[:3],  # First 3 entries
+        "USE_GROQ_RAW": os.getenv("USE_GROQ", "NOT_SET"),
+        "USE_GROQ_PARSED": USE_GROQ,
+    }
+    
+    # Test 1: Can we import groq package?
+    try:
+        import groq
+        evidence["groq_package"] = f"SUCCESS: {groq.__version__}"
+        evidence["groq_location"] = groq.__file__ if hasattr(groq, '__file__') else "unknown"
+    except ImportError as e:
+        evidence["groq_package"] = f"FAILED: {str(e)}"
+    except Exception as e:
+        evidence["groq_package"] = f"ERROR: {str(e)}"
+    
+    # Test 2: Can we import groq_chat_engine?
+    try:
+        import groq_chat_engine
+        evidence["groq_chat_engine"] = "SUCCESS: Module imported"
+        evidence["groq_chat_engine_location"] = groq_chat_engine.__file__ if hasattr(groq_chat_engine, '__file__') else "unknown"
+    except ImportError as e:
+        evidence["groq_chat_engine"] = f"IMPORT_ERROR: {str(e)}"
+        evidence["groq_chat_engine_traceback"] = traceback.format_exc()
+    except Exception as e:
+        evidence["groq_chat_engine"] = f"OTHER_ERROR: {str(e)}"
+        evidence["groq_chat_engine_traceback"] = traceback.format_exc()
+    
+    # Test 3: Can we get the chat agent?
+    try:
+        agent = get_chat_agent()
+        evidence["get_chat_agent"] = f"SUCCESS: {type(agent).__name__} from {type(agent).__module__}"
+    except Exception as e:
+        evidence["get_chat_agent"] = f"FAILED: {str(e)}"
+        evidence["get_chat_agent_traceback"] = traceback.format_exc()
+    
+    # Test 4: Environment variables
+    evidence["env_vars"] = {
+        "GROQ_API_KEY": "SET" if os.getenv("GROQ_API_KEY") else "NOT_SET",
+        "OPENAI_API_KEY": "SET" if os.getenv("OPENAI_API_KEY") else "NOT_SET",
+        "VERCEL": os.getenv("VERCEL", "NOT_SET"),
+        "PYTHON_VERSION": os.getenv("PYTHON_VERSION", "NOT_SET"),
+    }
+    
+    return jsonify(evidence)
 
 @app.route("/api/form/<form_id>/public")
 def get_form_public(form_id):
