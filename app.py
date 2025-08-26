@@ -2029,14 +2029,22 @@ def internal_error(error):
 import hashlib
 import time
 
+# Dynamic chat engine selection based on environment variable
+USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"
+
 try:
-    from chat_engine import get_chat_agent
-    print("✅ SUCCESS: Imported get_chat_agent from chat_engine", file=sys.stderr)
+    if USE_GROQ:
+        from groq_chat_engine import get_chat_agent
+        print("✅ SUCCESS: Using Groq chat engine (10x faster)", file=sys.stderr)
+    else:
+        from chat_engine import get_chat_agent
+        print("✅ SUCCESS: Using OpenAI Agents SDK chat engine", file=sys.stderr)
 except ImportError as e:
-    print(f"❌ CRITICAL: Failed to import chat_engine: {e}", file=sys.stderr)
+    print(f"❌ CRITICAL: Failed to import chat engine: {e}", file=sys.stderr)
     # Create fallback that will be obvious
     def get_chat_agent():
-        raise ImportError("chat_engine import failed - using fallback")
+        engine_type = "Groq" if USE_GROQ else "OpenAI"
+        raise ImportError(f"{engine_type} chat engine import failed - using fallback")
 
 
 @app.route("/api/form/<form_id>/public")
