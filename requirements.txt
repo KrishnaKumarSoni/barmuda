@@ -8,7 +8,6 @@ firebase-admin==6.2.0
 # AI/ML APIs
 openai==1.97.1
 openai-agents==0.2.5
-groq==0.13.0
 
 # Utilities
 python-dotenv==1.0.0
