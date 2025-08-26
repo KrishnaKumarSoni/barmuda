@@ -2033,9 +2033,7 @@ import time
 USE_GROQ_RAW = os.getenv("USE_GROQ", "false")
 USE_GROQ = USE_GROQ_RAW.strip().lower() in ["true", "1", "yes", "on"]
 
-# DEBUG: Environment variable parsing
-print(f"🔍 DEBUG: USE_GROQ_RAW = '{USE_GROQ_RAW}'", file=sys.stderr)
-print(f"🔍 DEBUG: USE_GROQ = {USE_GROQ}", file=sys.stderr)
+# Environment variable parsing with whitespace handling
 
 try:
     if USE_GROQ:
@@ -2052,41 +2050,6 @@ except ImportError as e:
         raise ImportError(f"{engine_type} chat engine import failed - using fallback")
 
 
-@app.route("/api/debug/engine")
-def debug_engine_status():
-    """Debug endpoint to check which engine is loaded - v2"""
-    try:
-        from groq_chat_engine import GroqChatAgent
-        groq_available = True
-    except ImportError:
-        groq_available = False
-    
-    try:
-        from chat_engine import FormChatAgent
-        openai_available = True
-    except ImportError:
-        openai_available = False
-    
-    agent = get_chat_agent()
-    
-    return jsonify({
-        "USE_GROQ_RAW": USE_GROQ_RAW,
-        "USE_GROQ_BOOL": USE_GROQ,
-        "USE_GROQ_STRIPPED": USE_GROQ_RAW.strip(),
-        "GROQ_API_KEY_SET": bool(os.getenv("GROQ_API_KEY")),
-        "OPENAI_API_KEY_SET": bool(os.getenv("OPENAI_API_KEY")),
-        "groq_available": groq_available,
-        "openai_available": openai_available,
-        "agent_type": type(agent).__name__ if hasattr(agent, '__name__') else str(type(agent)),
-        "agent_module": type(agent).__module__ if hasattr(agent, '__module__') else "unknown",
-        "is_production": bool(os.environ.get("VERCEL") or os.environ.get("PRODUCTION")),
-        "all_env_vars": {k: ("SET: " + str(v)[:10] + "..." if v and len(str(v)) > 10 else v) if v else "NOT_SET" for k, v in {
-            "VERCEL": os.getenv("VERCEL"),
-            "USE_GROQ": os.getenv("USE_GROQ"), 
-            "GROQ_API_KEY": os.getenv("GROQ_API_KEY"),
-            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
-        }.items()}
-    })
 
 @app.route("/api/form/<form_id>/public")
 def get_form_public(form_id):
