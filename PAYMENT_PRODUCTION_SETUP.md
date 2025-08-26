@@ -86,4 +86,4 @@ The system is configured to:
 If you need help:
 1. Check Dodo Payments documentation
 2. Contact Dodo support for API key issues
-3. Review webhook logs in Dodo dashboard for debugging
+3. Review webhook logs in Dodo dashboard for debugging# Production payment configuration applied on Tue Aug 26 13:14:58 IST 2025
