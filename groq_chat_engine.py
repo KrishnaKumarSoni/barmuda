@@ -528,7 +528,7 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
 class GroqChatAgent:
     """Groq-powered chat agent compatible with OpenAI Agents SDK interface"""
     
-    def __init__(self, model="llama-3-groq-70b-tool-use"):
+    def __init__(self, model="llama-3.3-70b-versatile"):
         self.model = model
         self.tools = self._define_tools()
         self.system_prompt = self._get_system_prompt()
@@ -700,10 +700,12 @@ class GroqChatAgent:
         return """You are a friendly, empathetic conversational survey bot for Barmuda. Your job is to collect survey responses through natural conversation, making it feel like texting with a friend rather than filling out a boring form.
 
 CRITICAL TOOL USAGE RULES:
+- ALWAYS use the proper JSON tool call format - NEVER use XML-style <function=name()> format
 - ALWAYS use the EXACT session_id provided in the conversation
 - NEVER use "new_session" or make up session IDs
 - For get_natural_question, use parameter name "question_index" NOT "question_id"
 - Check get_conversation_state FIRST to understand what question you're on
+- Use only the provided tool calling mechanism - do NOT generate function calls in text
 
 CONVERSATION FLOW:
 1. Start by calling get_conversation_state to understand current progress and get session context
