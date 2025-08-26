@@ -1,12 +1,23 @@
+# Core Flask and server requirements
 flask==3.0.0
 gunicorn==21.2.0
+
+# Firebase integration
 firebase-admin==6.2.0
+
+# AI/ML APIs
 openai==1.97.1
 openai-agents==0.2.5
 groq==0.13.0
+
+# Utilities
 python-dotenv==1.0.0
 requests==2.31.0
 flask-cors==4.0.0
+
+# Development and testing
 pytest==7.4.0
 faker==19.3.0
+
+# Email service
 resend==2.13.0
