@@ -2097,6 +2097,70 @@ def test_groq_direct():
             "groq_api_key_set": bool(os.getenv("GROQ_API_KEY"))
         })
 
+@app.route("/api/test/groq-tools")
+def test_groq_tools():
+    """Test Groq API with tool calls to diagnose function calling issues"""
+    import traceback
+    
+    try:
+        from groq import Groq
+        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        
+        # Simple tool definition
+        tools = [{
+            "type": "function",
+            "function": {
+                "name": "test_function",
+                "description": "A simple test function",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "message": {"type": "string", "description": "A test message"}
+                    },
+                    "required": ["message"]
+                }
+            }
+        }]
+        
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": "Please call the test function with the message 'hello world'"}],
+            tools=tools,
+            tool_choice="auto",
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        message = response.choices[0].message
+        
+        result = {
+            "status": "SUCCESS",
+            "model": response.model,
+            "response_content": message.content,
+            "has_tool_calls": bool(message.tool_calls),
+            "tool_calls_count": len(message.tool_calls) if message.tool_calls else 0,
+            "tool_calls": [],
+            "raw_message": str(message)
+        }
+        
+        if message.tool_calls:
+            for tc in message.tool_calls:
+                result["tool_calls"].append({
+                    "id": tc.id,
+                    "function_name": tc.function.name,
+                    "arguments": tc.function.arguments,
+                    "arguments_parsed": json.loads(tc.function.arguments) if tc.function.arguments else None
+                })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            "status": "FAILED",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        })
+
 @app.route("/api/form/<form_id>/public")
 def get_form_public(form_id):
     """Get public form metadata (title, active status) for widget usage"""
