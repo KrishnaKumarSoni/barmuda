@@ -2030,10 +2030,18 @@ import hashlib
 import time
 
 # Dynamic chat engine selection based on environment variable
-USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"
+USE_GROQ_RAW = os.getenv("USE_GROQ", "false")
+USE_GROQ = USE_GROQ_RAW.lower() in ["true", "1", "yes", "on"]
+
+# FORCE GROQ FOR DEBUGGING
+print(f"🔍 DEBUG: USE_GROQ_RAW = '{USE_GROQ_RAW}'", file=sys.stderr)
+print(f"🔍 DEBUG: USE_GROQ = {USE_GROQ}", file=sys.stderr)
+
+# Temporarily force Groq for testing
+FORCE_GROQ = True
 
 try:
-    if USE_GROQ:
+    if FORCE_GROQ or USE_GROQ:
         from groq_chat_engine import get_chat_agent
         print("✅ SUCCESS: Using Groq chat engine (10x faster)", file=sys.stderr)
     else:
@@ -2065,8 +2073,9 @@ def debug_engine_status():
     agent = get_chat_agent()
     
     return jsonify({
-        "USE_GROQ_ENV": os.getenv("USE_GROQ"),
+        "USE_GROQ_RAW": USE_GROQ_RAW,
         "USE_GROQ_BOOL": USE_GROQ,
+        "FORCE_GROQ": globals().get('FORCE_GROQ', False),
         "GROQ_API_KEY_SET": bool(os.getenv("GROQ_API_KEY")),
         "OPENAI_API_KEY_SET": bool(os.getenv("OPENAI_API_KEY")),
         "groq_available": groq_available,
@@ -2074,7 +2083,7 @@ def debug_engine_status():
         "agent_type": type(agent).__name__ if hasattr(agent, '__name__') else str(type(agent)),
         "agent_module": type(agent).__module__ if hasattr(agent, '__module__') else "unknown",
         "is_production": bool(os.environ.get("VERCEL") or os.environ.get("PRODUCTION")),
-        "all_env_vars": {k: "SET" if v else "NOT_SET" for k, v in {
+        "all_env_vars": {k: ("SET: " + str(v)[:10] + "..." if v and len(str(v)) > 10 else v) if v else "NOT_SET" for k, v in {
             "VERCEL": os.getenv("VERCEL"),
             "USE_GROQ": os.getenv("USE_GROQ"), 
             "GROQ_API_KEY": os.getenv("GROQ_API_KEY"),
