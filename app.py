@@ -2031,17 +2031,14 @@ import time
 
 # Dynamic chat engine selection based on environment variable
 USE_GROQ_RAW = os.getenv("USE_GROQ", "false")
-USE_GROQ = USE_GROQ_RAW.lower() in ["true", "1", "yes", "on"]
+USE_GROQ = USE_GROQ_RAW.strip().lower() in ["true", "1", "yes", "on"]
 
-# FORCE GROQ FOR DEBUGGING
+# DEBUG: Environment variable parsing
 print(f"🔍 DEBUG: USE_GROQ_RAW = '{USE_GROQ_RAW}'", file=sys.stderr)
 print(f"🔍 DEBUG: USE_GROQ = {USE_GROQ}", file=sys.stderr)
 
-# Temporarily force Groq for testing
-FORCE_GROQ = True
-
 try:
-    if FORCE_GROQ or USE_GROQ:
+    if USE_GROQ:
         from groq_chat_engine import get_chat_agent
         print("✅ SUCCESS: Using Groq chat engine (10x faster)", file=sys.stderr)
     else:
@@ -2075,7 +2072,7 @@ def debug_engine_status():
     return jsonify({
         "USE_GROQ_RAW": USE_GROQ_RAW,
         "USE_GROQ_BOOL": USE_GROQ,
-        "FORCE_GROQ": globals().get('FORCE_GROQ', False),
+        "USE_GROQ_STRIPPED": USE_GROQ_RAW.strip(),
         "GROQ_API_KEY_SET": bool(os.getenv("GROQ_API_KEY")),
         "OPENAI_API_KEY_SET": bool(os.getenv("OPENAI_API_KEY")),
         "groq_available": groq_available,
