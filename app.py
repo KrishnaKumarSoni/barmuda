@@ -2123,7 +2123,7 @@ def test_groq_tools():
         }]
         
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3-groq-70b-tool-use",
             messages=[{"role": "user", "content": "Please call the test function with the message 'hello world'"}],
             tools=tools,
             tool_choice="auto",
