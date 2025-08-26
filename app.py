@@ -2049,7 +2049,7 @@ except ImportError as e:
 
 @app.route("/api/debug/engine")
 def debug_engine_status():
-    """Debug endpoint to check which engine is loaded"""
+    """Debug endpoint to check which engine is loaded - v2"""
     try:
         from groq_chat_engine import GroqChatAgent
         groq_available = True
