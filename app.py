@@ -4,6 +4,8 @@ import os
 import random
 import re
 import sys
+import time
+import uuid
 from datetime import datetime
 from functools import wraps
 
@@ -31,6 +33,26 @@ from voice_agent import create_ephemeral_token
 
 # Load environment variables
 load_dotenv()
+
+# Simple in-memory cache for rate limiting
+class SimpleCache:
+    def __init__(self):
+        self._cache = {}
+    
+    def get(self, key, default=None):
+        if key in self._cache:
+            value, expiry = self._cache[key]
+            if time.time() < expiry:
+                return value
+            else:
+                del self._cache[key]
+        return default
+    
+    def set(self, key, value, timeout=3600):
+        expiry = time.time() + timeout
+        self._cache[key] = (value, expiry)
+
+cache = SimpleCache()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -1584,20 +1606,12 @@ def save_form():
 
         # Determine mode and voice settings
         mode = form_data.get("mode", "chat")
-        if mode not in ["chat", "voice"]:
-            return jsonify({"success": False, "error": "Invalid mode"}), 400
-
         voice_settings = form_data.get("voice_settings") if mode == "voice" else {}
-        if mode == "voice":
-            if (
-                not voice_settings
-                or not voice_settings.get("language")
-                or not voice_settings.get("voice_id")
-            ):
-                return (
-                    jsonify({"success": False, "error": "Voice settings required"}),
-                    400,
-                )
+        
+        # Validate mode and voice settings
+        validation_error = validate_mode_and_voice_settings(mode, voice_settings)
+        if validation_error:
+            return validation_error
 
         # Prepare form document
         form_document = {
@@ -1737,20 +1751,12 @@ def update_form(form_id):
 
         # Determine mode and voice settings
         mode = form_data.get("mode", existing_form.get("mode", "chat"))
-        if mode not in ["chat", "voice"]:
-            return jsonify({"success": False, "error": "Invalid mode"}), 400
-
         voice_settings = form_data.get("voice_settings") if mode == "voice" else {}
-        if mode == "voice":
-            if (
-                not voice_settings
-                or not voice_settings.get("language")
-                or not voice_settings.get("voice_id")
-            ):
-                return (
-                    jsonify({"success": False, "error": "Voice settings required"}),
-                    400,
-                )
+        
+        # Validate mode and voice settings
+        validation_error = validate_mode_and_voice_settings(mode, voice_settings)
+        if validation_error:
+            return validation_error
 
         # Prepare update document
         update_document = {
@@ -2466,12 +2472,45 @@ def widget_script():
 def get_voice_token():
     """Generate an ephemeral ElevenLabs token for voice sessions"""
     data = request.get_json() or {}
-    agent_id = data.get("agent_id")
-    if not agent_id:
-        return jsonify({"success": False, "error": "agent_id required"}), 400
+    form_id = data.get("form_id")
+    
+    if not form_id:
+        return jsonify({"success": False, "error": "form_id required"}), 400
 
     try:
+        # Get form to verify ownership and extract agent_id
+        form_ref = db.collection("forms").document(form_id)
+        form_doc = form_ref.get()
+        
+        if not form_doc.exists:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+            
+        form_data = form_doc.to_dict()
+        
+        # Verify form is in voice mode
+        if form_data.get("mode") != "voice":
+            return jsonify({"success": False, "error": "Form is not in voice mode"}), 400
+            
+        # Verify form is active
+        if not form_data.get("status") == "active":
+            return jsonify({"success": False, "error": "Form is not active"}), 400
+            
+        # Extract agent_id from voice settings
+        agent_id = form_data.get("voice_settings", {}).get("agent_id")
+        if not agent_id:
+            return jsonify({"success": False, "error": "No agent_id configured for this form"}), 400
+
+        # Rate limiting: max 10 tokens per form per hour
+        cache_key = f"voice_tokens:{form_id}"
+        token_count = cache.get(cache_key, 0)
+        if token_count >= 10:
+            return jsonify({"success": False, "error": "Rate limit exceeded"}), 429
+            
         token_info = create_ephemeral_token(agent_id)
+        
+        # Update rate limit counter
+        cache.set(cache_key, token_count + 1, timeout=3600)  # 1 hour
+        
         return jsonify({"success": True, **token_info})
     except Exception as e:
         logger.error(f"Error generating voice token: {str(e)}")
@@ -2495,7 +2534,7 @@ def start_voice_session():
             return jsonify({"error": "Form not found"}), 404
             
         form_data = form_doc.to_dict()
-        if not form_data.get("active", False):
+        if form_data.get("status") != "active":
             return jsonify({"error": "Survey not available"}), 403
             
         # Create session
@@ -2571,6 +2610,23 @@ def save_voice_session():
     except Exception as e:
         logger.error(f"Error saving voice session: {str(e)}")
         return jsonify({"error": "Failed to save session"}), 500
+
+
+def validate_mode_and_voice_settings(mode, voice_settings):
+    """Validate mode and voice settings for form creation/update"""
+    if mode not in ["chat", "voice"]:
+        return jsonify({"success": False, "error": "Invalid mode"}), 400
+        
+    if mode == "voice":
+        if (
+            not voice_settings
+            or not voice_settings.get("language")
+            or not voice_settings.get("voice_id")
+            or not voice_settings.get("agent_id")
+        ):
+            return jsonify({"success": False, "error": "Voice settings (language, voice_id, agent_id) required"}), 400
+    
+    return None  # No error
 
 
 def extract_voice_responses(transcript, form_data):

@@ -15,7 +15,7 @@ class VoiceConversation {
       const tokenResponse = await fetch('/api/voice/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent_id: this.agentId })
+        body: JSON.stringify({ form_id: this.formId })
       });
       
       if (!tokenResponse.ok) {
