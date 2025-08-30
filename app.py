@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import os
@@ -127,13 +128,21 @@ if not firebase_admin._apps:
     # For local development, fall back to service account file
     if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
         # Production environment - use environment variables
+        private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+        # Some environments provide the key base64 encoded or without newline escapes.
+        if "BEGIN PRIVATE KEY" not in private_key:
+            try:
+                private_key = base64.b64decode(private_key).decode("utf-8")
+            except Exception:
+                # Leave as-is; initialization will raise informative error if invalid.
+                pass
+        private_key = private_key.replace("\\n", "\n")
+
         firebase_config = {
             "type": "service_account",
             "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
             "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
-            "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace(
-                "\\n", "\n"
-            ),
+            "private_key": private_key,
             "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
             "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
