@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#cc5500">
     <title>Refine Form - Barmuda</title>
-    
+
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7C7SPTNMLT"></script>
     <script>
@@ -18,10 +18,10 @@
             allow_ad_personalization_signals: false
         });
     </script>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Custom Tailwind Config -->
     <script>
         tailwind.config = {
@@ -50,15 +50,15 @@
             }
         }
     </script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-    
+
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
@@ -76,30 +76,30 @@
                 <span class="font-jakarta font-semibold text-sm">Go Back</span>
             </button>
         </div>
-        
+
         <!-- Page Title -->
         <h1 class="font-jakarta font-bold text-2xl md:text-3xl text-bermuda-text mb-8">
             Refine Your Form
         </h1>
-        
+
         <!-- Form Title Section -->
         <div class="mb-6">
             <h2 class="font-jakarta font-semibold text-base text-bermuda-text mb-2">Form Title</h2>
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
-                <input 
-                    type="text" 
+                <input
+                    type="text"
                     id="formTitle"
                     class="w-full font-jakarta font-semibold text-lg text-bermuda-text bg-transparent outline-none placeholder:text-gray-400"
                     placeholder="Enter your form title"
                 >
             </div>
         </div>
-        
+
         <!-- Bot Context Section -->
         <div class="mb-6">
             <h2 class="font-jakarta font-semibold text-base text-bermuda-text mb-2">Bot Context <span class="text-xs font-normal text-gray-500">(Optional)</span></h2>
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
-                <textarea 
+                <textarea
                     id="botContext"
                     rows="3"
                     class="w-full font-dm text-sm text-bermuda-text bg-transparent outline-none resize-none placeholder:text-gray-400"
@@ -111,15 +111,15 @@
                 <span>Helps your bot answer contextual questions naturally</span>
             </p>
         </div>
-        
+
         <!-- Questions Container -->
         <div id="questionsContainer">
             <!-- Questions will be dynamically inserted here -->
         </div>
-        
+
         <!-- Add Question Button -->
         <div class="flex justify-center my-6">
-            <button 
+            <button
                 onclick="addQuestion()"
                 class="flex items-center gap-2 px-4 py-2 border border-bermuda-orange rounded-full text-bermuda-orange font-dm text-sm font-medium hover:bg-bermuda-orange hover:text-white transition-all"
             >
@@ -127,7 +127,7 @@
                 Add Question
             </button>
         </div>
-        
+
         <!-- Demographics Section -->
         <div class="border-t border-gray-200 pt-6 mt-8">
             <div class="flex items-center justify-between mb-4">
@@ -137,14 +137,14 @@
                     <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-bermuda-orange/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bermuda-orange shadow-inner"></div>
                 </label>
             </div>
-            
-            
+
+
             <!-- Demographics Grid -->
             <div id="demographicsGrid" class="grid grid-cols-3 gap-4 hidden">
                 <!-- Demographics options will be populated here -->
             </div>
         </div>
-        
+
         <!-- Profile Data Section -->
         <div class="border-t border-gray-200 pt-6 mt-6">
             <div class="flex items-center justify-between mb-4">
@@ -154,23 +154,23 @@
                     <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-bermuda-orange/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bermuda-orange shadow-inner"></div>
                 </label>
             </div>
-            
+
             <!-- Profile Data Grid -->
             <div id="profileDataGrid" class="grid grid-cols-3 gap-4 hidden">
                 <!-- Profile data options will be populated here -->
             </div>
         </div>
-        
+
         <!-- Action Buttons -->
         <div class="flex justify-center gap-3 mt-10 pb-6">
-            <button 
+            <button
                 onclick="showPreview()"
                 class="border border-gray-300 text-gray-700 font-dm text-sm font-medium px-5 py-2.5 rounded-full hover:bg-gray-50 transition-all flex items-center gap-2"
             >
                 <i class="ph ph-eye text-base"></i>
                 Preview
             </button>
-            <button 
+            <button
                 onclick="saveForm()"
                 class="bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-sm font-medium px-5 py-2.5 rounded-full hover:shadow-lg transition-all flex items-center gap-2"
             >
@@ -178,7 +178,7 @@
                 Save & Launch
             </button>
         </div>
-        
+
         <!-- Loading/Success States -->
         <div id="loadingState" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-8 text-center">
@@ -186,7 +186,7 @@
                 <p class="font-dm text-lg text-bermuda-text">Saving your form...</p>
             </div>
         </div>
-        
+
         <!-- Launch Success Modal -->
         <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-lg p-6 text-center max-w-lg w-full mx-4">
@@ -194,33 +194,33 @@
                 <div class="mb-4">
                     <h3 class="font-jakarta font-bold text-xl text-bermuda-text mb-2">Survey Ready to Share</h3>
                 </div>
-                
+
                 <!-- Share Image -->
                 <div class="mb-4">
                     <canvas id="shareGraphicCanvas" class="mx-auto rounded-lg border border-bermuda-border shadow-sm" width="320" height="200" style="max-width: 100%; height: auto;"></canvas>
                 </div>
-                
+
                 <!-- Action Buttons -->
                 <div class="space-y-3">
                     <!-- Primary CTA -->
-                    <button 
+                    <button
                         onclick="copyShareLink()"
                         class="w-full bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white px-4 py-3 rounded-lg hover:opacity-90 transition-opacity font-dm text-sm font-medium flex items-center justify-center gap-2"
                     >
                         <i class="ph ph-link text-white text-base"></i>
                         Copy Link
                     </button>
-                    
+
                     <!-- Secondary CTAs -->
                     <div class="flex gap-3">
-                        <button 
+                        <button
                             onclick="copyShareImage()"
                             class="flex-1 border border-bermuda-orange text-bermuda-orange px-4 py-2 rounded-lg hover:bg-bermuda-orange hover:text-white transition-all font-dm text-sm flex items-center justify-center gap-2"
                         >
                             <i class="ph ph-image text-current text-base"></i>
                             Copy Image
                         </button>
-                        <button 
+                        <button
                             onclick="downloadShareImage()"
                             class="flex-1 border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                         >
@@ -228,9 +228,9 @@
                             Download
                         </button>
                     </div>
-                    
+
                     <!-- Navigation -->
-                    <button 
+                    <button
                         onclick="goToDashboard()"
                         class="w-full border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all font-dm text-sm flex items-center justify-center gap-2"
                     >
@@ -253,7 +253,7 @@
                     </div>
                     <p class="text-sm text-bermuda-gray mt-2">This shows how respondents will experience your form as a conversation.</p>
                 </div>
-                
+
                 <div class="p-6">
                     <!-- Mock Chat Interface -->
                     <div class="bg-gray-50 rounded-lg p-4 mb-4">
@@ -266,24 +266,24 @@
                                 <div class="text-xs text-bermuda-gray">AI Form Guide</div>
                             </div>
                         </div>
-                        
+
                         <div id="previewChat" class="space-y-4 max-h-96 overflow-y-auto">
                             <!-- Chat messages will be inserted here -->
                         </div>
-                        
+
                         <div class="mt-4 p-3 bg-white rounded-lg border border-gray-200">
                             <div class="text-sm text-bermuda-gray">This is a preview. In the actual form, respondents can type naturally here.</div>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-between">
-                        <button 
+                        <button
                             onclick="startPreview()"
                             class="bg-bermuda-orange text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
                         >
                             Start Preview
                         </button>
-                        <button 
+                        <button
                             onclick="closePreview()"
                             class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                         >
@@ -291,6 +291,29 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Back Confirmation Modal -->
+        <div id="backConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg p-6 text-center max-w-sm w-full">
+                <h3 class="font-jakarta font-bold text-lg text-bermuda-text mb-2">Leave without launching?</h3>
+                <p class="text-sm text-bermuda-gray mb-6">Launching activates your form. Activate now or go back with the form inactive.</p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onclick="confirmActivateAndGoBack()"
+                        class="flex-1 bg-gradient-to-r from-bermuda-orange to-bermuda-red text-white font-dm text-sm font-medium px-5 py-2.5 rounded-full hover:shadow-lg transition-all"
+                    >
+                        Activate &amp; Go Back
+                    </button>
+                    <button
+                        onclick="confirmGoBackInactive()"
+                        class="flex-1 border border-gray-300 text-gray-700 font-dm text-sm font-medium px-5 py-2.5 rounded-full hover:bg-gray-50 transition-all"
+                    >
+                        Go Back
+                    </button>
+                </div>
+                <button onclick="cancelBackModal()" class="mt-4 text-sm text-gray-500 hover:text-gray-700">Stay on this page</button>
             </div>
         </div>
     </div>
@@ -314,13 +337,14 @@
         // Global variables
         let formData = null;
         let savedFormId = null;
-        
+        let backModalTarget = null;
+
         // Demographics options
         const demographicsOptions = [
             'Age', 'Education', 'Experience', 'Income', 'Occupation', 'Weight',
             'Home city', 'Gender', 'Height'
         ];
-        
+
         // Profile Data options with validation info
         const profileDataOptions = [
             { name: 'Name', key: 'name', validation: false },
@@ -338,17 +362,17 @@
             // Check for form ID in URL parameters first
             const urlParams = new URLSearchParams(window.location.search);
             const formIdFromUrl = urlParams.get('id');
-            
+
             if (formIdFromUrl) {
                 // Load form by ID from URL parameter (new inactive form)
                 loadExistingForm(formIdFromUrl);
                 return;
             }
-            
+
             // Fallback to existing logic for backwards compatibility
             const storedForm = sessionStorage.getItem('generatedForm');
             const editFormId = sessionStorage.getItem('editFormId');
-            
+
             if (editFormId) {
                 // Load existing form for editing
                 loadExistingForm(editFormId);
@@ -369,12 +393,12 @@
             try {
                 const response = await authenticatedFetch(`/api/form/${formId}`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     formData = data.form;
                     savedFormId = formId; // Set saved form ID for updates
                     populateForm();
-                    
+
                     // Update save button text based on form status
                     const saveBtn = document.querySelector('button[onclick="saveForm()"]');
                     if (saveBtn) {
@@ -406,19 +430,19 @@
         // Populate form with data
         function populateForm() {
             if (!formData) return;
-            
+
             // Set title
             document.getElementById('formTitle').value = formData.title || '';
-            
+
             // Set bot context
             document.getElementById('botContext').value = formData.bot_context || '';
-            
+
             // Render questions
             renderQuestions();
-            
+
             // Render demographics
             renderDemographics();
-            
+
             // Render profile data
             renderProfileData();
         }
@@ -427,13 +451,13 @@
         function renderQuestions() {
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
-            
+
             if (!formData.questions) return;
-            
+
             formData.questions.forEach((question, index) => {
                 const questionDiv = createQuestionElement(question, index);
                 container.appendChild(questionDiv);
-                
+
                 // No separator needed with card design
             });
         }
@@ -448,7 +472,7 @@
                         Question ${index + 1}
                     </h3>
                     <div class="flex items-center gap-2">
-                        <button 
+                        <button
                             onclick="deleteQuestion(${index})"
                             class="text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50"
                             title="Delete question"
@@ -461,33 +485,33 @@
                         </label>
                     </div>
                 </div>
-                
+
                 <!-- Question Text -->
                 <div class="mb-3">
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value="${question.text || ''}"
                         onchange="updateQuestionText(${index}, this.value)"
                         class="w-full font-dm text-sm text-bermuda-text bg-gray-50 rounded-lg px-3 py-2.5 outline-none focus:bg-white focus:ring-2 focus:ring-bermuda-orange/20 border border-transparent focus:border-bermuda-orange/30 transition-all placeholder:text-gray-400"
                         placeholder="Enter your question"
                     >
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-3">
                     <!-- Question Type -->
                     <div>
                         <label class="font-jakarta font-medium text-xs text-gray-600 mb-1.5 block">Question Type</label>
                         <div class="bg-gray-50 rounded-lg border border-gray-200 p-2.5 relative hover:border-gray-300 transition-colors">
                             <div class="custom-dropdown" id="dropdown-${index}">
-                                <button 
+                                <button
                                     onclick="toggleDropdown(${index})"
                                     class="w-full flex items-center justify-between font-dm text-sm text-bermuda-text bg-transparent outline-none"
                                 >
                                     <span id="dropdown-selected-${index}">${getQuestionTypeLabel(question.type)}</span>
                                     <i class="ph ph-caret-down text-bermuda-gray transition-transform" id="dropdown-arrow-${index}"></i>
                                 </button>
-                                <div 
-                                    id="dropdown-options-${index}" 
+                                <div
+                                    id="dropdown-options-${index}"
                                     class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md mt-1 shadow-lg z-10"
                                 >
                                     <div onclick="selectQuestionType(${index}, 'text')" class="px-3 py-2 hover:bg-gray-50 cursor-pointer font-dm text-sm text-bermuda-text flex items-center gap-2">
@@ -526,7 +550,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Answer Options -->
                     <div>
                         <label class="font-jakarta font-medium text-xs text-gray-600 mb-1.5 block">Answer Options</label>
@@ -536,7 +560,7 @@
                     </div>
                 </div>
             `;
-            
+
             return div;
         }
 
@@ -548,13 +572,13 @@
                     <div id="optionsContainer_${index}">
                         ${options.map((option, optIndex) => `
                             <div class="flex items-center gap-2 mb-2">
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value="${option}"
                                     onchange="updateOption(${index}, ${optIndex}, this.value)"
                                     class="flex-1 font-dm text-base text-bermuda-text bg-transparent outline-none border-b border-gray-200 pb-1"
                                 >
-                                <button 
+                                <button
                                     onclick="removeOption(${index}, ${optIndex})"
                                     class="text-red-500 hover:text-red-700 text-sm"
                                 >
@@ -562,7 +586,7 @@
                                 </button>
                             </div>
                         `).join('')}
-                        <button 
+                        <button
                             onclick="addOption(${index})"
                             class="text-bermuda-orange hover:text-bermuda-red text-sm font-dm"
                         >
@@ -578,35 +602,35 @@
         // Render demographics
         function renderDemographics() {
             const grid = document.getElementById('demographicsGrid');
-            
+
             // Don't render items when demographics section is hidden
             if (grid.classList.contains('hidden')) {
                 return;
             }
-            
+
             grid.innerHTML = '';
-            
+
             // Check if demographics section is enabled (main toggle state)
             const demographicsEnabled = !grid.classList.contains('hidden');
-            
+
             demographicsOptions.forEach(option => {
                 const isEnabled = demographicsEnabled && formData.demographics && formData.demographics[option.toLowerCase()] || false;
-                
+
                 const optionDiv = document.createElement('div');
                 optionDiv.className = `bg-white rounded-md border border-gray-200 p-3 flex items-center justify-between hover:shadow-sm transition-shadow ${!demographicsEnabled ? 'opacity-50' : ''}`;
                 optionDiv.innerHTML = `
                     <span class="font-dm text-base text-bermuda-text tracking-tight">${option}</span>
                     <label class="relative inline-flex items-center cursor-pointer ${!demographicsEnabled ? 'cursor-not-allowed' : ''}">
-                        <input 
-                            type="checkbox" 
-                            class="sr-only peer" 
-                            ${isEnabled ? 'checked' : ''} 
+                        <input
+                            type="checkbox"
+                            class="sr-only peer"
+                            ${isEnabled ? 'checked' : ''}
                             ${demographicsEnabled ? `onchange="toggleDemographic('${option.toLowerCase()}')"` : 'disabled'}
                         >
                         <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-bermuda-orange/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-bermuda-orange shadow-inner ${!demographicsEnabled ? 'opacity-50' : ''}"></div>
                     </label>
                 `;
-                
+
                 grid.appendChild(optionDiv);
             });
         }
@@ -628,7 +652,7 @@
         function updateQuestionType(index, type) {
             if (formData.questions[index]) {
                 formData.questions[index].type = type;
-                
+
                 // Reset options for new type
                 if (type === 'multiple_choice') {
                     formData.questions[index].options = ['Option 1', 'Option 2'];
@@ -637,11 +661,11 @@
                 } else {
                     formData.questions[index].options = null;
                 }
-                
+
                 renderQuestions();
             }
         }
-        
+
         // Custom dropdown functions
         function getQuestionTypeLabel(type) {
             const labels = {
@@ -653,11 +677,11 @@
             };
             return labels[type] || '<i class="ph ph-text-aa text-bermuda-orange text-base mr-2"></i>Text response';
         }
-        
+
         function toggleDropdown(index) {
             const optionsDiv = document.getElementById(`dropdown-options-${index}`);
             const arrow = document.getElementById(`dropdown-arrow-${index}`);
-            
+
             // Close all other dropdowns first
             document.querySelectorAll('[id^="dropdown-options-"]').forEach(dropdown => {
                 if (dropdown.id !== `dropdown-options-${index}`) {
@@ -667,24 +691,24 @@
                     if (otherArrow) otherArrow.classList.remove('rotate-180');
                 }
             });
-            
+
             // Toggle current dropdown
             optionsDiv.classList.toggle('hidden');
             arrow.classList.toggle('rotate-180');
         }
-        
+
         function selectQuestionType(index, type) {
             // Update the display with HTML (to show icons)
             document.getElementById(`dropdown-selected-${index}`).innerHTML = getQuestionTypeLabel(type);
-            
+
             // Close dropdown
             document.getElementById(`dropdown-options-${index}`).classList.add('hidden');
             document.getElementById(`dropdown-arrow-${index}`).classList.remove('rotate-180');
-            
+
             // Update the question type
             updateQuestionType(index, type);
         }
-        
+
         // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
             if (!event.target.closest('.custom-dropdown')) {
@@ -724,7 +748,7 @@
                 options: null,
                 enabled: true
             };
-            
+
             formData.questions.push(newQuestion);
             renderQuestions();
         }
@@ -737,7 +761,7 @@
                     return;
                 }
             }
-            
+
             // Remove the question from the array
             if (formData.questions && index >= 0 && index < formData.questions.length) {
                 formData.questions.splice(index, 1);
@@ -749,11 +773,11 @@
         function toggleDemographics() {
             const grid = document.getElementById('demographicsGrid');
             const checkbox = document.getElementById('demographicsCheckbox');
-            
+
             if (checkbox.checked) {
                 // Show demographics section - enable it
                 grid.classList.remove('hidden');
-                
+
                 // Initialize demographics if not set
                 if (!formData.demographics) {
                     formData.demographics = {};
@@ -765,14 +789,14 @@
             } else {
                 // Hide demographics section - disable all demographics
                 grid.classList.add('hidden');
-                
+
                 // Disable all demographics when hiding section
                 if (!formData.demographics) formData.demographics = {};
                 demographicsOptions.forEach(opt => {
                     formData.demographics[opt.toLowerCase()] = false;
                 });
             }
-            
+
             renderDemographics();
         }
 
@@ -782,38 +806,38 @@
             if (grid.classList.contains('hidden')) {
                 return;
             }
-            
+
             if (!formData.demographics) {
                 formData.demographics = {};
             }
-            
+
             formData.demographics[option] = !formData.demographics[option];
             renderDemographics();
         }
-        
+
         // Profile Data functions
         function renderProfileData() {
             const grid = document.getElementById('profileDataGrid');
-            
+
             // Don't render items when profile data section is hidden
             if (grid.classList.contains('hidden')) {
                 return;
             }
-            
+
             grid.innerHTML = '';
-            
+
             // Check if profile data section is enabled (main toggle state)
             const profileDataEnabled = !grid.classList.contains('hidden');
-            
+
             profileDataOptions.forEach(option => {
                 const isEnabled = profileDataEnabled && formData.profile_data && formData.profile_data[option.key] || false;
-                
+
                 const optionDiv = document.createElement('div');
                 optionDiv.className = `bg-white rounded-lg border border-bermuda-border p-4 flex items-center justify-between ${!profileDataEnabled ? 'opacity-50' : ''}`;
-                
+
                 // Create the label section with optional shield icon
                 let labelSection = `<span class="font-dm text-base text-bermuda-text tracking-tight">${option.name}</span>`;
-                
+
                 if (option.validation) {
                     labelSection = `
                         <div class="flex items-center gap-2">
@@ -827,34 +851,34 @@
                         </div>
                     `;
                 }
-                
+
                 optionDiv.innerHTML = `
                     <div class="flex items-center">
                         ${labelSection}
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer ${!profileDataEnabled ? 'cursor-not-allowed' : ''}">
-                        <input 
-                            type="checkbox" 
-                            class="sr-only peer" 
-                            ${isEnabled ? 'checked' : ''} 
+                        <input
+                            type="checkbox"
+                            class="sr-only peer"
+                            ${isEnabled ? 'checked' : ''}
                             ${profileDataEnabled ? `onchange="toggleProfileDataOption('${option.key}')"` : 'disabled'}
                         >
                         <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-bermuda-orange/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-bermuda-orange shadow-inner ${!profileDataEnabled ? 'opacity-50' : ''}"></div>
                     </label>
                 `;
-                
+
                 grid.appendChild(optionDiv);
             });
         }
-        
+
         function toggleProfileData() {
             const grid = document.getElementById('profileDataGrid');
             const checkbox = document.getElementById('profileDataCheckbox');
-            
+
             if (checkbox.checked) {
                 // Show profile data section - enable it
                 grid.classList.remove('hidden');
-                
+
                 // Initialize profile data if not set
                 if (!formData.profile_data) {
                     formData.profile_data = {};
@@ -866,28 +890,28 @@
             } else {
                 // Hide profile data section - disable all profile data
                 grid.classList.add('hidden');
-                
+
                 // Disable all profile data when hiding section
                 if (!formData.profile_data) formData.profile_data = {};
                 profileDataOptions.forEach(opt => {
                     formData.profile_data[opt.key] = false;
                 });
             }
-            
+
             renderProfileData();
         }
-        
+
         function toggleProfileDataOption(optionKey) {
             // Only allow toggling if profile data section is visible
             const grid = document.getElementById('profileDataGrid');
             if (grid.classList.contains('hidden')) {
                 return;
             }
-            
+
             if (!formData.profile_data) {
                 formData.profile_data = {};
             }
-            
+
             formData.profile_data[optionKey] = !formData.profile_data[optionKey];
             renderProfileData();
         }
@@ -901,14 +925,14 @@
                 alert('Please enter a form title');
                 return false;
             }
-            
+
             // Check at least one enabled question
             const enabledQuestions = formData.questions.filter(q => q.enabled);
             if (enabledQuestions.length === 0) {
                 alert('Please enable at least one question');
                 return false;
             }
-            
+
             // Check question texts
             for (let i = 0; i < formData.questions.length; i++) {
                 const question = formData.questions[i];
@@ -916,7 +940,7 @@
                     alert(`Please enter text for question ${i + 1}`);
                     return false;
                 }
-                
+
                 // Check options for multiple choice and rating
                 if (question.enabled && (question.type === 'multiple_choice' || question.type === 'rating')) {
                     if (!question.options || question.options.length < 2) {
@@ -925,24 +949,24 @@
                     }
                 }
             }
-            
+
             return true;
         }
 
         // Save form
-        async function saveForm() {
+        async function saveForm(redirectUrl = null) {
             if (!validateForm()) return;
-            
+
             // Update title and bot context
             formData.title = document.getElementById('formTitle').value.trim();
             formData.bot_context = document.getElementById('botContext').value.trim();
-            
+
             const loadingState = document.getElementById('loadingState');
             loadingState.classList.remove('hidden');
-            
+
             try {
                 let response;
-                
+
                 if (savedFormId) {
                     // Update existing form and activate it
                     const updatedFormData = {
@@ -950,7 +974,7 @@
                         active: true,  // Activate the form
                         last_modified: new Date().toISOString()
                     };
-                    
+
                     response = await authenticatedFetch(`/api/update_form/${savedFormId}`, {
                         method: 'PUT',
                         body: JSON.stringify({ form: updatedFormData })
@@ -961,31 +985,37 @@
                         ...formData,
                         active: true  // Activate immediately
                     };
-                    
+
                     response = await authenticatedFetch('/api/save_form', {
                         method: 'POST',
                         body: JSON.stringify({ form: newFormData })
                     });
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     savedFormId = data.form_id;
                     loadingState.classList.add('hidden');
-                    
-                    // Generate share image and show modal
-                    generateShareImage();
-                    document.getElementById('successModal').classList.remove('hidden');
-                    
-                    // Clear session storage after successful save
-                    sessionStorage.removeItem('generatedForm');
-                    sessionStorage.removeItem('editFormId');
+
+                    // Generate share image and show modal or redirect
+                    if (redirectUrl) {
+                        sessionStorage.removeItem('generatedForm');
+                        sessionStorage.removeItem('editFormId');
+                        window.location.href = redirectUrl;
+                    } else {
+                        generateShareImage();
+                        document.getElementById('successModal').classList.remove('hidden');
+
+                        // Clear session storage after successful save
+                        sessionStorage.removeItem('generatedForm');
+                        sessionStorage.removeItem('editFormId');
+                    }
                 } else {
                     console.error('Save failed:', data.error);
                     alert('Failed to save form: ' + (data.error || 'Unknown error'));
                 }
-                
+
             } catch (error) {
                 console.error('Save form error:', error);
                 alert('Network error. Please try again.');
@@ -995,8 +1025,32 @@
         }
 
         // Navigation functions
+        function handleNavigationAttempt(url) {
+            if (!savedFormId) {
+                backModalTarget = url;
+                document.getElementById('backConfirmModal').classList.remove('hidden');
+            } else {
+                window.location.href = url;
+            }
+        }
+
         function goBack() {
-            window.location.href = '/create-form';
+            handleNavigationAttempt('/create-form');
+        }
+
+        function cancelBackModal() {
+            document.getElementById('backConfirmModal').classList.add('hidden');
+            backModalTarget = null;
+            history.pushState(null, '', location.href);
+        }
+
+        async function confirmActivateAndGoBack() {
+            document.getElementById('backConfirmModal').classList.add('hidden');
+            await saveForm(backModalTarget || '/dashboard');
+        }
+
+        function confirmGoBackInactive() {
+            window.location.href = backModalTarget || '/dashboard';
         }
 
         function goToDashboard() {
@@ -1020,12 +1074,12 @@
             const canvas = document.getElementById('shareGraphicCanvas');
             const ctx = canvas.getContext('2d');
             const dpr = window.devicePixelRatio || 1;
-            
+
             // High-DPI setup
             canvas.width = 320 * dpr;
             canvas.height = 200 * dpr;
             ctx.scale(dpr, dpr);
-            
+
             // Fancy gradient background with multiple stops
             const gradient = ctx.createLinearGradient(0, 0, 320, 200);
             gradient.addColorStop(0, '#cc5500');
@@ -1033,7 +1087,7 @@
             gradient.addColorStop(1, '#b8441f');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 320, 200);
-            
+
             // Add subtle pattern overlay for texture
             ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
             for (let i = 0; i < 320; i += 15) {
@@ -1043,29 +1097,29 @@
                     }
                 }
             }
-            
+
             // Elegant content card with shadow effect
             ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
             ctx.shadowBlur = 8;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 2;
-            
+
             ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
             ctx.roundRect(15, 25, 290, 150, 12);
             ctx.fill();
-            
+
             // Reset shadow
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
-            
+
             // Logo placeholder in top right (small B icon for now)
             ctx.fillStyle = '#cc5500';
             ctx.font = 'bold 12px "Plus Jakarta Sans", Arial, sans-serif';
             ctx.textAlign = 'right';
             ctx.fillText('B', 295, 45);
-            
+
             // Form title with proper typography and spacing
             ctx.fillStyle = '#1e1e1e';
             ctx.font = 'bold 20px "Plus Jakarta Sans", Arial, sans-serif';
@@ -1076,7 +1130,7 @@
             let line = '';
             let y = 85;
             const lineHeight = 26; // Better line spacing
-            
+
             for (let n = 0; n < words.length; n++) {
                 const testLine = line + words[n] + ' ';
                 const metrics = ctx.measureText(testLine);
@@ -1090,17 +1144,17 @@
                 }
             }
             ctx.fillText(line.trim(), 160, y);
-            
+
             // Attractive call to action with accent color and proper spacing
             ctx.fillStyle = '#cc5500';
             ctx.font = '15px "DM Sans", Arial, sans-serif';
             ctx.fillText('Quick 2-minute chat', 160, y + 32);
-            
+
             // Subtle domain branding
             ctx.fillStyle = '#999';
             ctx.font = '11px "DM Sans", Arial, sans-serif';
             ctx.fillText('barmuda.in', 160, 165);
-            
+
             // Add decorative element - small dots for visual interest
             ctx.fillStyle = 'rgba(204, 85, 0, 0.2)';
             for (let i = 0; i < 3; i++) {
@@ -1149,7 +1203,7 @@
             const link = document.createElement('a');
             const title = formData.title || 'Survey';
             const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            
+
             link.download = `${filename}_share.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
@@ -1159,11 +1213,11 @@
         // Preview functionality
         function showPreview() {
             if (!validateForm()) return;
-            
+
             // Update title and bot context
             formData.title = document.getElementById('formTitle').value.trim();
             formData.bot_context = document.getElementById('botContext').value.trim();
-            
+
             document.getElementById('previewModal').classList.remove('hidden');
         }
 
@@ -1174,7 +1228,7 @@
         function startPreview() {
             const chatContainer = document.getElementById('previewChat');
             chatContainer.innerHTML = '';
-            
+
             // Start the preview simulation
             simulateConversation();
         }
@@ -1182,18 +1236,18 @@
         function simulateConversation() {
             const chatContainer = document.getElementById('previewChat');
             const enabledQuestions = formData.questions.filter(q => q.enabled);
-            
+
             // Welcome message
             addChatMessage('assistant', `Hi! I'm here to help you with "${formData.title}". Let's get started! This should only take a few minutes.`);
-            
+
             let currentQuestionIndex = 0;
-            
+
             function showNextQuestion() {
                 if (currentQuestionIndex >= enabledQuestions.length) {
                     // Show demographics if enabled
                     const enabledDemographics = Object.keys(formData.demographics || {}).filter(key => formData.demographics[key]);
                     const enabledProfileData = Object.keys(formData.profile_data || {}).filter(key => formData.profile_data[key]);
-                    
+
                     if (enabledDemographics.length > 0 || enabledProfileData.length > 0) {
                         setTimeout(() => {
                             let additionalQuestions = [];
@@ -1203,7 +1257,7 @@
                             if (enabledProfileData.length > 0) {
                                 additionalQuestions.push(`profile information (${enabledProfileData.join(', ')})`);
                             }
-                            
+
                             addChatMessage('assistant', `Great! Just a few quick additional questions to wrap up: ${additionalQuestions.join(' and ')}.`);
                             setTimeout(() => {
                                 addChatMessage('user', '[User provides demographic and profile information...]', true);
@@ -1219,23 +1273,23 @@
                     }
                     return;
                 }
-                
+
                 const question = enabledQuestions[currentQuestionIndex];
-                
+
                 setTimeout(() => {
                     addChatMessage('assistant', question.text);
-                    
+
                     // Show sample user response based on question type
                     setTimeout(() => {
                         let sampleResponse = getSampleResponse(question);
                         addChatMessage('user', sampleResponse, true);
-                        
+
                         currentQuestionIndex++;
                         showNextQuestion();
                     }, 1500);
                 }, 1000);
             }
-            
+
             // Start showing questions
             setTimeout(showNextQuestion, 1000);
         }
@@ -1260,13 +1314,13 @@
             const chatContainer = document.getElementById('previewChat');
             const messageDiv = document.createElement('div');
             messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
-            
+
             messageDiv.innerHTML = `
                 <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isUser ? 'bg-bermuda-orange text-white' : 'bg-white border border-gray-200'}">
                     <p class="text-sm ${isUser ? 'text-white' : 'text-bermuda-text'}">${message}</p>
                 </div>
             `;
-            
+
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
@@ -1301,6 +1355,21 @@
         // Initialize form on page load (Flask handles auth at route level)
         document.addEventListener('DOMContentLoaded', function() {
             initializeForm();
+            history.pushState(null, '', location.href);
+
+            // Intercept dashboard navigation
+            document.querySelectorAll('a[href="/dashboard"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleNavigationAttempt('/dashboard');
+                });
+            });
+
+            // Handle browser back button
+            window.addEventListener('popstate', function() {
+                handleNavigationAttempt(document.referrer || '/dashboard');
+                history.pushState(null, '', location.href);
+            });
         });
     </script>
 
