@@ -21,6 +21,7 @@
     <!-- Firebase SDK for real Google authentication -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="/static/js/auth-helper.js"></script>
     
     <!-- Custom CSS -->
     <style>
@@ -96,56 +97,14 @@
             appId: "1:36564437421:web:2a16afe9674a9d03333924"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        // Initialize Firebase via shared helper
+        window.auth = initializeFirebaseAuth(firebaseConfig);
 
-        // Real Google Sign In
-        async function signInWithGoogle() {
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('email');
-                provider.addScope('profile');
-                
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                const idToken = await user.getIdToken();
-                
-                // Send token to backend
-                const response = await fetch('/auth/google', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ idToken })
-                });
-                
-                if (response.ok) {
-                    window.location.href = '/dashboard';
-                } else {
-                    const error = await response.json();
-                    alert('Authentication failed: ' + error.error);
-                }
-            } catch (error) {
-                console.error('Sign in error:', error);
-                alert('Sign in failed: ' + error.message);
-            }
+        function signInWithGoogle(redirectUrl = '/dashboard') {
+            return signInWithGoogleUniversal(window.auth, redirectUrl);
         }
 
-        async function signOut() {
-            try {
-                await auth.signOut();
-                const response = await fetch('/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Sign out error:', error);
-            }
-        }
-
-        // Helper function for authenticated requests  
+        // Helper function for authenticated requests
         async function authenticatedFetch(url, options = {}) {
             return fetch(url, {
                 ...options,
