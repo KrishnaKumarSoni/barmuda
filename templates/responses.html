@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#cc5500">
     <title>{{ form_title }} - Responses | Barmuda Forms</title>
-    
+
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7C7SPTNMLT"></script>
     <script>
@@ -18,19 +18,19 @@
             allow_ad_personalization_signals: false
         });
     </script>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
     <!-- Chart.js and WordCloud Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.js"></script>
-    
+
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <!-- Custom Chart Configurations -->
     <script src="/static/js/chart-config.js"></script>
     <script src="/static/js/wordcloud-config.js"></script>
@@ -139,7 +139,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Insights View -->
         <div id="insights-content" class="hidden">
             <div class="bg-white rounded-lg border border-[#fce9c1] p-4 md:p-6">
@@ -155,7 +155,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Questions View -->
         <div id="questions-content" class="hidden">
             <div class="bg-white rounded-lg border border-[#fce9c1] p-4 md:p-6">
@@ -188,7 +188,7 @@
             try {
                 const response = await fetch(`/api/responses/${formId}`);
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     allResponses = data.responses;
                     updateStats(data);
@@ -209,7 +209,7 @@
             const totalResponses = data.total_responses;
             const completeResponses = data.responses.filter(r => !r.partial).length;
             const completionRate = totalResponses > 0 ? Math.round((completeResponses / totalResponses) * 100) : 0;
-            
+
             // Calculate total messages and average time
             let totalMessages = 0;
             let totalTime = 0;
@@ -217,7 +217,7 @@
 
             data.responses.forEach(response => {
                 totalMessages += response.metadata.chat_length || 0;
-                
+
                 const startTime = response.metadata.start_time;
                 const endTime = response.metadata.end_time;
                 if (startTime && endTime) {
@@ -240,14 +240,14 @@
         function renderSummary(data) {
             const container = document.getElementById('questions-summary');
             const questions = {{ questions | tojsonfilter }};
-            
+
             questions.forEach((question, index) => {
                 const questionCard = document.createElement('div');
                 questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-4 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition-shadow overflow-visible';
-                
+
                 const responses = data.responses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
                 const responseCount = responses.length;
-                
+
                 let summaryHtml = `
                     <div class="mb-4 md:mb-6">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -284,7 +284,7 @@
 
                 questionCard.innerHTML = summaryHtml;
                 container.appendChild(questionCard);
-                
+
                 // Initialize visualization after DOM is updated
                 setTimeout(() => {
                     if (question.type === 'text') {
@@ -301,7 +301,7 @@
             try {
                 const response = await fetch(`/api/wordcloud/${formId}/${questionIndex}`);
                 const data = await response.json();
-                
+
                 if (data.success && data.word_frequency.length > 0) {
                     renderBackendWordCloud(`wordcloud-${questionIndex}`, data.word_frequency);
                 } else {
@@ -332,31 +332,31 @@
             // Render word cloud using backend-generated data
             const container = document.getElementById(containerId);
             if (!container) return;
-            
+
             // Clear container and set proper sizing
             container.innerHTML = '';
             container.style.width = '100%';
             container.style.height = '200px';
             container.style.overflow = 'visible';
             container.style.position = 'relative';
-            
+
             // Create HTML-based word cloud with better sizing
             const colors = ['#e17d36', '#cc5500', '#d12b2e', '#ff6b35', '#e4b65b'];
             const maxCount = Math.max(...wordFrequency.map(item => item.count));
-            
+
             // Limit to top 15 words for better display
             const topWords = wordFrequency.slice(0, 15);
-            
+
             let wordsHtml = '';
             topWords.forEach((item, index) => {
                 const size = Math.max(14, Math.min(28, (item.count / maxCount) * 20 + 14));
                 const color = colors[index % colors.length];
                 const fontWeight = item.count > maxCount * 0.7 ? '700' : item.count > maxCount * 0.4 ? '600' : '500';
-                
+
                 wordsHtml += `
                     <span style="
-                        font-size: ${size}px; 
-                        color: ${color}; 
+                        font-size: ${size}px;
+                        color: ${color};
                         margin: 2px 4px;
                         font-family: 'DM Sans';
                         font-weight: ${fontWeight};
@@ -366,7 +366,7 @@
                     ">${item.word}</span>
                 `;
             });
-            
+
             container.innerHTML = `
                 <div style="
                     display: flex;
@@ -390,20 +390,21 @@
         function renderIndividual(data) {
             const container = document.getElementById('individual-responses');
             const questions = {{ questions | tojsonfilter }};
-            
+
             data.responses.forEach((response, index) => {
                 const responseCard = document.createElement('div');
                 responseCard.className = 'border border-[#fce9c1] rounded-lg p-3 md:p-4 mb-4';
-                
+
                 let html = `
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
                         <h4 class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-sm md:text-[16px]">Response #${index + 1}</h4>
                         <div class="flex gap-2">
+                            <span class="bg-[#fdeada] text-[#cc5500] px-2 py-1 rounded text-xs">${response.mode || 'chat'}</span>
                             ${response.partial ? '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Partial</span>' : ''}
                             <span class="text-[#797878] text-xs">${response.created_at ? new Date(response.created_at).toLocaleDateString() : 'Unknown date'}</span>
                         </div>
                     </div>
-                    
+
                     <!-- Structured Responses -->
                     <div class="space-y-3 mb-4">
                         <h5 class="font-['DM_Sans'] font-semibold text-[#1e1e1e] text-sm mb-2">Extracted Responses</h5>
@@ -412,7 +413,7 @@
                 questions.forEach((question, qIndex) => {
                     const answer = response.responses[qIndex.toString()];
                     const value = answer ? answer.value : 'No response';
-                    
+
                     html += `
                         <div class="flex flex-col">
                             <span class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-xs md:text-[14px] mb-1">Q${qIndex + 1}: ${question.text}</span>
@@ -422,7 +423,7 @@
                 });
 
                 html += '</div>';
-                
+
                 // Add Chat Transcript if available
                 if (response.chat_transcript && response.chat_transcript.length > 0) {
                     html += `
@@ -437,12 +438,12 @@
                             <div id="chat-transcript-${index}" class="hidden bg-[#fef9ee] rounded-lg p-3 max-h-64 overflow-y-auto">
                                 <div class="space-y-2">
                     `;
-                    
+
                     response.chat_transcript.forEach((message, msgIndex) => {
                         if (message.role === 'user' || message.role === 'assistant') {
                             const isUser = message.role === 'user';
                             const time = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
-                            
+
                             html += `
                                 <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
                                     <div class="max-w-xs ${isUser ? 'bg-[#cc5500] text-white' : 'bg-white border border-[#e5e7eb]'} rounded-lg px-3 py-2">
@@ -453,7 +454,7 @@
                             `;
                         }
                     });
-                    
+
                     html += `
                                 </div>
                             </div>
@@ -469,18 +470,18 @@
                         </div>
                     `;
                 }
-                
+
                 responseCard.innerHTML = html;
                 container.appendChild(responseCard);
             });
         }
-        
+
         // Function to toggle chat transcript visibility
         function toggleChatTranscript(index) {
             const transcript = document.getElementById(`chat-transcript-${index}`);
             const toggleText = document.getElementById(`toggle-text-${index}`);
             const toggleIcon = document.getElementById(`toggle-icon-${index}`);
-            
+
             if (transcript.classList.contains('hidden')) {
                 transcript.classList.remove('hidden');
                 toggleText.textContent = 'Hide';
@@ -497,11 +498,11 @@
             const tabs = ['summary', 'individual', 'insights', 'questions'];
             const activeClasses = 'flex-1 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all';
             const inactiveClasses = 'flex-1 bg-transparent text-[#cc5500] rounded-lg px-2 md:px-4 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 transition-all hover:bg-[#fff5e0]';
-            
+
             tabs.forEach(tab => {
                 const tabElement = document.getElementById(`${tab}-tab`);
                 const contentElement = document.getElementById(`${tab}-content`);
-                
+
                 if (tab === activeTabId) {
                     tabElement.className = activeClasses;
                     contentElement.classList.remove('hidden');
@@ -511,7 +512,7 @@
                 }
             });
         }
-        
+
         // Tab event listeners
         document.getElementById('summary-tab').addEventListener('click', () => switchTab('summary', 'summary-content'));
         document.getElementById('individual-tab').addEventListener('click', () => switchTab('individual', 'individual-content'));
@@ -525,7 +526,7 @@
         async function exportData(format) {
             try {
                 const response = await fetch(`/api/export/${formId}/${format}`);
-                
+
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
@@ -544,13 +545,13 @@
                 alert('Failed to export data. Please try again.');
             }
         }
-        
+
         // Get question preview based on type
         function getQuestionPreview(question, responses) {
             if (!responses || responses.length === 0) {
                 return '<div class="text-xs text-[#959494] font-[\'DM_Sans\']">No responses yet</div>';
             }
-            
+
             switch(question.type) {
                 case 'multiple_choice':
                     // Show top choice
@@ -566,7 +567,7 @@
                         <div class="text-xs text-[#1e1e1e] font-['DM_Sans'] truncate">${topChoice}</div>
                         <div class="text-xs text-[#797878] font-['DM_Sans']">${topPercent}%</div>
                     `;
-                    
+
                 case 'yes_no':
                     const yesCount = responses.filter(r => r.value === 'Yes').length;
                     const yesPercent = Math.round((yesCount / responses.length) * 100);
@@ -575,7 +576,7 @@
                         <div class="text-2xl text-[#1e1e1e] font-['DM_Sans'] font-bold">${yesPercent}%</div>
                         <div class="text-xs text-[#797878] font-['DM_Sans']">${yesCount}/${responses.length}</div>
                     `;
-                    
+
                 case 'rating':
                     const ratings = responses.map(r => parseInt(r.value)).filter(r => !isNaN(r));
                     const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : 0;
@@ -587,7 +588,7 @@
                         </div>
                         <div class="text-xs text-[#797878] font-['DM_Sans']">${ratings.length} ratings</div>
                     `;
-                    
+
                 case 'number':
                     const numbers = responses.map(r => parseFloat(r.value)).filter(r => !isNaN(r));
                     const avgNumber = numbers.length > 0 ? (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(1) : 0;
@@ -596,7 +597,7 @@
                         <div class="text-lg text-[#1e1e1e] font-['DM_Sans'] font-bold">${avgNumber}</div>
                         <div class="text-xs text-[#797878] font-['DM_Sans']">${numbers.length} numbers</div>
                     `;
-                    
+
                 case 'text':
                     const textResponses = responses.filter(r => r.value && r.value !== '[SKIP]');
                     const avgLength = textResponses.length > 0 ? Math.round(textResponses.reduce((sum, r) => sum + (r.value?.length || 0), 0) / textResponses.length) : 0;
@@ -605,7 +606,7 @@
                         <div class="text-lg text-[#1e1e1e] font-['DM_Sans'] font-bold">${textResponses.length}</div>
                         <div class="text-xs text-[#797878] font-['DM_Sans']">${avgLength} avg chars</div>
                     `;
-                    
+
                 default:
                     return `
                         <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Responses</div>
@@ -613,21 +614,21 @@
                     `;
             }
         }
-        
+
         // View question details function
         function viewQuestionDetails(questionIndex) {
             // Switch to summary tab and scroll to the specific question
             switchTab('summary', 'summary-content');
-            
+
             // Wait for tab switch animation, then scroll to question
             setTimeout(() => {
                 const questionCards = document.querySelectorAll('#questions-summary > div');
                 if (questionCards[questionIndex]) {
-                    questionCards[questionIndex].scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center' 
+                    questionCards[questionIndex].scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
                     });
-                    
+
                     // Add temporary highlight effect
                     questionCards[questionIndex].style.boxShadow = '0 0 0 3px rgba(204, 85, 0, 0.3)';
                     setTimeout(() => {
@@ -641,15 +642,15 @@
         function renderQuestionsOverview() {
             const container = document.getElementById('questions-overview');
             const questions = {{ questions | tojsonfilter }};
-            
+
             // Clear and re-render
             container.innerHTML = '';
-            
+
             if (!questions || questions.length === 0) {
                 container.innerHTML = '<div class="text-center py-8 text-[#797878] bg-white rounded-lg border border-[#fce9c1] p-4">No questions found in this form</div>';
                 return;
             }
-            
+
             // Add summary header
             const summaryDiv = document.createElement('div');
             summaryDiv.className = 'bg-white rounded-lg border border-[#fce9c1] p-4 mb-6';
@@ -667,19 +668,19 @@
                 </div>
             `;
             container.appendChild(summaryDiv);
-            
+
             // Create enhanced question cards
             questions.forEach((question, index) => {
                 const questionCard = document.createElement('div');
                 questionCard.className = 'bg-white rounded-xl border border-[#fce9c1] p-6 shadow-sm hover:shadow-md transition-shadow mb-4';
-                
+
                 // Handle case where allResponses might not be loaded yet
                 const responses = allResponses ? allResponses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null) : [];
                 const totalPossibleResponses = allResponses ? allResponses.length : 0;
                 const responseCount = responses.length;
                 const skipCount = totalPossibleResponses - responseCount;
                 const completionRate = totalPossibleResponses > 0 ? Math.round((responseCount / totalPossibleResponses) * 100) : 0;
-                
+
                 // Get question type icon
                 const getQuestionIcon = (type) => {
                     switch(type) {
@@ -691,7 +692,7 @@
                         default: return 'ph-question';
                     }
                 };
-                
+
                 questionCard.innerHTML = `
                     <div class="flex flex-col space-y-4">
                         <!-- Question Header -->
@@ -712,12 +713,12 @@
                                 <div class="text-xs text-[#797878] font-['DM_Sans']">completion</div>
                             </div>
                         </div>
-                        
+
                         <!-- Question Text -->
                         <div>
                             <h4 class="font-['DM_Sans'] text-[#1e1e1e] text-lg font-medium leading-relaxed">${question.text}</h4>
                         </div>
-                        
+
                         <!-- Stats Grid and Preview -->
                         <div class="flex flex-col lg:flex-row gap-6">
                             <!-- Stats Grid -->
@@ -743,14 +744,14 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Quick Preview -->
                             <div class="lg:w-64 bg-[#fef9ee] rounded-lg p-4">
                                 <div class="text-xs text-[#797878] font-['DM_Sans'] mb-3">Quick Preview</div>
                                 ${getQuestionPreview(question, responses)}
                             </div>
                         </div>
-                        
+
                         <!-- Action Button -->
                         <div class="flex justify-start">
                             <button onclick="viewQuestionDetails(${index})" class="bg-[#cc5500] text-white px-4 py-2 rounded-lg text-sm font-['DM_Sans'] hover:opacity-90 flex items-center gap-2">
@@ -760,7 +761,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 container.appendChild(questionCard);
             });
         }

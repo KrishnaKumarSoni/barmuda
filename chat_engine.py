@@ -16,19 +16,24 @@ import openai
 # Debug import issue
 try:
     from agents import Agent, Runner, function_tool
+
     print("SUCCESS: OpenAI Agents SDK imported", file=os.sys.stderr)
 except ImportError as e:
     print(f"CRITICAL ERROR: Cannot import OpenAI Agents SDK: {e}", file=os.sys.stderr)
+
     # Create dummy classes to prevent complete failure
     class Agent:
         def __init__(self, *args, **kwargs):
             raise ImportError("OpenAI Agents SDK not available")
+
     class Runner:
         @staticmethod
         def run_sync(*args, **kwargs):
             raise ImportError("OpenAI Agents SDK not available")
+
     def function_tool(func):
         return func
+
 
 from dotenv import load_dotenv
 from firebase_admin import db, firestore
@@ -117,21 +122,25 @@ def load_session(session_id: str) -> ChatSession:
 
     # Load from Firestore
     try:
-        session_doc = firestore_db.collection("chat_sessions").document(session_id).get()
+        session_doc = (
+            firestore_db.collection("chat_sessions").document(session_id).get()
+        )
 
         if session_doc.exists:
             session_data = session_doc.to_dict()
-            
+
             # Validate required fields
             required_fields = ["session_id", "form_id", "form_data"]
             for field in required_fields:
                 if not session_data.get(field):
                     raise ValueError(f"Session missing required field: {field}")
-            
+
             # Ensure form_data has questions
-            if not isinstance(session_data.get("form_data"), dict) or not session_data["form_data"].get("questions"):
+            if not isinstance(session_data.get("form_data"), dict) or not session_data[
+                "form_data"
+            ].get("questions"):
                 raise ValueError("Session has invalid form_data structure")
-            
+
             session = ChatSession(
                 session_id=session_data["session_id"],
                 form_id=session_data["form_id"],
@@ -145,7 +154,7 @@ def load_session(session_id: str) -> ChatSession:
             return session
         else:
             raise ValueError(f"Session {session_id} not found")
-            
+
     except Exception as e:
         # Clean up any corrupted session from memory
         if session_id in active_sessions:
@@ -200,11 +209,11 @@ def get_conversation_state(session_id: str) -> dict:
     try:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
-        
+
         # Find current unanswered question - USE PERSISTENT INDEX
         current_question_index = session.metadata.get("current_question_index", 0)
         current_question = None
-        
+
         # Ensure we stay on the correct question until properly answered
         for i in range(current_question_index, len(questions)):
             q = questions[i]
@@ -220,51 +229,59 @@ def get_conversation_state(session_id: str) -> dict:
                 session.metadata["current_question_index"] = i
                 save_session(session)
                 break
-        
+
         # Calculate progress
         enabled_questions = [q for q in questions if q.get("enabled", True)]
-        answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
-        
+        answered_count = len(
+            [r for r in session.responses.values() if r.get("value") != "[SKIP]"]
+        )
+
         return {
             "current_question": current_question,
             "progress": {
                 "answered": answered_count,
                 "total": len(enabled_questions),
-                "skipped": session.metadata.get("skip_count", 0)
+                "skipped": session.metadata.get("skip_count", 0),
             },
             "conversation_state": {
                 "message_count": len(session.chat_history),
                 "redirect_count": session.metadata.get("redirect_count", 0),
                 "session_ended": session.metadata.get("ended", False),
-                "time_elapsed": _calculate_time_elapsed(session.metadata.get("start_time")),
-                "pending_end_confirmation": session.metadata.get("pending_end_confirmation", False)
+                "time_elapsed": _calculate_time_elapsed(
+                    session.metadata.get("start_time")
+                ),
+                "pending_end_confirmation": session.metadata.get(
+                    "pending_end_confirmation", False
+                ),
             },
-            "recent_responses": _get_recent_responses(session, limit=3)
+            "recent_responses": _get_recent_responses(session, limit=3),
         }
     except Exception as e:
         return {"error": str(e)}
 
 
 @function_tool
-def save_user_response(session_id: str, response_text: str, question_index: int) -> dict:
+def save_user_response(
+    session_id: str, response_text: str, question_index: int
+) -> dict:
     """Save user response for a specific question"""
     try:
         session = load_session(session_id)
-        
+
         # Save response (NO RAW TEXT - for extraction later)
         session.responses[str(question_index)] = {
             "value": response_text,
             "timestamp": datetime.now().isoformat(),
             "question_index": question_index,
-            "question_type": session.form_data["questions"][question_index]["type"]
+            "question_type": session.form_data["questions"][question_index]["type"],
         }
-        
+
         save_session(session)
-        
+
         return {
             "saved": True,
             "response_id": f"{session_id}_q{question_index}",
-            "responses_count": len(session.responses)
+            "responses_count": len(session.responses),
         }
     except Exception as e:
         return {"saved": False, "error": str(e)}
@@ -276,10 +293,10 @@ def advance_to_next_question(session_id: str) -> dict:
     try:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
-        
+
         # Get current index from metadata
         current_index = session.metadata.get("current_question_index", 0)
-        
+
         # Find next enabled, unanswered question
         next_question = None
         for i in range(current_index + 1, len(questions)):
@@ -295,59 +312,60 @@ def advance_to_next_question(session_id: str) -> dict:
                 # Update metadata to track new current question
                 session.metadata["current_question_index"] = i
                 break
-        
+
         save_session(session)
-        
+
         # Check if all questions completed
         enabled_questions = [q for q in questions if q.get("enabled", True)]
-        answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
+        answered_count = len(
+            [r for r in session.responses.values() if r.get("value") != "[SKIP]"]
+        )
         all_completed = answered_count >= len(enabled_questions)
-        
+
         # Check for additional data collection (demographics & profile)
         demographics_enabled = []
         profile_data_enabled = []
-        
+
         if all_completed:
             # Get enabled demographics
             demographics = session.form_data.get("demographics", {})
             demographics_enabled = [k for k, v in demographics.items() if v]
-            
+
             # Get enabled profile data
             profile_data = session.form_data.get("profile_data", {})
             profile_data_enabled = [k for k, v in profile_data.items() if v]
-        
+
         return {
             "advanced": True,
             "next_question": next_question,
             "all_questions_completed": all_completed,
             "demographics_enabled": demographics_enabled,
             "profile_data_enabled": profile_data_enabled,
-            "progress": {
-                "answered": answered_count,
-                "total": len(enabled_questions)
-            }
+            "progress": {"answered": answered_count, "total": len(enabled_questions)},
         }
     except Exception as e:
         return {"advanced": False, "error": str(e)}
 
 
 @function_tool
-def update_session_state(session_id: str, action: str, reason: str = "user_request") -> dict:
+def update_session_state(
+    session_id: str, action: str, reason: str = "user_request"
+) -> dict:
     """Update session state for skip, end, redirect tracking, etc."""
     try:
         session = load_session(session_id)
-        
+
         if action == "skip":
             session.metadata["skip_count"] += 1
             current_idx = session.current_question_index
             session.responses[str(current_idx)] = {
                 "value": "[SKIP]",
                 "timestamp": datetime.now().isoformat(),
-                "reason": reason
+                "reason": reason,
             }
             # Move to next question
             session.current_question_index += 1
-            
+
         elif action == "end":
             # SAFETY CHECK: Only allow ending if confirmation was already requested
             if not session.metadata.get("pending_end_confirmation", False):
@@ -355,27 +373,36 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
                     "action_completed": False,
                     "error": "Cannot end without confirmation. Use 'request_end_confirmation' first.",
                     "session_ended": False,
-                    "requires_confirmation": True
+                    "requires_confirmation": True,
                 }
-            
+
             # Proceed with ending
             session.metadata["ended"] = True
             session.metadata["end_time"] = datetime.now().isoformat()
             session.metadata["end_reason"] = reason
             session.metadata["pending_end_confirmation"] = False  # Clear pending state
             # Calculate if partial
-            enabled_count = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
-            answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
+            enabled_count = len(
+                [
+                    q
+                    for q in session.form_data.get("questions", [])
+                    if q.get("enabled", True)
+                ]
+            )
+            answered_count = len(
+                [r for r in session.responses.values() if r.get("value") != "[SKIP]"]
+            )
             session.metadata["partial"] = answered_count < enabled_count * 0.8
-            
+
             # Handle extraction based on environment
             # Vercel cannot run background threads, so we do synchronous extraction
             if os.environ.get("VERCEL"):
                 # Synchronous extraction for Vercel/serverless
                 try:
                     from data_extraction import DataExtractionChain
+
                     extractor = DataExtractionChain()
-                    
+
                     # Load session for extraction
                     session_data = {
                         "session_id": session_id,
@@ -383,13 +410,15 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
                         "form_data": session.form_data,
                         "responses": session.responses,
                         "chat_history": session.chat_history,
-                        "metadata": session.metadata
+                        "metadata": session.metadata,
                     }
-                    
+
                     # Extract and save responses synchronously
                     result = extractor.save_extracted_responses(session_data)
                     if result.get("success"):
-                        print(f"Synchronous extraction completed for session {session_id}")
+                        print(
+                            f"Synchronous extraction completed for session {session_id}"
+                        )
                     else:
                         print(f"Synchronous extraction failed: {result.get('error')}")
                 except Exception as e:
@@ -398,30 +427,34 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
                 # Background extraction for local development
                 try:
                     from background_extraction import queue_extraction
+
                     queue_extraction(session_id, f"chat_ended_{reason}")
-                    print(f"Queued background extraction for ended session {session_id}")
+                    print(
+                        f"Queued background extraction for ended session {session_id}"
+                    )
                 except Exception as e:
                     print(f"Warning: Could not queue background extraction: {e}")
-            
+
         elif action == "request_end_confirmation":
             # User wants to end but needs confirmation
             session.metadata["pending_end_confirmation"] = True
             session.metadata["end_request_time"] = datetime.now().isoformat()
-            
+
         elif action == "redirect":
             session.metadata["redirect_count"] += 1
-            
+
         elif action == "timeout":
             session.metadata["partial"] = True
             session.metadata["timeout"] = True
-            
+
             # Handle extraction based on environment (same as above)
             if os.environ.get("VERCEL"):
                 # Synchronous extraction for Vercel/serverless
                 try:
                     from data_extraction import DataExtractionChain
+
                     extractor = DataExtractionChain()
-                    
+
                     # Load session for extraction
                     session_data = {
                         "session_id": session_id,
@@ -429,13 +462,15 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
                         "form_data": session.form_data,
                         "responses": session.responses,
                         "chat_history": session.chat_history,
-                        "metadata": session.metadata
+                        "metadata": session.metadata,
                     }
-                    
+
                     # Extract and save responses synchronously
                     result = extractor.save_extracted_responses(session_data)
                     if result.get("success"):
-                        print(f"Synchronous extraction completed for timeout session {session_id}")
+                        print(
+                            f"Synchronous extraction completed for timeout session {session_id}"
+                        )
                     else:
                         print(f"Synchronous extraction failed: {result.get('error')}")
                 except Exception as e:
@@ -444,19 +479,24 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
                 # Background extraction for local development
                 try:
                     from background_extraction import queue_extraction
+
                     queue_extraction(session_id, "timeout")
-                    print(f"Queued background extraction for timeout session {session_id}")
+                    print(
+                        f"Queued background extraction for timeout session {session_id}"
+                    )
                 except Exception as e:
                     print(f"Warning: Could not queue background extraction: {e}")
-            
+
         save_session(session)
-        
+
         return {
             "action_completed": True,
             "action": action,
             "session_ended": session.metadata.get("ended", False),
             "redirect_count": session.metadata.get("redirect_count", 0),
-            "pending_end_confirmation": session.metadata.get("pending_end_confirmation", False)
+            "pending_end_confirmation": session.metadata.get(
+                "pending_end_confirmation", False
+            ),
         }
     except Exception as e:
         return {"action_completed": False, "error": str(e)}
@@ -465,6 +505,7 @@ def update_session_state(session_id: str, action: str, reason: str = "user_reque
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
+
 
 def _calculate_time_elapsed(start_time_str: str) -> int:
     """Calculate seconds elapsed since start time"""
@@ -482,11 +523,13 @@ def _get_recent_responses(session: ChatSession, limit: int = 3) -> List[Dict]:
     recent = []
     for idx, response in sorted(session.responses.items(), key=lambda x: x[0])[-limit:]:
         if response.get("value") != "[SKIP]":
-            recent.append({
-                "question_index": idx,
-                "value": response["value"],
-                "timestamp": response.get("timestamp")
-            })
+            recent.append(
+                {
+                    "question_index": idx,
+                    "value": response["value"],
+                    "timestamp": response.get("timestamp"),
+                }
+            )
     return recent
 
 
@@ -494,159 +537,220 @@ def _get_recent_responses(session: ChatSession, limit: int = 3) -> List[Dict]:
 # NEW INTELLIGENT TOOLS FOR PROMPT REFACTORING
 # ============================================================
 
+
 @function_tool
-def validate_response(session_id: str, response: str, question_type: str, validation_type: str = None) -> dict:
+def validate_response(
+    session_id: str, response: str, question_type: str, validation_type: str = None
+) -> dict:
     """Enhanced validation with human-like conversation guidance
-    
+
     Args:
         session_id: Current session ID
         response: User's response text
         question_type: text/multiple_choice/yes_no/rating/number
         validation_type: Optional - email/phone/linkedin/website/nonsense/vague
-    
+
     Returns validation result with contextual, natural follow-up suggestions
     """
     import re
-    
+
     try:
         session = get_session(session_id)
         if not session:
             return {"valid": False, "error": "Session not found"}
-        
+
         # Get conversation context for personalized responses
         chat_history = session.chat_history[-3:] if session.chat_history else []
         user_name = None
         previous_responses = []
-        
+
         # Extract user name and previous context from chat history
         for message in session.chat_history:
             if message.get("role") == "user":
                 content = message.get("content", "").strip()
                 # Simple name detection from early responses
-                if len(content.split()) <= 3 and any(char.isalpha() for char in content):
+                if len(content.split()) <= 3 and any(
+                    char.isalpha() for char in content
+                ):
                     if not user_name and len(content) < 30:
                         potential_name = content.split()[0]
-                        if potential_name.lower() not in ['yes', 'no', 'maybe', 'sure', 'ok', 'okay']:
+                        if potential_name.lower() not in [
+                            "yes",
+                            "no",
+                            "maybe",
+                            "sure",
+                            "ok",
+                            "okay",
+                        ]:
                             user_name = potential_name
                 previous_responses.append(content)
-        
+
         # Normalize response for analysis
         response_clean = response.strip()
         response_lower = response.strip().lower()
-        
+
         # Enhanced nonsense detection with context awareness
         nonsense_patterns = [
-            r'^[0-9]+$',  # Just numbers for non-number questions
-            r'^(ola|bhoot|ringa|la+|ha+|lol|lmao|rofl|omg|wtf|idk).*',  # Common nonsense
-            r'^[^a-zA-Z0-9\s]{3,}$',  # Special chars only
-            r'^(.)\1{4,}',  # Repeated chars (aaaaa, !!!!!!)
-            r'^(asdf|qwerty|zxcv|test|hello world).*',  # Keyboard mashing
+            r"^[0-9]+$",  # Just numbers for non-number questions
+            r"^(ola|bhoot|ringa|la+|ha+|lol|lmao|rofl|omg|wtf|idk).*",  # Common nonsense
+            r"^[^a-zA-Z0-9\s]{3,}$",  # Special chars only
+            r"^(.)\1{4,}",  # Repeated chars (aaaaa, !!!!!!)
+            r"^(asdf|qwerty|zxcv|test|hello world).*",  # Keyboard mashing
         ]
-        
+
         # Creative nonsense indicators with context
         creative_nonsense_indicators = [
-            'bananas', 'purple elephants', 'flying unicorns', 'rainbow dragons', 'aliens',
-            'moon cheese', 'chocolate rain', 'dancing penguins', 'singing cats', 'magic wizard',
-            'pokemon battle', 'superhero cape', 'batman signal', 'superman flying', 'fairy dust'
+            "bananas",
+            "purple elephants",
+            "flying unicorns",
+            "rainbow dragons",
+            "aliens",
+            "moon cheese",
+            "chocolate rain",
+            "dancing penguins",
+            "singing cats",
+            "magic wizard",
+            "pokemon battle",
+            "superhero cape",
+            "batman signal",
+            "superman flying",
+            "fairy dust",
         ]
-        
+
         # Check if response contains multiple unrelated concepts (likely nonsense)
         response_words = response.lower().split()
-        nonsense_word_count = sum(1 for word in response_words if word in creative_nonsense_indicators)
-        
+        nonsense_word_count = sum(
+            1 for word in response_words if word in creative_nonsense_indicators
+        )
+
         # If response has 2+ nonsense indicators for serious questions, it's likely nonsense
-        if (nonsense_word_count >= 2 and question_type in ['multiple_choice', 'rating', 'yes_no'] and 
-            len(response_words) <= 6):  # Short responses with multiple nonsense words
+        if (
+            nonsense_word_count >= 2
+            and question_type in ["multiple_choice", "rating", "yes_no"]
+            and len(response_words) <= 6
+        ):  # Short responses with multiple nonsense words
             return {
                 "valid": False,
                 "reason": "creative_nonsense",
                 "suggestion": "I need a real answer here. Can you give me a serious response?",
-                "confidence": 0.9
+                "confidence": 0.9,
             }
-        
-        if question_type not in ['number', 'rating'] and validation_type != 'email':
+
+        if question_type not in ["number", "rating"] and validation_type != "email":
             for pattern in nonsense_patterns:
                 if re.match(pattern, response):
                     return {
                         "valid": False,
                         "reason": "nonsense",
                         "suggestion": "I need a real answer here. Can you give me an actual response?",
-                        "confidence": 0.9
+                        "confidence": 0.9,
                     }
-        
+
         # Check for vague responses
-        vague_responses = ['meh', 'idk', 'dunno', 'whatever', 'nothing', 'none', 'idc', 'maybe', 'perhaps']
+        vague_responses = [
+            "meh",
+            "idk",
+            "dunno",
+            "whatever",
+            "nothing",
+            "none",
+            "idc",
+            "maybe",
+            "perhaps",
+        ]
         if response in vague_responses:
             return {
                 "valid": False,
                 "reason": "vague",
                 "suggestion": "Can you be more specific? Even a rough idea would help!",
-                "confidence": 0.8
+                "confidence": 0.8,
             }
-        
+
         # Validation by type
-        if validation_type == 'email':
-            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if validation_type == "email":
+            email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             if re.match(email_pattern, response):
                 return {"valid": True, "cleaned_value": response, "confidence": 1.0}
             return {
                 "valid": False,
                 "reason": "invalid_email",
                 "suggestion": "Could you share that as an email address? (like user@domain.com)",
-                "confidence": 0.9
+                "confidence": 0.9,
             }
-            
-        elif validation_type == 'phone':
+
+        elif validation_type == "phone":
             # Remove common separators
-            cleaned = re.sub(r'[\s\-\(\)\+\.]', '', response)
-            if re.match(r'^[0-9]{10,15}$', cleaned):
+            cleaned = re.sub(r"[\s\-\(\)\+\.]", "", response)
+            if re.match(r"^[0-9]{10,15}$", cleaned):
                 return {"valid": True, "cleaned_value": cleaned, "confidence": 1.0}
             return {
                 "valid": False,
                 "reason": "invalid_phone",
                 "suggestion": "What's your phone number? (10-15 digits)",
-                "confidence": 0.9
+                "confidence": 0.9,
             }
-            
-        elif validation_type == 'linkedin':
-            if 'linkedin.com/in/' in response or re.match(r'^[a-zA-Z0-9\-]+$', response):
+
+        elif validation_type == "linkedin":
+            if "linkedin.com/in/" in response or re.match(
+                r"^[a-zA-Z0-9\-]+$", response
+            ):
                 return {"valid": True, "cleaned_value": response, "confidence": 1.0}
             return {
                 "valid": False,
                 "reason": "invalid_linkedin",
                 "suggestion": "What's your LinkedIn profile URL or username?",
-                "confidence": 0.8
+                "confidence": 0.8,
             }
-            
-        elif validation_type == 'website':
-            url_pattern = r'^(https?://)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}.*$'
+
+        elif validation_type == "website":
+            url_pattern = r"^(https?://)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}.*$"
             if re.match(url_pattern, response):
                 return {"valid": True, "cleaned_value": response, "confidence": 1.0}
             return {
                 "valid": False,
                 "reason": "invalid_website",
                 "suggestion": "What's your website URL?",
-                "confidence": 0.8
+                "confidence": 0.8,
             }
-            
-        elif question_type == 'rating':
-            if response in ['1', '2', '3', '4', '5']:
+
+        elif question_type == "rating":
+            if response in ["1", "2", "3", "4", "5"]:
                 return {"valid": True, "cleaned_value": response, "confidence": 1.0}
             # Try to extract number from text
-            numbers = re.findall(r'\b[1-5]\b', response)
+            numbers = re.findall(r"\b[1-5]\b", response)
             if numbers:
                 return {"valid": True, "cleaned_value": numbers[0], "confidence": 0.8}
             return {
                 "valid": False,
                 "reason": "invalid_rating",
                 "suggestion": "How would you rate that from 1 to 5?",
-                "confidence": 0.9
+                "confidence": 0.9,
             }
-            
-        elif question_type == 'yes_no':
-            yes_patterns = ['yes', 'yeah', 'yep', 'sure', 'definitely', 'absolutely', 'correct', 'right', 'true', 'y']
-            no_patterns = ['no', 'nope', 'nah', 'negative', 'false', 'wrong', 'incorrect', 'n']
-            
+
+        elif question_type == "yes_no":
+            yes_patterns = [
+                "yes",
+                "yeah",
+                "yep",
+                "sure",
+                "definitely",
+                "absolutely",
+                "correct",
+                "right",
+                "true",
+                "y",
+            ]
+            no_patterns = [
+                "no",
+                "nope",
+                "nah",
+                "negative",
+                "false",
+                "wrong",
+                "incorrect",
+                "n",
+            ]
+
             if any(pattern in response for pattern in yes_patterns):
                 return {"valid": True, "cleaned_value": "yes", "confidence": 0.9}
             elif any(pattern in response for pattern in no_patterns):
@@ -655,64 +759,80 @@ def validate_response(session_id: str, response: str, question_type: str, valida
                 "valid": False,
                 "reason": "unclear_yes_no",
                 "suggestion": "Is that a yes or no?",
-                "confidence": 0.7
+                "confidence": 0.7,
             }
-            
-        elif question_type == 'number':
-            numbers = re.findall(r'\b\d+\b', response)
+
+        elif question_type == "number":
+            numbers = re.findall(r"\b\d+\b", response)
             if numbers:
                 return {"valid": True, "cleaned_value": numbers[0], "confidence": 0.9}
             return {
                 "valid": False,
                 "reason": "no_number",
                 "suggestion": "Can you give me a number?",
-                "confidence": 0.8
+                "confidence": 0.8,
             }
-        
+
         # ENHANCED: Default validation with human-like suggestions for text questions
-        if question_type == 'text':
+        if question_type == "text":
             # Check for extremely short responses that might need elaboration
-            if len(response_clean) <= 2 and response_clean.lower() not in ['me', 'hi', 'ok', 'no', 'na', 'nm']:
+            if len(response_clean) <= 2 and response_clean.lower() not in [
+                "me",
+                "hi",
+                "ok",
+                "no",
+                "na",
+                "nm",
+            ]:
                 name_part = f" {user_name}" if user_name else ""
                 return {
                     "valid": False,
                     "reason": "too_short",
                     "suggestion": f"Can you tell me a bit more about that{name_part}? 😊",
-                    "confidence": 0.6
+                    "confidence": 0.6,
                 }
-            
+
             # Check for responses that seem dismissive but could be expanded
-            dismissive_patterns = ['fine', 'okay', 'ok', 'good', 'bad', 'nice', 'cool', 'meh']
+            dismissive_patterns = [
+                "fine",
+                "okay",
+                "ok",
+                "good",
+                "bad",
+                "nice",
+                "cool",
+                "meh",
+            ]
             if response_lower in dismissive_patterns and len(previous_responses) > 2:
                 return {
                     "valid": False,
-                    "reason": "needs_elaboration", 
+                    "reason": "needs_elaboration",
                     "suggestion": f"That's helpful! What specifically made it {response_lower} for you?",
-                    "confidence": 0.7
+                    "confidence": 0.7,
                 }
-        
+
         # Multiple choice questions - accept anything but suggest if unclear
-        elif question_type == 'multiple_choice':
+        elif question_type == "multiple_choice":
             # If response seems like they're trying to answer but unclear
-            if len(response_clean) > 1 and 'option' not in response_lower:
+            if len(response_clean) > 1 and "option" not in response_lower:
                 return {
                     "valid": True,
                     "cleaned_value": response_clean,
                     "confidence": 0.8,
-                    "note": "free_response_to_multiple_choice"
+                    "note": "free_response_to_multiple_choice",
                 }
-        
+
         # Default for other text questions - almost always valid unless nonsense
         return {
-            "valid": True, 
-            "cleaned_value": response_clean, 
+            "valid": True,
+            "cleaned_value": response_clean,
             "confidence": 0.85,
             "context": {
                 "user_name": user_name,
-                "response_count": len(previous_responses)
-            }
+                "response_count": len(previous_responses),
+            },
         }
-        
+
     except Exception as e:
         return {"valid": True, "error": str(e), "confidence": 0.5}
 
@@ -720,30 +840,62 @@ def validate_response(session_id: str, response: str, question_type: str, valida
 @function_tool
 def check_content_sensitivity(text: str) -> dict:
     """Detect concerning or emotional content and suggest appropriate responses
-    
+
     Args:
         text: User's message to analyze
-    
+
     Returns sensitivity analysis with suggested acknowledgment
     """
     try:
         text_lower = text.lower()
-        
+
         # Concerning content patterns
         concerning_keywords = [
-            'suicide', 'kill myself', 'end my life', 'death', 'dying', 'dead',
-            'bomb', 'bombing', 'explosion', 'violence', 'murder', 'killing',
-            'gun', 'weapon', 'shoot', 'attack', 'terrorism', 'harm', 'hurt',
-            'self-harm', 'cutting', 'bleeding', 'overdose'
+            "suicide",
+            "kill myself",
+            "end my life",
+            "death",
+            "dying",
+            "dead",
+            "bomb",
+            "bombing",
+            "explosion",
+            "violence",
+            "murder",
+            "killing",
+            "gun",
+            "weapon",
+            "shoot",
+            "attack",
+            "terrorism",
+            "harm",
+            "hurt",
+            "self-harm",
+            "cutting",
+            "bleeding",
+            "overdose",
         ]
-        
+
         # Emotional content patterns
         emotional_keywords = [
-            'angry', 'frustrated', 'sad', 'depressed', 'anxious', 'scared',
-            'hate', 'upset', 'crying', 'miserable', 'lonely', 'hopeless',
-            'stressed', 'overwhelmed', 'disappointed', 'heartbroken'
+            "angry",
+            "frustrated",
+            "sad",
+            "depressed",
+            "anxious",
+            "scared",
+            "hate",
+            "upset",
+            "crying",
+            "miserable",
+            "lonely",
+            "hopeless",
+            "stressed",
+            "overwhelmed",
+            "disappointed",
+            "heartbroken",
         ]
-        
+
         # Check for concerning content
         for keyword in concerning_keywords:
             if keyword in text_lower:
@@ -752,10 +904,16 @@ def check_content_sensitivity(text: str) -> dict:
                     "category": "serious_content",
                     "suggested_response": "That's really heavy. I hear you.",
                     "requires_acknowledgment": True,
-                    "never_say": ["No worries!", "Cool!", "Thanks for sharing!", "Got it!", "Interesting!"],
-                    "confidence": 0.95
+                    "never_say": [
+                        "No worries!",
+                        "Cool!",
+                        "Thanks for sharing!",
+                        "Got it!",
+                        "Interesting!",
+                    ],
+                    "confidence": 0.95,
                 }
-        
+
         # Check for emotional content
         for keyword in emotional_keywords:
             if keyword in text_lower:
@@ -765,24 +923,24 @@ def check_content_sensitivity(text: str) -> dict:
                     "suggested_response": "That sounds really tough.",
                     "requires_acknowledgment": True,
                     "never_say": ["Got it!", "Cool!", "No worries!"],
-                    "confidence": 0.85
+                    "confidence": 0.85,
                 }
-        
+
         # Normal content
         return {
             "severity": "normal",
             "category": "standard",
             "suggested_response": None,
             "requires_acknowledgment": False,
-            "confidence": 0.9
+            "confidence": 0.9,
         }
-        
+
     except Exception as e:
         return {
             "severity": "normal",
             "category": "error",
             "error": str(e),
-            "confidence": 0.5
+            "confidence": 0.5,
         }
 
 
@@ -791,48 +949,53 @@ def get_cached_natural_question(session_id: str, question_index: int) -> dict:
     try:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
-        
+
         if question_index >= len(questions):
             return {"error": "Question index out of range"}
-        
+
         current_q = questions[question_index]
         cache_key = f"natural_q_{question_index}"
-        
+
         # Check if we have cached natural question
         if cache_key in session.metadata:
             return session.metadata[cache_key]
-        
+
         # Generate and cache natural question
         natural_data = _get_natural_question_data(
-            session_id, 
-            current_q.get("text", ""), 
+            session_id,
+            current_q.get("text", ""),
             current_q.get("type", "text"),
-            question_index
+            question_index,
         )
-        
+
         # Cache for consistency
         session.metadata[cache_key] = natural_data
         save_session(session)
-        
+
         return natural_data
-        
+
     except Exception as e:
         return {"error": str(e)}
 
-def _get_natural_question_data(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
+
+def _get_natural_question_data(
+    session_id: str, question_text: str, question_type: str, question_index: int
+) -> dict:
     """Helper function to get natural question data (used both by tool and chip extraction)"""
     try:
         session = load_session(session_id)
         questions = session.form_data.get("questions", [])
         current_q = questions[question_index] if question_index < len(questions) else {}
-        
+
         # Common conversational starters
         starters = ["Hey!", "So,", "Alright,", "Cool,", "Nice,", "Great,"]
-        starter = starters[question_index % len(starters)] if question_index > 0 else "Hey!"
-        
+        starter = (
+            starters[question_index % len(starters)] if question_index > 0 else "Hey!"
+        )
+
         # Transform based on type
         text_lower = question_text.lower()
-        
+
         # Natural transformations
         transformations = {
             # Demographics
@@ -842,7 +1005,6 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
             "gender": "What's your gender?",
             "location": "Where are you from?",
             "occupation": "What do you do for work?",
-            
             # Common patterns
             "how satisfied": "How satisfied are you with this?",
             "rate your": "How would you rate this?",
@@ -854,29 +1016,33 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
             "how often": f"{starter} How often do you",
             "how many": f"{starter} How many",
         }
-        
+
         # Find matching transformation
         natural_question = None
         for pattern, replacement in transformations.items():
             if pattern in text_lower:
                 natural_question = text_lower.replace(pattern, replacement)
                 break
-        
+
         if not natural_question:
             # Default transformations by type
             if question_type == "yes_no":
-                natural_question = f"{starter} {question_text}" if not question_text.startswith(("Do", "Are", "Is", "Can", "Would")) else question_text
+                natural_question = (
+                    f"{starter} {question_text}"
+                    if not question_text.startswith(("Do", "Are", "Is", "Can", "Would"))
+                    else question_text
+                )
             elif question_type == "rating":
                 natural_question = f"How would you rate {question_text.lower().replace('rate', '').strip()}?"
             elif question_type == "multiple_choice":
                 natural_question = f"{starter} {question_text.rstrip('?')}?"
             else:
                 natural_question = f"{starter} {question_text}"
-        
+
         # Prepare UI options for chips
         ui_options = []
         show_chips = False
-        
+
         if question_type == "yes_no":
             ui_options = ["Yes", "No"]
             show_chips = True
@@ -886,16 +1052,16 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
         elif question_type == "multiple_choice" and current_q.get("options"):
             ui_options = current_q["options"][:5]  # Limit to 5 for UI
             show_chips = True
-        
+
         # Add follow-up prompts
         follow_ups = [
             "Tell me more about that",
             "Why's that?",
             "Can you elaborate?",
             "What makes you say that?",
-            "Interesting, why?"
+            "Interesting, why?",
         ]
-        
+
         return {
             "natural_question": natural_question.capitalize(),
             "show_chips": show_chips,
@@ -903,16 +1069,16 @@ def _get_natural_question_data(session_id: str, question_text: str, question_typ
             "chip_type": question_type if show_chips else None,
             "follow_up_prompts": follow_ups[:2],
             "question_index": question_index,
-            "original_text": question_text
+            "original_text": question_text,
         }
-        
+
     except Exception as e:
         # Fallback to original question
         return {
             "natural_question": question_text,
             "show_chips": False,
             "chip_options": [],
-            "error": str(e)
+            "error": str(e),
         }
 
 
@@ -922,30 +1088,36 @@ def get_current_question_naturally(session_id: str) -> dict:
     try:
         session = load_session(session_id)
         current_index = session.metadata.get("current_question_index", 0)
-        
+
         return get_cached_natural_question(session_id, current_index)
-        
+
     except Exception as e:
         return {"error": str(e)}
 
+
 @function_tool
-def get_natural_question(session_id: str, question_text: str, question_type: str, question_index: int) -> dict:
+def get_natural_question(
+    session_id: str, question_text: str, question_type: str, question_index: int
+) -> dict:
     """Transform formal questions into natural conversation with optional UI hints
-    
+
     Args:
         session_id: Current session ID
         question_text: Original question text
         question_type: text/multiple_choice/yes_no/rating/number
         question_index: Current question number
-    
+
     Returns natural phrasing and UI options for chips
     """
-    return _get_natural_question_data(session_id, question_text, question_type, question_index)
+    return _get_natural_question_data(
+        session_id, question_text, question_type, question_index
+    )
 
 
 # ============================================================
 # MAIN CHAT AGENT CLASS
 # ============================================================
+
 
 class FormChatAgent:
     """Simplified chat agent using OpenAI Agents SDK"""
@@ -958,13 +1130,14 @@ class FormChatAgent:
         # Set the API key in the environment for OpenAI Agents SDK
         os.environ["OPENAI_API_KEY"] = self.openai_api_key
         openai.api_key = self.openai_api_key
-        
+
         # Disable OpenAI telemetry to avoid traces/ingest errors
         os.environ["OPENAI_DISABLE_TELEMETRY"] = "true"
         os.environ["OPENAI_LOG_LEVEL"] = "error"  # Reduce logging noise
-        
+
         # Try to disable httpx INFO logging which shows the traces calls
         import logging
+
         logging.getLogger("httpx").setLevel(logging.WARNING)
 
         # Ensure event loop exists for async operations
@@ -989,7 +1162,7 @@ class FormChatAgent:
                 update_session_state,
                 validate_response,
                 check_content_sensitivity,
-                get_natural_question
+                get_natural_question,
             ],
         )
 
@@ -1091,10 +1264,10 @@ You MUST call tools before every action. No exceptions. Create conversations tha
         """Get system instructions for the agent"""
         # Toggle between old (175 lines) and new (40 lines) prompt versions
         USE_SIMPLIFIED_PROMPT = True  # Set to True to activate new system
-        
+
         if USE_SIMPLIFIED_PROMPT:
             return self._get_system_instructions_v2()
-        
+
         # Original prompt (keeping for safety/rollback)
         return """# YOUR OBJECTIVE
 🎯 Your goal is to collect HIGH-QUALITY, MEANINGFUL responses for all survey questions. Quality matters more than speed. Don't accept nonsense or off-topic answers - probe for real insights.
@@ -1107,7 +1280,7 @@ You are Barney. Be casual, friendly, and direct. Keep responses under 20 words. 
 
 ## CONCERNING CONTENT (death, suicide, self-harm, violence, bombs, bombing, killing, hate, murder, gun, weapon):
 - MANDATORY: ALWAYS acknowledge seriousness FIRST: "That's really heavy" / "That sounds really difficult" / "That's concerning"
-- ABSOLUTELY NEVER say "No worries", "Cool", "Thanks for sharing", "Got it!" or "Interesting" 
+- ABSOLUTELY NEVER say "No worries", "Cool", "Thanks for sharing", "Got it!" or "Interesting"
 - NEVER use happy emojis (😊) or dismissive language with concerning content
 - Show genuine concern without being preachy
 - After acknowledging seriousness, gently continue: "I hear you. [next question]"
@@ -1119,14 +1292,14 @@ You are Barney. Be casual, friendly, and direct. Keep responses under 20 words. 
 
 ## ABSOLUTELY FORBIDDEN RESPONSES TO CONCERNING CONTENT:
 ❌ NEVER EVER: "No worries!" to bombs/violence/death/harm
-❌ NEVER EVER: "Thanks for sharing" to death/violence/harm  
+❌ NEVER EVER: "Thanks for sharing" to death/violence/harm
 ❌ NEVER EVER: "Cool" or "Awesome" to negative/concerning content
 ❌ NEVER EVER: Happy emojis (😊 🙂 😄) with concerning content
 ❌ NEVER EVER: "Interesting" to concerning statements
 ❌ NEVER EVER: "Got it!" to concerning/emotional content
 ❌ NEVER EVER: Dismissive phrases like "Let's move on" without acknowledgment first
 
-✅ APPROPRIATE: 
+✅ APPROPRIATE:
 - For concerning: "That's really heavy. [gentle transition to next]"
 - For emotional: "I hear that's frustrating. [next question]"
 - For normal: "Makes sense!" / "I see!"
@@ -1136,7 +1309,7 @@ You are Barney. Be casual, friendly, and direct. Keep responses under 20 words. 
 ❌ "Rate 1-5" / "Choose A/B" / "Here's the next question"
 ✅ "How satisfied are you?" / Natural transitions only
 
-FORBIDDEN: 
+FORBIDDEN:
 - "next question", "here it is", "question #X"
 - Over-explaining what you're doing
 - "I see we're kicking off with...", "I'm interested in understanding..."
@@ -1155,14 +1328,14 @@ REQUIRED: Context-appropriate acknowledgments based on content sensitivity
 
 # QUESTION TRANSFORMATION BY TYPE
 - text: "Tell me about..." / "What's..."
-- multiple_choice: Ask openly, ignore options  
+- multiple_choice: Ask openly, ignore options
 - yes_no: "Do you..." / "Are you..."
 - rating: "How satisfied..."
-- number: "How many..." 
+- number: "How many..."
 
 GOOD EXAMPLES:
 "Hey! How old are you?"
-"Nice. What's your gender?"  
+"Nice. What's your gender?"
 "Cool. How often do you shop?"
 
 BAD EXAMPLES (DON'T DO THIS):
@@ -1203,7 +1376,7 @@ Be DIRECT. No meta-commentary. No over-explaining. Just ask what you need to kno
 **Concerning/Sensitive Content**: Follow SAFETY RULES above - acknowledge seriousness first
 
 ## Probing Techniques
-- Echo: "Confusing how?"  
+- Echo: "Confusing how?"
 - Tell-me-more: "Can you paint me a picture?"
 - Example: "Can you think of a specific time?"
 - Why ladder: "What led to that?" / "What's important about that?"
@@ -1251,11 +1424,11 @@ ALWAYS respond to their actual message first. Never generic "welcome back".
 - Use inclusive language
 - Allow thoughtful pauses
 
-# CONTEXT-RELATED QUESTIONS 
+# CONTEXT-RELATED QUESTIONS
 🎯 **IMPORTANT**: If user asks about the bot, organization, survey purpose, or anything related to the Bot Context:
 1. Answer naturally using the Bot Context information (if provided)
 2. Keep response brief and helpful (under 20 words)
-3. **DO NOT** save_user_response() or advance_to_next_question() 
+3. **DO NOT** save_user_response() or advance_to_next_question()
 4. Smoothly redirect back to current survey question
 5. Example: "I'm Sarah from marketing! We're studying customer satisfaction. So about your shopping habits..."
 
@@ -1271,7 +1444,6 @@ Good: ✅ Stories, emotional language, elaboration
 Probe: ⚠️ All positive/negative, very short, rushing
 
 Be human, not a data collector."""
-
 
     def create_session(
         self, form_id: str, device_id: str = None, location: Dict = None
@@ -1301,6 +1473,7 @@ Be human, not a data collector."""
                     "redirect_count": 0,
                     "partial": False,
                     "ended": False,
+                    "mode": form_data.get("mode", "chat"),
                 },
             )
 
@@ -1309,6 +1482,7 @@ Be human, not a data collector."""
 
         except Exception as e:
             import traceback
+
             print(f"SESSION CREATION ERROR: {str(e)}")
             print(f"TRACEBACK: {traceback.format_exc()}")
             raise Exception(f"Failed to create session: {str(e)}")
@@ -1317,15 +1491,15 @@ Be human, not a data collector."""
         """Process a user message and return agent response"""
         try:
             session = load_session(session_id)
-            
+
             # Enhanced session validation
             if session.metadata.get("ended", False):
                 return {
                     "success": False,
                     "response": "This conversation has already ended. Thanks for your participation!",
-                    "error": "session_ended"
+                    "error": "session_ended",
                 }
-            
+
             # Check for session timeout (24 hours max)
             start_time_str = session.metadata.get("start_time")
             if start_time_str:
@@ -1340,26 +1514,26 @@ Be human, not a data collector."""
                         return {
                             "success": False,
                             "response": "This conversation has expired. Please start a new survey.",
-                            "error": "session_expired"
+                            "error": "session_expired",
                         }
                 except ValueError:
                     pass  # Continue if timestamp parsing fails
-            
+
             # Check if form is still active
             form_doc = firestore_db.collection("forms").document(session.form_id).get()
             if not form_doc.exists:
                 return {
                     "success": False,
                     "response": "Sorry, this survey is no longer available.",
-                    "error": "form_not_found"
+                    "error": "form_not_found",
                 }
-            
+
             form_data = form_doc.to_dict()
             if not form_data.get("active", False):
                 return {
                     "success": False,
                     "response": "Sorry, this survey is currently unavailable.",
-                    "error": "form_inactive"
+                    "error": "form_inactive",
                 }
 
             # Check for conversation break (more than 2 minutes since last message)
@@ -1387,27 +1561,43 @@ Be human, not a data collector."""
             )
 
             # Agent will use tools to understand current state - no hints needed
-            
+
             # Generate recap if needed
             recap_context = ""
             if recap_needed:
-                answered_count = len([r for r in session.responses.values() if r.get("value") != "[SKIP]"])
-                total_questions = len([q for q in session.form_data.get("questions", []) if q.get("enabled", True)])
+                answered_count = len(
+                    [
+                        r
+                        for r in session.responses.values()
+                        if r.get("value") != "[SKIP]"
+                    ]
+                )
+                total_questions = len(
+                    [
+                        q
+                        for q in session.form_data.get("questions", [])
+                        if q.get("enabled", True)
+                    ]
+                )
                 recap_context = f"\n[NOTE: Session resumed - {answered_count}/{total_questions} questions completed so far. Respond to their message naturally.]\n"
-            
+
             # Get recent conversation history for context
-            recent_history = session.chat_history[-6:] if len(session.chat_history) > 6 else session.chat_history
+            recent_history = (
+                session.chat_history[-6:]
+                if len(session.chat_history) > 6
+                else session.chat_history
+            )
             history_context = ""
             if recent_history:
                 history_context = "\nRecent conversation:\n"
                 for msg in recent_history:
                     role_label = "User" if msg["role"] == "user" else "You"
                     history_context += f"{role_label}: {msg['content']}\n"
-            
+
             # Prepare input for the agent with minimal context (NO RAW QUESTION TEXT)
-            bot_context = session.form_data.get('bot_context', '').strip()
+            bot_context = session.form_data.get("bot_context", "").strip()
             context_section = f"\nBot Context: {bot_context}\n" if bot_context else ""
-            
+
             agent_input = f"""
 Current session: {session_id}
 Form: {session.form_data.get('title', 'Survey')}{context_section}
@@ -1456,30 +1646,29 @@ Use your tools to understand the situation and respond naturally."""
                 current_q_idx = updated_session.current_question_index
                 questions = updated_session.form_data.get("questions", [])
                 ended = updated_session.metadata.get("ended", False)
-                
-                print(f"DEBUG: current_q_idx={current_q_idx}, questions_count={len(questions)}, ended={ended}")
-                
+
+                print(
+                    f"DEBUG: current_q_idx={current_q_idx}, questions_count={len(questions)}, ended={ended}"
+                )
+
                 # If we're asking a question (not ended), get chip options
                 if current_q_idx < len(questions) and not ended:
                     current_q = questions[current_q_idx]
                     q_type = current_q.get("type", "text")
                     q_text = current_q.get("text", "")
-                    
+
                     print(f"DEBUG: current question - type={q_type}, text={q_text}")
-                    
+
                     natural_q_result = _get_natural_question_data(
-                        session_id, 
-                        q_text, 
-                        q_type, 
-                        current_q_idx
+                        session_id, q_text, q_type, current_q_idx
                     )
                     print(f"DEBUG: get_natural_question result: {natural_q_result}")
-                    
+
                     if natural_q_result.get("show_chips"):
                         chip_options = {
                             "show_chips": True,
                             "chip_type": natural_q_result.get("chip_type"),
-                            "options": natural_q_result.get("chip_options", [])
+                            "options": natural_q_result.get("chip_options", []),
                         }
                         print(f"DEBUG: Setting chip_options: {chip_options}")
                     else:
@@ -1489,6 +1678,7 @@ Use your tools to understand the situation and respond naturally."""
             except Exception as e:
                 print(f"DEBUG: Error extracting chip options: {e}")
                 import traceback
+
                 print(f"DEBUG: Traceback: {traceback.format_exc()}")
 
             return {
@@ -1526,38 +1716,53 @@ def get_chat_agent():
     """Get or create the global chat agent instance"""
     global chat_agent
     if chat_agent is None:
-        import sys
         import datetime
+        import sys
+
         openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
         print(f"=== CHAT ENGINE VERSION CHECK ===", file=sys.stderr)
         print(f"TIMESTAMP: {datetime.datetime.now().isoformat()}", file=sys.stderr)
-        print(f"CHAT ENGINE: Using NEW system with industry safety rules (v2.0)", file=sys.stderr)
+        print(
+            f"CHAT ENGINE: Using NEW system with industry safety rules (v2.0)",
+            file=sys.stderr,
+        )
         print(f"DEBUG: API key available: {bool(openai_api_key)}", file=sys.stderr)
-        print(f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}", file=sys.stderr)
+        print(
+            f"DEBUG: API key length: {len(openai_api_key) if openai_api_key else 0}",
+            file=sys.stderr,
+        )
         print(f"DEBUG: Python version: {sys.version}", file=sys.stderr)
-        
+
         # Check if agents module is available
         try:
             import agents
-            print(f"DEBUG: agents module available: {agents.__version__ if hasattr(agents, '__version__') else 'unknown version'}", file=sys.stderr)
+
+            print(
+                f"DEBUG: agents module available: {agents.__version__ if hasattr(agents, '__version__') else 'unknown version'}",
+                file=sys.stderr,
+            )
         except ImportError as e:
             print(f"CRITICAL: agents module not available: {e}", file=sys.stderr)
             raise ImportError(f"OpenAI Agents SDK not installed: {e}")
-        
+
         if openai_api_key:
             print(f"DEBUG: API key prefix: {openai_api_key[:10]}...", file=sys.stderr)
-            print(f"DEBUG: API key ends with newline: {repr(openai_api_key[-2:])}", file=sys.stderr)
+            print(
+                f"DEBUG: API key ends with newline: {repr(openai_api_key[-2:])}",
+                file=sys.stderr,
+            )
 
         if not openai_api_key:
             print("ERROR: OPENAI_API_KEY environment variable not set", file=sys.stderr)
             raise ValueError("OPENAI_API_KEY environment variable not set")
-        
+
         try:
             chat_agent = FormChatAgent(openai_api_key)
             print("DEBUG: Chat agent created successfully", file=sys.stderr)
         except Exception as e:
             print(f"CRITICAL: Failed to create FormChatAgent: {e}", file=sys.stderr)
             import traceback
+
             print(f"TRACEBACK: {traceback.format_exc()}", file=sys.stderr)
             raise
     return chat_agent
