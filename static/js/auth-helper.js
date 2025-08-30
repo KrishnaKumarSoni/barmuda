@@ -158,3 +158,18 @@ async function handleSuccessfulAuth(user) {
         alert('Authentication error. Please try again.');
     }
 }
+
+// Universal sign-out helper
+window.signOut = async function() {
+    try {
+        await firebase.auth().signOut();
+        await fetch('/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Sign-out error:', error);
+        alert('Sign-out failed. Please try again.');
+    }
+};

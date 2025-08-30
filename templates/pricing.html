@@ -55,6 +55,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="/static/js/auth-helper.js"></script>
 </head>
 <body class="bg-[#fff5e0] relative min-h-screen font-['DM_Sans']">
     <!-- Main Container -->
@@ -489,6 +490,10 @@
         }
     </script>
 
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="/static/js/auth-helper.js"></script>
+
     <!-- Firebase Configuration -->
     <script>
         // Firebase configuration
@@ -501,51 +506,17 @@
             appId: "1:36564437421:web:2a16afe9674a9d03333924"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        // Initialize Firebase via shared helper
+        window.auth = initializeFirebaseAuth(firebaseConfig);
 
-        // Authentication functions
-        async function signInWithGoogle() {
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                
-                // Get Firebase ID token
-                const idToken = await user.getIdToken();
-                
-                // Send token to backend for verification and session creation
-                const response = await fetch('/auth/google', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        idToken: idToken
-                    }),
-                    credentials: 'include'
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Redirect to dashboard
-                    window.location.href = '/dashboard';
-                } else {
-                    console.error('Backend authentication failed:', data.error);
-                    alert('Authentication failed. Please try again.');
-                }
-            } catch (error) {
-                console.error('Sign-in error:', error);
-                alert('Sign-in failed. Please try again.');
-            }
+        function signInWithGoogle(redirectUrl = '/dashboard') {
+            return signInWithGoogleUniversal(window.auth, redirectUrl);
         }
 
         // Check authentication state and update nav button
-        auth.onAuthStateChanged(user => {
+        window.auth.onAuthStateChanged(user => {
             console.log('Auth state changed:', user?.email || 'Not signed in');
-            
+
             const authActionButton = document.getElementById('auth-action-button');
             if (authActionButton) {
                 if (user) {
@@ -558,7 +529,7 @@
                 } else {
                     // User is not signed in - show sign in button
                     authActionButton.innerHTML = `
-                        <button onclick="signInWithGoogle()" 
+                        <button onclick="signInWithGoogle()"
                                 class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] border border-[#cc5500] rounded-full px-3 sm:px-4 md:px-5 py-1.5 md:py-2 lg:py-2.5 flex items-center gap-1 md:gap-2 hover:opacity-90 transition-opacity">
                             <span class="font-['DM_Sans'] text-xs sm:text-sm md:text-base lg:text-[18px] text-white whitespace-nowrap">Sign in</span>
                             <i class="ph ph-sign-in text-white text-sm md:text-lg lg:text-xl"></i>
@@ -582,21 +553,9 @@
             window.location.href = 'mailto:krishnakumarsonibbsr@gmail.com?subject=Barmuda Business Plan Inquiry';
         }
 
-        // Sign out function
-        async function signOut() {
-            try {
-                await auth.signOut();
-                console.log('User signed out');
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Sign-out error:', error);
-                alert('Sign-out failed. Please try again.');
-            }
-        }
-
         async function handleUpgrade(plan) {
             // Check if user is authenticated
-            const user = auth.currentUser;
+            const user = window.auth.currentUser;
             if (!user) {
                 alert('Please sign in first to upgrade your plan.');
                 return;

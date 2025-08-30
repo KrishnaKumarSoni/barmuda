@@ -84,10 +84,10 @@
                     
                     <!-- CTAs -->
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="/auth/google" class="hero-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-all duration-200 shadow-lg">
+                        <button onclick="signInWithGoogle()" class="hero-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-all duration-200 shadow-lg">
                             <i class="ph ph-heart-straight"></i>
                             Start Helping Today
-                        </a>
+                        </button>
                     </div>
                 </div>
                 
@@ -136,6 +136,27 @@
     </section>
     
     <!-- Include rest of original file content here... -->
-    
+
+    <!-- Firebase SDK and Auth Helper -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="/static/js/auth-helper.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk-JxeyA-e-H8lcV-INxZKRgMq3cyXGyQ",
+            authDomain: "barmuda-in.firebaseapp.com",
+            projectId: "barmuda-in",
+            storageBucket: "barmuda-in.firebasestorage.app",
+            messagingSenderId: "36564437421",
+            appId: "1:36564437421:web:2a16afe9674a9d03333924"
+        };
+
+        window.auth = initializeFirebaseAuth(firebaseConfig);
+
+        function signInWithGoogle(redirectUrl = '/dashboard') {
+            return signInWithGoogleUniversal(window.auth, redirectUrl);
+        }
+    </script>
+
 </body>
 </html>
