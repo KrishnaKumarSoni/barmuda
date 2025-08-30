@@ -2478,6 +2478,141 @@ def get_voice_token():
         return jsonify({"success": False, "error": "Failed to generate token"}), 500
 
 
+@app.route("/api/voice/session/start", methods=["POST"])
+def start_voice_session():
+    """Start a new voice conversation session"""
+    try:
+        data = request.get_json()
+        form_id = data.get("form_id")
+        device_id = data.get("device_id")
+        
+        if not form_id:
+            return jsonify({"error": "form_id is required"}), 400
+            
+        # Verify form exists and is active
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+            
+        form_data = form_doc.to_dict()
+        if not form_data.get("active", False):
+            return jsonify({"error": "Survey not available"}), 403
+            
+        # Create session
+        session_id = str(uuid.uuid4())
+        session_data = {
+            "session_id": session_id,
+            "form_id": form_id,
+            "device_id": device_id,
+            "mode": "voice",
+            "started_at": datetime.utcnow().isoformat(),
+            "status": "active"
+        }
+        
+        # Store session
+        db.collection("voice_sessions").document(session_id).set(session_data)
+        
+        return jsonify({"success": True, "session_id": session_id})
+        
+    except Exception as e:
+        logger.error(f"Error starting voice session: {str(e)}")
+        return jsonify({"error": "Failed to start session"}), 500
+
+
+@app.route("/api/voice/session/save", methods=["POST"])
+def save_voice_session():
+    """Save voice conversation transcript and extract responses"""
+    try:
+        data = request.get_json()
+        session_id = data.get("session_id")
+        form_id = data.get("form_id")
+        transcript = data.get("transcript", [])
+        
+        if not session_id or not form_id:
+            return jsonify({"error": "session_id and form_id required"}), 400
+            
+        # Get form data for extraction
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+            
+        form_data = form_doc.to_dict()
+        
+        # Extract structured responses from transcript
+        # This would use an LLM to extract answers from the conversation
+        extracted_data = extract_voice_responses(transcript, form_data)
+        
+        # Save response
+        response_data = {
+            "form_id": form_id,
+            "session_id": session_id,
+            "mode": "voice",
+            "transcript": transcript,
+            "extracted_data": extracted_data,
+            "submitted_at": datetime.utcnow().isoformat(),
+            "completed": True
+        }
+        
+        # Store in responses collection
+        db.collection("responses").document(session_id).set(response_data)
+        
+        # Update session status
+        db.collection("voice_sessions").document(session_id).update({
+            "status": "completed",
+            "completed_at": datetime.utcnow().isoformat()
+        })
+        
+        # Update form response count
+        form_ref = db.collection("forms").document(form_id)
+        form_ref.update({"response_count": firestore.Increment(1)})
+        
+        return jsonify({"success": True, "response_id": session_id})
+        
+    except Exception as e:
+        logger.error(f"Error saving voice session: {str(e)}")
+        return jsonify({"error": "Failed to save session"}), 500
+
+
+def extract_voice_responses(transcript, form_data):
+    """Extract structured responses from voice transcript using LLM"""
+    try:
+        # Prepare the transcript text
+        conversation_text = "\n".join([
+            f"{entry.get('speaker', 'Unknown')}: {entry.get('text', '')}"
+            for entry in transcript
+        ])
+        
+        # Prepare questions for extraction
+        questions = form_data.get("questions", [])
+        
+        # Use OpenAI to extract responses
+        prompt = f"""Extract responses from this voice conversation transcript.
+        
+Questions to extract:
+{json.dumps(questions, indent=2)}
+
+Transcript:
+{conversation_text}
+
+Extract the answers in JSON format matching the question structure.
+If a question wasn't answered, mark it as null."""
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a data extraction assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"}
+        )
+        
+        return json.loads(response.choices[0].message.content)
+        
+    except Exception as e:
+        logger.error(f"Error extracting voice responses: {str(e)}")
+        return {}
+
+
 @app.route("/api/chat/start", methods=["POST"])
 @require_conversation_limit
 def start_chat_session():
