@@ -4,27 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#cc5500">
-    <title>{{ form_title }} - Barmuda Forms</title>
+    <title>{{ form_title }} - Voice Survey | Barmuda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        @keyframes voice-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .voice-active {
+            animation: voice-pulse 2s ease-in-out infinite;
+        }
+    </style>
 </head>
-<body class="bg-[#fef5e0] h-screen flex flex-col">
+<body class="bg-gradient-to-br from-[#fef5e0] to-[#fff8ea] min-h-screen flex flex-col font-['DM_Sans']">
     {% set nav_type = 'voice' %}
     {% include 'partials/nav.html' %}
 
-    <div class="flex-1 flex flex-col items-center justify-center space-y-6">
-        <div id="visualizer" class="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 animate-pulse"></div>
-        <div class="space-x-4">
-            <button id="start-btn" class="px-4 py-2 bg-[#cc5500] text-white rounded-full">Start</button>
-            <button id="pause-btn" class="px-4 py-2 bg-gray-300 rounded-full">Pause</button>
-            <button id="end-btn" class="px-4 py-2 bg-red-500 text-white rounded-full">End</button>
+    <div class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        <!-- Title -->
+        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-[#1e1e1e] mb-4 text-center">
+            {{ form_title }}
+        </h1>
+        <p class="text-[#5e5d5d] text-sm mb-8 text-center max-w-md">
+            Have a natural voice conversation. Speak freely and take your time.
+        </p>
+        
+        <!-- Voice Visualizer -->
+        <div class="relative mb-8">
+            <div id="visualizer" class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-[#cc5500] to-[#d12b2e] shadow-2xl flex items-center justify-center">
+                <i class="ph ph-microphone text-white text-4xl md:text-5xl"></i>
+            </div>
+            <!-- Ripple effect -->
+            <div class="absolute inset-0 rounded-full border-4 border-[#cc5500] opacity-20 animate-ping"></div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="flex items-center gap-4 mb-8">
+            <button 
+                id="start-btn" 
+                class="px-6 py-3 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+            >
+                <i class="ph ph-play text-lg"></i>
+                <span>Start Conversation</span>
+            </button>
+            
+            <button 
+                id="pause-btn" 
+                class="px-6 py-3 bg-gray-200 text-gray-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 opacity-50" 
+                disabled
+            >
+                <i class="ph ph-pause text-lg"></i>
+                <span>Pause</span>
+            </button>
+            
+            <button 
+                id="end-btn" 
+                class="px-6 py-3 bg-red-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+            >
+                <i class="ph ph-stop text-lg"></i>
+                <span>End</span>
+            </button>
+        </div>
+        
+        <!-- Transcript Container (Optional - can be hidden) -->
+        <div class="w-full max-w-2xl bg-white rounded-lg shadow-lg p-4 max-h-64 overflow-y-auto hidden" id="transcript-container">
+            <h3 class="font-['Plus_Jakarta_Sans'] font-semibold text-sm text-[#1e1e1e] mb-2">Conversation Transcript</h3>
+            <div id="transcript" class="space-y-2">
+                <!-- Transcript entries will appear here -->
+            </div>
+        </div>
+        
+        <!-- Status Messages -->
+        <div id="status-message" class="mt-4 text-center hidden">
+            <!-- Status messages will appear here -->
         </div>
     </div>
 
+    <!-- ElevenLabs SDK (load from CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@11labs/voice-sdk@latest/dist/index.umd.js"></script>
+    
     <script>
         window.AGENT_ID = "{{ agent_id }}";
+        window.FORM_ID = "{{ form_id }}";
     </script>
     <script src="/static/js/voice.js"></script>
 </body>
