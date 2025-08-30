@@ -133,7 +133,7 @@ This is a chat conversation where a user answered survey questions in natural la
 - Consider synonyms, abbreviations, and common variations
 - Example: "LinkedIn" matches options like "LinkedIn", "Linkedin", "Social Media", etc.
 
-### For Yes/No Questions  
+### For Yes/No Questions
 - Recognize affirmative responses: yes, yeah, yep, sure, definitely, absolutely, correct, right, true, y, 1
 - Recognize negative responses: no, nope, nah, negative, false, wrong, incorrect, n, 0
 - If unclear, mark as "unclear" rather than guessing
@@ -142,7 +142,7 @@ This is a chat conversation where a user answered survey questions in natural la
 - Extract numeric ratings directly: "4", "5/5", "4 out of 5"
 - Convert descriptive ratings to numbers:
   - Extremely negative (terrible, awful, hate it): 1
-  - Negative (bad, poor, don't like): 2  
+  - Negative (bad, poor, don't like): 2
   - Neutral (okay, fine, meh, average): 3
   - Positive (good, like it, nice): 4
   - Extremely positive (excellent, amazing, love it, perfect): 5
@@ -222,10 +222,12 @@ Only include responses where confidence >= 0.7. Be conservative rather than maki
                             "question_text": question.get("text", ""),
                             "source": source,
                             "reasoning": reasoning,
-                            "extraction_method": "gpt4o_mini_direct"
+                            "extraction_method": "gpt4o_mini_direct",
                         }
             except (ValueError, KeyError) as e:
-                print(f"Error processing extracted response for question {question_idx}: {e}")
+                print(
+                    f"Error processing extracted response for question {question_idx}: {e}"
+                )
                 continue
 
         return processed_responses
@@ -238,7 +240,7 @@ def extract_chat_responses(session_id: str) -> Dict[str, Any]:
         global firestore_db
         if firestore_db is None:
             firestore_db = firestore.client()
-            
+
         # Load session data from Firestore
         session_doc = (
             firestore_db.collection("chat_sessions").document(session_id).get()
@@ -272,11 +274,12 @@ def extract_chat_responses(session_id: str) -> Dict[str, Any]:
                 },
                 "created_at": datetime.now(),
                 "partial": session_data.get("metadata", {}).get("partial", False),
+                "mode": session_data.get("metadata", {}).get("mode", "chat"),
             }
 
             # Add chat transcript for debugging/review
             response_data["chat_transcript"] = session_data.get("chat_history", [])
-            
+
             # Save to responses collection
             doc_ref = firestore_db.collection("responses").add(response_data)
 
@@ -284,30 +287,36 @@ def extract_chat_responses(session_id: str) -> Dict[str, Any]:
             form_id = session_data.get("form_id")
             if form_id:
                 form_ref = firestore_db.collection("forms").document(form_id)
-                
+
                 # Get current response count to determine if we should send email
                 form_doc = form_ref.get()
                 current_count = 0
                 creator_email = None
                 creator_name = None
-                form_title = session_data.get("form_data", {}).get("title", "Untitled Form")
-                
+                form_title = session_data.get("form_data", {}).get(
+                    "title", "Untitled Form"
+                )
+
                 if form_doc.exists:
                     form_data = form_doc.to_dict()
                     current_count = form_data.get("response_count", 0)
                     creator_id = form_data.get("creator_id")
-                    
+
                     # Get creator info for email
                     if creator_id:
                         try:
-                            creator_doc = firestore_db.collection("users").document(creator_id).get()
+                            creator_doc = (
+                                firestore_db.collection("users")
+                                .document(creator_id)
+                                .get()
+                            )
                             if creator_doc.exists:
                                 creator_data = creator_doc.to_dict()
                                 creator_email = creator_data.get("email")
                                 creator_name = creator_data.get("name")
                         except Exception as e:
                             print(f"Could not get creator info for email: {str(e)}")
-                
+
                 # Update form stats
                 new_count = current_count + 1
                 form_ref.update(
@@ -316,18 +325,23 @@ def extract_chat_responses(session_id: str) -> Dict[str, Any]:
                         "last_response": datetime.now(),
                     }
                 )
-                
+
                 # Send email notifications for milestone responses
                 if creator_email and new_count in [1, 5, 10]:
                     try:
                         from email_service import email_service
+
                         email_result = email_service.send_response_alert(
                             creator_email, form_title, new_count, form_id, creator_name
                         )
                         if email_result.get("success"):
-                            print(f"Response alert email sent to {creator_email} for response #{new_count}")
+                            print(
+                                f"Response alert email sent to {creator_email} for response #{new_count}"
+                            )
                         else:
-                            print(f"Failed to send response alert email: {email_result.get('error')}")
+                            print(
+                                f"Failed to send response alert email: {email_result.get('error')}"
+                            )
                     except Exception as e:
                         print(f"Error sending response alert email: {str(e)}")
 

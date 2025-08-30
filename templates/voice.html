@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cc5500">
+    <title>{{ form_title }} - Barmuda Forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#fef5e0] h-screen flex flex-col">
+    {% set nav_type = 'voice' %}
+    {% include 'partials/nav.html' %}
+
+    <div class="flex-1 flex flex-col items-center justify-center space-y-6">
+        <div id="visualizer" class="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 animate-pulse"></div>
+        <div class="space-x-4">
+            <button id="start-btn" class="px-4 py-2 bg-[#cc5500] text-white rounded-full">Start</button>
+            <button id="pause-btn" class="px-4 py-2 bg-gray-300 rounded-full">Pause</button>
+            <button id="end-btn" class="px-4 py-2 bg-red-500 text-white rounded-full">End</button>
+        </div>
+    </div>
+
+    <script>
+        window.AGENT_ID = "{{ agent_id }}";
+    </script>
+    <script src="/static/js/voice.js"></script>
+</body>
+</html>
