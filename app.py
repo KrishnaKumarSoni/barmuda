@@ -35,7 +35,7 @@ from voice_agent import create_ephemeral_token
 # Load environment variables
 load_dotenv()
 
-# Firebase private key updated in Vercel - deployment trigger
+# Firebase private key updated with base64 support - deployment trigger
 
 # Simple in-memory cache for rate limiting
 class SimpleCache:
