@@ -35,7 +35,7 @@ from voice_agent import create_ephemeral_token
 # Load environment variables
 load_dotenv()
 
-# Firebase environment variables added to Preview - deployment trigger
+# All environment variables added to Preview - deployment trigger
 
 # Simple in-memory cache for rate limiting
 class SimpleCache:
