@@ -443,7 +443,18 @@ class ServerVoiceConversation {
 
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = this.config.language || "en-US"; // Use configured language or default
+    // Map language codes for speech recognition
+    const langMap = {
+      'hi': 'hi-IN',  // Hindi (India)
+      'en': 'en-US',  // English (US)
+      'es': 'es-ES',  // Spanish (Spain)
+      'fr': 'fr-FR',  // French (France)
+    };
+    
+    const langCode = this.config.language || "en";
+    this.recognition.lang = langMap[langCode] || langCode;
+    
+    console.log(`Setting speech recognition language to: ${this.recognition.lang}`);
 
     this.recognition.onresult = (event) => {
       if (this.ignoreRecognition) return; // Ignore unwanted early results
