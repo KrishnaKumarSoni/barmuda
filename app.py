@@ -2551,6 +2551,8 @@ def get_voice_token():
     """Generate an ephemeral ElevenLabs token for voice sessions"""
     data = request.get_json() or {}
     form_id = data.get("form_id")
+    
+    print(f"DEBUG: get_voice_token called with form_id: {form_id}")
 
     if not form_id:
         return jsonify({"success": False, "error": "form_id required"}), 400
@@ -2564,6 +2566,11 @@ def get_voice_token():
             return jsonify({"success": False, "error": "Form not found"}), 404
 
         form_data = form_doc.to_dict()
+        
+        # Debug: Print form data structure
+        print(f"DEBUG: form_data keys: {list(form_data.keys())}")
+        print(f"DEBUG: voice_settings: {form_data.get('voice_settings')}")
+        print(f"DEBUG: mode: {form_data.get('mode')}")
 
         # Verify form is in voice mode
         if form_data.get("mode") != "voice":
@@ -2576,8 +2583,12 @@ def get_voice_token():
         if not form_data.get("active", False):
             return jsonify({"success": False, "error": "Form is not active"}), 400
 
-        # Extract voice_id from voice settings
-        voice_id = form_data.get("voice_settings", {}).get("voice_id")
+        # Extract voice_id from voice settings (handle nested structure)
+        voice_settings = form_data.get("voice_settings", {})
+        voice_id = voice_settings.get("voice_id")
+        if not voice_id:
+            # Try nested voice_settings structure
+            voice_id = voice_settings.get("voice_settings", {}).get("voice_id")
         if not voice_id:
             return (
                 jsonify(
