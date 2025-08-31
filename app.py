@@ -1,13 +1,17 @@
+import base64
 import json
 import logging
 import os
 import random
 import re
 import sys
+import time
+import uuid
 from datetime import datetime
 from functools import wraps
 
 import firebase_admin
+import requests
 from dotenv import load_dotenv
 from firebase_admin import auth, credentials, firestore
 from flask import (
@@ -27,10 +31,34 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from openai import OpenAI
 
 # Voice agent utilities
-from voice_agent import create_ephemeral_token
+from voice_agent import create_ephemeral_token, generate_speech, get_available_voices
 
 # Load environment variables
 load_dotenv()
+
+# Complete environment parity with Production - final test
+
+
+# Simple in-memory cache for rate limiting
+class SimpleCache:
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, key, default=None):
+        if key in self._cache:
+            value, expiry = self._cache[key]
+            if time.time() < expiry:
+                return value
+            else:
+                del self._cache[key]
+        return default
+
+    def set(self, key, value, timeout=3600):
+        expiry = time.time() + timeout
+        self._cache[key] = (value, expiry)
+
+
+cache = SimpleCache()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -97,42 +125,101 @@ def favicon():
     )
 
 
+# Debug route for environment testing
+@app.route("/debug-env")
+def debug_env():
+    if not os.environ.get("VERCEL"):
+        return "Not available in local environment", 403
+
+    firebase_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+
+    debug_info = {
+        "vercel_env": bool(os.environ.get("VERCEL")),
+        "firebase_initialized": firebase_initialized,
+        "firebase_project_id": os.environ.get("FIREBASE_PROJECT_ID", "NOT_SET"),
+        "firebase_client_email": os.environ.get("FIREBASE_CLIENT_EMAIL", "NOT_SET"),
+        "firebase_private_key_present": bool(firebase_key),
+        "firebase_private_key_length": len(firebase_key) if firebase_key else 0,
+        "firebase_private_key_starts_with": (
+            firebase_key[:30] + "..." if firebase_key else "EMPTY"
+        ),
+        "is_base64": "BEGIN PRIVATE KEY" not in firebase_key if firebase_key else False,
+        "openai_key_present": bool(os.environ.get("OPENAI_API_KEY")),
+        "flask_secret_present": bool(os.environ.get("FLASK_SECRET_KEY")),
+        "db_client_available": db is not None,
+    }
+
+    if firebase_key and "BEGIN PRIVATE KEY" not in firebase_key:
+        try:
+            decoded = base64.b64decode(firebase_key).decode("utf-8")
+            debug_info["base64_decode_success"] = True
+            debug_info["decoded_starts_with"] = decoded[:30] + "..."
+            debug_info["decoded_is_pem"] = "BEGIN PRIVATE KEY" in decoded
+        except Exception as e:
+            debug_info["base64_decode_error"] = str(e)
+
+    return jsonify(debug_info)
+
+
 # Initialize Firebase Admin SDK
-if not firebase_admin._apps:
-    # For production (Vercel), use environment variables
-    # For local development, fall back to service account file
-    if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
-        # Production environment - use environment variables
-        firebase_config = {
-            "type": "service_account",
-            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
-            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
-            "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace(
-                "\\n", "\n"
-            ),
-            "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
-            "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
-            "universe_domain": "googleapis.com",
-        }
-        cred = credentials.Certificate(firebase_config)
-    else:
-        # Local development - use service account file
-        cred = credentials.Certificate(
-            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
-        )
+firebase_initialized = False
+db = None
 
-    firebase_admin.initialize_app(cred)
+try:
+    if not firebase_admin._apps:
+        # For production (Vercel), use environment variables
+        # For local development, fall back to service account file
+        if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
+            # Production environment - use environment variables
+            private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+            # Some environments provide the key base64 encoded or without newline escapes.
+            if "BEGIN PRIVATE KEY" not in private_key:
+                try:
+                    private_key = base64.b64decode(private_key).decode("utf-8")
+                except Exception:
+                    # Leave as-is; initialization will raise informative error if invalid.
+                    pass
+            private_key = private_key.replace("\\n", "\n")
 
-# Initialize Firestore
-db = firestore.client()
+            firebase_config = {
+                "type": "service_account",
+                "project_id": os.environ.get(
+                    "FIREBASE_PROJECT_ID", "barmuda-in"
+                ).strip(),
+                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID", "").strip(),
+                "private_key": private_key,
+                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL", "").strip(),
+                "client_id": os.environ.get("FIREBASE_CLIENT_ID", "").strip(),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').strip().replace('@', '%40')}",
+                "universe_domain": "googleapis.com",
+            }
+            cred = credentials.Certificate(firebase_config)
+        else:
+            # Local development - use service account file
+            cred = credentials.Certificate(
+                "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
+            )
+
+        firebase_admin.initialize_app(cred)
+        # Initialize Firestore
+        db = firestore.client()
+        firebase_initialized = True
+        print("✓ Firebase initialized successfully")
+
+except Exception as e:
+    print(f"✗ Firebase initialization failed: {e}")
+    firebase_initialized = False
+    # Continue app startup even if Firebase fails
 
 # Initialize OpenAI client - strip whitespace from API key to prevent header errors
 openai_api_key = os.environ.get("OPENAI_API_KEY", "").strip()
 openai_client = OpenAI(api_key=openai_api_key)
+
+# ElevenLabs API key for voice functionality
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "").strip()
 
 # Initialize billing system
 from billing import (
@@ -142,7 +229,12 @@ from billing import (
     is_test_mode,
 )
 
-init_billing(db)
+# Only initialize billing if Firebase is available
+if firebase_initialized and db is not None:
+    init_billing(db)
+    print("✓ Billing system initialized")
+else:
+    print("⚠ Billing system skipped - Firebase not available")
 
 # Admin system disabled to prevent Firebase quota issues
 from admin import (
@@ -154,8 +246,14 @@ from admin import (
     verify_admin_password,
 )
 
-init_admin(db)
-admin_metrics = AdminMetrics()
+# Only initialize admin if Firebase is available
+if firebase_initialized and db is not None:
+    init_admin(db)
+    admin_metrics = AdminMetrics()
+    print("✓ Admin system initialized")
+else:
+    admin_metrics = None
+    print("⚠ Admin system skipped - Firebase not available")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1584,20 +1682,12 @@ def save_form():
 
         # Determine mode and voice settings
         mode = form_data.get("mode", "chat")
-        if mode not in ["chat", "voice"]:
-            return jsonify({"success": False, "error": "Invalid mode"}), 400
-
         voice_settings = form_data.get("voice_settings") if mode == "voice" else {}
-        if mode == "voice":
-            if (
-                not voice_settings
-                or not voice_settings.get("language")
-                or not voice_settings.get("voice_id")
-            ):
-                return (
-                    jsonify({"success": False, "error": "Voice settings required"}),
-                    400,
-                )
+
+        # Validate mode and voice settings
+        validation_error = validate_mode_and_voice_settings(mode, voice_settings)
+        if validation_error:
+            return validation_error
 
         # Prepare form document
         form_document = {
@@ -1737,20 +1827,12 @@ def update_form(form_id):
 
         # Determine mode and voice settings
         mode = form_data.get("mode", existing_form.get("mode", "chat"))
-        if mode not in ["chat", "voice"]:
-            return jsonify({"success": False, "error": "Invalid mode"}), 400
-
         voice_settings = form_data.get("voice_settings") if mode == "voice" else {}
-        if mode == "voice":
-            if (
-                not voice_settings
-                or not voice_settings.get("language")
-                or not voice_settings.get("voice_id")
-            ):
-                return (
-                    jsonify({"success": False, "error": "Voice settings required"}),
-                    400,
-                )
+
+        # Validate mode and voice settings
+        validation_error = validate_mode_and_voice_settings(mode, voice_settings)
+        if validation_error:
+            return validation_error
 
         # Prepare update document
         update_document = {
@@ -2372,11 +2454,13 @@ def voice_form_page(form_id):
                 403,
             )
 
+        voice_settings = form_data.get("voice_settings", {})
         return render_template(
             "voice.html",
             form_id=form_id,
             form_title=form_data.get("title", "Survey"),
-            agent_id=form_data.get("voice_settings", {}).get("agent_id", ""),
+            voice_language=voice_settings.get("language", "en"),
+            voice_id=voice_settings.get("voice_id", "21m00Tcm4TlvDq8ikWAM"),
         )
     except Exception as e:
         print(f"Error loading voice form page: {str(e)}")
@@ -2466,16 +2550,432 @@ def widget_script():
 def get_voice_token():
     """Generate an ephemeral ElevenLabs token for voice sessions"""
     data = request.get_json() or {}
-    agent_id = data.get("agent_id")
-    if not agent_id:
-        return jsonify({"success": False, "error": "agent_id required"}), 400
+    form_id = data.get("form_id")
+
+    if not form_id:
+        return jsonify({"success": False, "error": "form_id required"}), 400
 
     try:
-        token_info = create_ephemeral_token(agent_id)
+        # Get form to verify ownership and extract agent_id
+        form_ref = db.collection("forms").document(form_id)
+        form_doc = form_ref.get()
+
+        if not form_doc.exists:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+
+        # Verify form is in voice mode
+        if form_data.get("mode") != "voice":
+            return (
+                jsonify({"success": False, "error": "Form is not in voice mode"}),
+                400,
+            )
+
+        # Verify form is active
+        if not form_data.get("active", False):
+            return jsonify({"success": False, "error": "Form is not active"}), 400
+
+        # Extract voice_id from voice settings
+        voice_id = form_data.get("voice_settings", {}).get("voice_id")
+        if not voice_id:
+            return (
+                jsonify(
+                    {"success": False, "error": "No voice_id configured for this form"}
+                ),
+                400,
+            )
+
+        # Rate limiting: max 10 tokens per form per hour
+        cache_key = f"voice_tokens:{form_id}"
+        token_count = cache.get(cache_key, 0)
+        if token_count >= 10:
+            return jsonify({"success": False, "error": "Rate limit exceeded"}), 429
+
+        # Forward relevant metadata to ElevenLabs when creating the token
+        token_metadata = {
+            "agent_id": form_data.get("voice_settings", {}).get("agent_id"),
+            "form_id": form_id,
+        }
+        # Remove None values
+        token_metadata = {k: v for k, v in token_metadata.items() if v is not None}
+
+        token_info = create_ephemeral_token(voice_id, token_metadata)
+
+        # Update rate limit counter
+        cache.set(cache_key, token_count + 1, timeout=3600)  # 1 hour
+
         return jsonify({"success": True, **token_info})
     except Exception as e:
         logger.error(f"Error generating voice token: {str(e)}")
         return jsonify({"success": False, "error": "Failed to generate token"}), 500
+
+
+@app.route("/api/voice/session/start", methods=["POST"])
+def start_voice_session():
+    """Start a new voice conversation session"""
+    try:
+        data = request.get_json()
+        form_id = data.get("form_id")
+        device_id = data.get("device_id")
+
+        if not form_id:
+            return jsonify({"error": "form_id is required"}), 400
+
+        # Verify form exists and is active
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+        if not form_data.get("active", False):
+            return jsonify({"error": "Survey not available"}), 403
+
+        # Create session
+        session_id = str(uuid.uuid4())
+        session_data = {
+            "session_id": session_id,
+            "form_id": form_id,
+            "device_id": device_id,
+            "mode": "voice",
+            "started_at": datetime.utcnow().isoformat(),
+            "status": "active",
+        }
+
+        # Store session
+        db.collection("voice_sessions").document(session_id).set(session_data)
+
+        return jsonify({"success": True, "session_id": session_id})
+
+    except Exception as e:
+        logger.error(f"Error starting voice session: {str(e)}")
+        return jsonify({"error": "Failed to start session"}), 500
+
+
+@app.route("/api/voice/session/save", methods=["POST"])
+def save_voice_session():
+    """Save voice conversation transcript and extract responses"""
+    try:
+        data = request.get_json()
+        session_id = data.get("session_id")
+        form_id = data.get("form_id")
+        transcript = data.get("transcript", [])
+
+        if not session_id or not form_id:
+            return jsonify({"error": "session_id and form_id required"}), 400
+
+        # Get form data for extraction
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+
+        # Extract structured responses from transcript
+        # This would use an LLM to extract answers from the conversation
+        extracted_data = extract_voice_responses(transcript, form_data)
+
+        # Save response
+        response_data = {
+            "form_id": form_id,
+            "session_id": session_id,
+            "mode": "voice",
+            "transcript": transcript,
+            "extracted_data": extracted_data,
+            "submitted_at": datetime.utcnow().isoformat(),
+            "completed": True,
+        }
+
+        # Store in responses collection
+        db.collection("responses").document(session_id).set(response_data)
+
+        # Update session status
+        db.collection("voice_sessions").document(session_id).update(
+            {"status": "completed", "completed_at": datetime.utcnow().isoformat()}
+        )
+
+        # Update form response count
+        form_ref = db.collection("forms").document(form_id)
+        form_ref.update({"response_count": firestore.Increment(1)})
+
+        return jsonify({"success": True, "response_id": session_id})
+
+    except Exception as e:
+        logger.error(f"Error saving voice session: {str(e)}")
+        return jsonify({"error": "Failed to save session"}), 500
+
+
+@app.route("/api/voice/preview", methods=["POST"])
+def voice_preview():
+    """Generate voice preview using ElevenLabs TTS"""
+    try:
+        data = request.get_json()
+        voice_id = data.get("voice_id")
+        text = data.get("text", "Hello! This is a preview of my voice.")
+
+        if not voice_id:
+            return jsonify({"error": "Voice ID required"}), 400
+
+        if not ELEVENLABS_API_KEY:
+            return jsonify({"error": "ElevenLabs API key not configured"}), 500
+
+        # Generate speech using ElevenLabs API
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
+        headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": ELEVENLABS_API_KEY,
+        }
+
+        payload = {
+            "text": text,
+            "model_id": "eleven_multilingual_v2",
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.8,
+                "style": 0.0,
+                "use_speaker_boost": True,
+            },
+        }
+
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+
+        if response.status_code == 200:
+            return Response(
+                response.content,
+                mimetype="audio/mpeg",
+                headers={
+                    "Content-Disposition": "attachment; filename=voice_preview.mp3"
+                },
+            )
+        else:
+            logger.error(
+                f"ElevenLabs API error: {response.status_code} - {response.text}"
+            )
+            return jsonify({"error": "Failed to generate voice preview"}), 500
+
+    except Exception as e:
+        logger.error(f"Voice preview error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route("/api/voice/speak", methods=["POST"])
+def voice_speak():
+    """Convert text to speech using ElevenLabs for voice conversations"""
+    try:
+        data = request.get_json()
+        text = data.get("text", "")
+        voice_id = data.get("voice_id")
+
+        if not text:
+            return jsonify({"error": "Text required"}), 400
+
+        if not voice_id:
+            return jsonify({"error": "Voice ID required"}), 400
+
+        # Use the voice_agent function
+        audio_content = generate_speech(text, voice_id)
+
+        return Response(
+            audio_content,
+            mimetype="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline; filename=speech.mp3",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Voice speak error: {str(e)}")
+        return jsonify({"error": "Failed to generate speech"}), 500
+
+
+@app.route("/api/voice/conversation", methods=["POST"])
+def voice_conversation():
+    """Handle conversational AI for voice mode"""
+    try:
+        data = request.get_json()
+        form_id = data.get("form_id")
+        user_input = data.get("user_input", "")
+        voice_id = data.get("voice_id")
+
+        if not form_id or not user_input:
+            return jsonify({"error": "form_id and user_input required"}), 400
+
+        # Get form data for conversation context
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+        questions = form_data.get("questions", [])
+
+        # Get or create conversation session
+        session_key = f"voice_conversation:{form_id}"
+        conversation_state = cache.get(
+            session_key,
+            {"current_question": 0, "responses": {}, "conversation_started": False},
+        )
+
+        # Generate AI response using OpenAI
+        ai_response = generate_conversation_response(
+            user_input, questions, conversation_state
+        )
+
+        # Update conversation state
+        if ai_response.get("advance_question"):
+            conversation_state["current_question"] += 1
+
+        if ai_response.get("save_response"):
+            conversation_state["responses"][
+                str(conversation_state["current_question"])
+            ] = user_input
+
+        # Cache conversation state (expire in 30 minutes)
+        cache.set(session_key, conversation_state, timeout=1800)
+
+        return jsonify(
+            {
+                "response": ai_response.get("text", ""),
+                "current_question": conversation_state["current_question"],
+                "total_questions": len(questions),
+                "completed": conversation_state["current_question"] >= len(questions),
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Voice conversation error: {str(e)}")
+        return jsonify({"error": "Failed to process conversation"}), 500
+
+
+def generate_conversation_response(user_input, questions, state):
+    """Generate AI response for voice conversation"""
+    try:
+        current_q_idx = state["current_question"]
+
+        if current_q_idx >= len(questions):
+            return {
+                "text": "Thank you for completing the survey! Your responses have been recorded.",
+                "advance_question": False,
+                "save_response": False,
+            }
+
+        current_question = questions[current_q_idx]
+
+        # Create conversation prompt
+        system_prompt = f"""You are conducting a voice survey. Current question: "{current_question['text']}"
+
+Question type: {current_question['type']}
+{f"Options: {', '.join(current_question.get('options', []))}" if current_question.get('options') else ""}
+
+Guidelines:
+1. Be conversational and natural
+2. If the user answered the question, acknowledge and move to next question
+3. If unclear, ask for clarification
+4. If user wants to skip, that's okay
+5. Keep responses under 50 words
+6. Be friendly and encouraging
+
+User just said: "{user_input}"
+"""
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input},
+            ],
+            max_tokens=150,
+            temperature=0.7,
+        )
+
+        ai_text = response.choices[0].message.content.strip()
+
+        # Simple logic to determine if we should advance
+        advance = (
+            any(
+                word in user_input.lower()
+                for word in ["yes", "no", "okay", "sure", "next", "done", "finished"]
+            )
+            and len(user_input.split()) > 1
+        )
+
+        return {"text": ai_text, "advance_question": advance, "save_response": True}
+
+    except Exception as e:
+        logger.error(f"AI response generation error: {str(e)}")
+        return {
+            "text": "I'm sorry, could you please repeat that?",
+            "advance_question": False,
+            "save_response": False,
+        }
+
+
+def validate_mode_and_voice_settings(mode, voice_settings):
+    """Validate mode and voice settings for form creation/update"""
+    if mode not in ["chat", "voice"]:
+        return jsonify({"success": False, "error": "Invalid mode"}), 400
+
+    if mode == "voice":
+        if (
+            not voice_settings
+            or not voice_settings.get("language")
+            or not voice_settings.get("voice_id")
+        ):
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Voice settings (language, voice_id) required",
+                    }
+                ),
+                400,
+            )
+
+    return None  # No error
+
+
+def extract_voice_responses(transcript, form_data):
+    """Extract structured responses from voice transcript using LLM"""
+    try:
+        # Prepare the transcript text
+        conversation_text = "\n".join(
+            [
+                f"{entry.get('speaker', 'Unknown')}: {entry.get('text', '')}"
+                for entry in transcript
+            ]
+        )
+
+        # Prepare questions for extraction
+        questions = form_data.get("questions", [])
+
+        # Use OpenAI to extract responses
+        prompt = f"""Extract responses from this voice conversation transcript.
+
+Questions to extract:
+{json.dumps(questions, indent=2)}
+
+Transcript:
+{conversation_text}
+
+Extract the answers in JSON format matching the question structure.
+If a question wasn't answered, mark it as null."""
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a data extraction assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            response_format={"type": "json_object"},
+        )
+
+        return json.loads(response.choices[0].message.content)
+
+    except Exception as e:
+        logger.error(f"Error extracting voice responses: {str(e)}")
+        return {}
 
 
 @app.route("/api/chat/start", methods=["POST"])

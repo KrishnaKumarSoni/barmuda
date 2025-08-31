@@ -61,11 +61,24 @@
                      data-form-id="{{ form.form_id }}" 
                      onclick="viewResponses('{{ form.form_id }}')"
                      title="View responses for {{ form.title }}">
-                    <!-- Survey Title -->
+                    <!-- Survey Title with Mode Indicator -->
                     <div class="mb-3">
-                        <h3 class="font-['DM_Sans'] font-semibold text-[16px] md:text-[18px] text-black tracking-[-0.18px] leading-tight line-clamp-2">
-                            {{ form.title }}
-                        </h3>
+                        <div class="flex items-start justify-between gap-2">
+                            <h3 class="font-['DM_Sans'] font-semibold text-[16px] md:text-[18px] text-black tracking-[-0.18px] leading-tight line-clamp-2 flex-1">
+                                {{ form.title }}
+                            </h3>
+                            {% if form.mode == 'voice' %}
+                            <div class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] text-white px-2 py-1 rounded-full flex items-center gap-1" title="Voice Mode">
+                                <i class="ph ph-microphone text-xs"></i>
+                                <span class="font-['DM_Sans'] text-[10px] font-medium">VOICE</span>
+                            </div>
+                            {% else %}
+                            <div class="bg-gray-200 text-gray-600 px-2 py-1 rounded-full flex items-center gap-1" title="Chat Mode">
+                                <i class="ph ph-chat-circle text-xs"></i>
+                                <span class="font-['DM_Sans'] text-[10px] font-medium">CHAT</span>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <!-- Created Date - Below title, above questions count -->

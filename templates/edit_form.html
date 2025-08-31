@@ -58,6 +58,38 @@
 
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        /* Custom Slider Styling */
+        .slider {
+            -webkit-appearance: none;
+            background: #e5e7eb;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #cc5500;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #cc5500;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .slider:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.3);
+        }
+    </style>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
@@ -110,6 +142,172 @@
                 <i class="ph ph-info text-bermuda-orange text-xs mt-0.5"></i>
                 <span>Helps your bot answer contextual questions naturally</span>
             </p>
+        </div>
+
+        <!-- Form Mode Selection -->
+        <div class="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <h2 class="font-jakarta font-semibold text-base text-bermuda-text mb-3">Response Mode</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <button
+                    id="chatModeBtn"
+                    onclick="setFormMode('chat')"
+                    class="flex items-center gap-3 p-3 border-2 border-bermuda-orange rounded-lg bg-bermuda-orange/5 transition-all"
+                >
+                    <i class="ph ph-chat-circle-text text-bermuda-orange text-xl"></i>
+                    <div class="text-left">
+                        <div class="font-jakarta font-semibold text-sm text-bermuda-text">Chat Mode</div>
+                        <div class="font-dm text-xs text-bermuda-gray">Text-based conversation</div>
+                    </div>
+                </button>
+                <button
+                    id="voiceModeBtn"
+                    onclick="setFormMode('voice')"
+                    class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg hover:border-bermuda-orange transition-all"
+                >
+                    <i class="ph ph-microphone text-bermuda-gray text-xl"></i>
+                    <div class="text-left">
+                        <div class="font-jakarta font-semibold text-sm text-bermuda-text">Voice Mode</div>
+                        <div class="font-dm text-xs text-bermuda-gray">AI voice conversation</div>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Voice Settings (hidden by default) -->
+            <div id="voiceSettings" class="hidden mt-4 p-4 bg-white border border-gray-200 rounded-lg">
+                <h3 class="font-jakarta font-semibold text-base text-bermuda-text mb-4 flex items-center gap-2">
+                    <i class="ph ph-microphone text-bermuda-orange"></i>
+                    Voice Settings
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- Language Selection -->
+                    <div>
+                        <label class="font-dm text-sm font-medium text-bermuda-text mb-2 block">Language</label>
+                        <div class="relative">
+                            <button type="button" id="languageDropdownBtn" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white hover:border-bermuda-orange focus:border-bermuda-orange focus:ring-1 focus:ring-bermuda-orange transition-colors text-left flex items-center justify-between">
+                                <span id="selectedLanguage" class="text-gray-500">Select Language</span>
+                                <i class="ph ph-caret-down text-gray-400"></i>
+                            </button>
+                            <div id="languageDropdown" class="hidden absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                                <div class="p-2 space-y-1">
+                                    <!-- English -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="en" data-label="🇺🇸 English (US)">🇺🇸 English (US)</div>
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="en-GB" data-label="🇬🇧 English (UK)">🇬🇧 English (UK)</div>
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="en-AU" data-label="🇦🇺 English (Australia)">🇦🇺 English (Australia)</div>
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="en-IN" data-label="🇮🇳 English (India)">🇮🇳 English (India)</div>
+                                    <!-- Spanish -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="es" data-label="🇪🇸 Spanish (Spain)">🇪🇸 Spanish (Spain)</div>
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="es-MX" data-label="🇲🇽 Spanish (Mexico)">🇲🇽 Spanish (Mexico)</div>
+                                    <!-- French -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="fr" data-label="🇫🇷 French (France)">🇫🇷 French (France)</div>
+                                    <!-- German -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="de" data-label="🇩🇪 German">🇩🇪 German</div>
+                                    <!-- Italian -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="it" data-label="🇮🇹 Italian">🇮🇹 Italian</div>
+                                    <!-- Portuguese -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="pt" data-label="🇵🇹 Portuguese (Portugal)">🇵🇹 Portuguese (Portugal)</div>
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="pt-BR" data-label="🇧🇷 Portuguese (Brazil)">🇧🇷 Portuguese (Brazil)</div>
+                                    <!-- Hindi -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="hi" data-label="🇮🇳 Hindi">🇮🇳 Hindi</div>
+                                    <!-- Japanese -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="ja" data-label="🇯🇵 Japanese">🇯🇵 Japanese</div>
+                                    <!-- Korean -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="ko" data-label="🇰🇷 Korean">🇰🇷 Korean</div>
+                                    <!-- Chinese -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="zh" data-label="🇨🇳 Chinese (Mandarin)">🇨🇳 Chinese (Mandarin)</div>
+                                    <!-- Arabic -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="ar" data-label="🇸🇦 Arabic">🇸🇦 Arabic</div>
+                                    <!-- Russian -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="ru" data-label="🇷🇺 Russian">🇷🇺 Russian</div>
+                                    <!-- Dutch -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="nl" data-label="🇳🇱 Dutch">🇳🇱 Dutch</div>
+                                    <!-- Polish -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="pl" data-label="🇵🇱 Polish">🇵🇱 Polish</div>
+                                    <!-- Turkish -->
+                                    <div class="px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm" data-value="tr" data-label="🇹🇷 Turkish">🇹🇷 Turkish</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Selection -->
+                    <div>
+                        <label class="font-dm text-sm font-medium text-bermuda-text mb-2 block">Voice</label>
+                        <div class="relative">
+                            <button type="button" id="voiceDropdownBtn" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white hover:border-bermuda-orange focus:border-bermuda-orange focus:ring-1 focus:ring-bermuda-orange transition-colors text-left flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <span id="selectedVoice" class="text-gray-500">Select a language first</span>
+                                <i class="ph ph-caret-down text-gray-400"></i>
+                            </button>
+                            <div id="voiceDropdown" class="hidden absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                                <div id="voiceOptions" class="p-2 space-y-1">
+                                    <!-- Voice options will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Modulation Settings -->
+                    <div class="border-t border-gray-200 pt-4">
+                        <h4 class="font-dm text-sm font-medium text-bermuda-text mb-3">Voice Modulation</h4>
+                        <div class="space-y-3">
+                            <!-- Stability -->
+                            <div>
+                                <label class="font-dm text-xs text-bermuda-gray mb-1 block flex items-center justify-between">
+                                    Stability
+                                    <span id="stabilityValue" class="text-bermuda-orange font-medium">0.5</span>
+                                </label>
+                                <input type="range" id="stabilitySlider" min="0" max="1" step="0.1" value="0.5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Variable</span>
+                                    <span>Stable</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Clarity + Similarity Boost -->
+                            <div>
+                                <label class="font-dm text-xs text-bermuda-gray mb-1 block flex items-center justify-between">
+                                    Clarity
+                                    <span id="clarityValue" class="text-bermuda-orange font-medium">0.8</span>
+                                </label>
+                                <input type="range" id="claritySlider" min="0" max="1" step="0.1" value="0.8" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Soft</span>
+                                    <span>Clear</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Style -->
+                            <div>
+                                <label class="font-dm text-xs text-bermuda-gray mb-1 block flex items-center justify-between">
+                                    Style Exaggeration
+                                    <span id="styleValue" class="text-bermuda-orange font-medium">0.0</span>
+                                </label>
+                                <input type="range" id="styleSlider" min="0" max="1" step="0.1" value="0.0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Natural</span>
+                                    <span>Expressive</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Preview -->
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <button 
+                            id="previewVoiceBtn" 
+                            type="button" 
+                            class="flex items-center gap-2 px-4 py-2 bg-bermuda-orange text-white rounded-lg hover:bg-bermuda-orange/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled
+                        >
+                            <i class="ph ph-play text-white"></i>
+                            Preview Voice
+                        </button>
+                        <div id="previewText" class="text-sm text-bermuda-gray">
+                            Select a voice to hear a preview
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Questions Container -->
@@ -338,6 +536,10 @@
         let formData = null;
         let savedFormId = null;
         let backModalTarget = null;
+        let currentFormMode = 'chat'; // Default to chat mode
+        let selectedLanguageValue = '';
+        let selectedVoiceValue = '';
+        let selectedVoiceGender = '';
 
         // Demographics options
         const demographicsOptions = [
@@ -356,6 +558,61 @@
             { name: 'Website', key: 'website', validation: true, tooltip: 'Basic website URL validation (http/https)' },
             { name: 'Social Media Handle', key: 'socialmedia', validation: false }
         ];
+
+        // Form mode selection functions
+        function setFormMode(mode) {
+            currentFormMode = mode;
+            const chatBtn = document.getElementById('chatModeBtn');
+            const voiceBtn = document.getElementById('voiceModeBtn');
+            const voiceSettings = document.getElementById('voiceSettings');
+            
+            if (mode === 'chat') {
+                chatBtn.classList.add('border-bermuda-orange', 'bg-bermuda-orange/5');
+                chatBtn.classList.remove('border-gray-200', 'hover:border-bermuda-orange');
+                chatBtn.querySelector('i').classList.add('text-bermuda-orange');
+                chatBtn.querySelector('i').classList.remove('text-bermuda-gray');
+                
+                voiceBtn.classList.remove('border-bermuda-orange', 'bg-bermuda-orange/5');
+                voiceBtn.classList.add('border-gray-200', 'hover:border-bermuda-orange');
+                voiceBtn.querySelector('i').classList.remove('text-bermuda-orange');
+                voiceBtn.querySelector('i').classList.add('text-bermuda-gray');
+                
+                voiceSettings.classList.add('hidden');
+            } else {
+                voiceBtn.classList.add('border-bermuda-orange', 'bg-bermuda-orange/5');
+                voiceBtn.classList.remove('border-gray-200', 'hover:border-bermuda-orange');
+                voiceBtn.querySelector('i').classList.add('text-bermuda-orange');
+                voiceBtn.querySelector('i').classList.remove('text-bermuda-gray');
+                
+                chatBtn.classList.remove('border-bermuda-orange', 'bg-bermuda-orange/5');
+                chatBtn.classList.add('border-gray-200', 'hover:border-bermuda-orange');
+                chatBtn.querySelector('i').classList.remove('text-bermuda-orange');
+                chatBtn.querySelector('i').classList.add('text-bermuda-gray');
+                
+                voiceSettings.classList.remove('hidden');
+            }
+            
+            // Update formData
+            if (formData) {
+                formData.mode = mode;
+                if (mode === 'voice') {
+                    formData.voice_settings = getVoiceSettings();
+                }
+            }
+        }
+        
+        function getVoiceSettings() {
+            return {
+                language: selectedLanguageValue || '',
+                voice_id: selectedVoiceValue || '',
+                voice_settings: {
+                    stability: parseFloat(document.getElementById('stabilitySlider').value),
+                    similarity_boost: parseFloat(document.getElementById('claritySlider').value),
+                    style: parseFloat(document.getElementById('styleSlider').value),
+                    use_speaker_boost: true
+                }
+            };
+        }
 
         // Initialize form data from URL parameter, session storage, or existing form
         function initializeForm() {
@@ -436,6 +693,65 @@
 
             // Set bot context
             document.getElementById('botContext').value = formData.bot_context || '';
+            
+            // Set form mode
+            const mode = formData.mode || 'chat';
+            setFormMode(mode);
+            
+            // Set voice settings if in voice mode
+            if (mode === 'voice' && formData.voice_settings) {
+                const settings = formData.voice_settings;
+                if (settings.language) {
+                    // Set language in custom dropdown
+                    selectedLanguageValue = settings.language;
+                    const selectedLanguageSpan = document.getElementById('selectedLanguage');
+                    const langOption = document.querySelector(`[data-value="${settings.language}"]`);
+                    if (langOption) {
+                        selectedLanguageSpan.textContent = langOption.dataset.label;
+                        selectedLanguageSpan.classList.remove('text-gray-500');
+                        selectedLanguageSpan.classList.add('text-bermuda-text');
+                        
+                        // Populate and enable voice dropdown
+                        populateVoiceDropdown(settings.language);
+                        document.getElementById('voiceDropdownBtn').disabled = false;
+                    }
+                }
+                if (settings.voice_id) {
+                    // Set voice in custom dropdown
+                    selectedVoiceValue = settings.voice_id;
+                    const voices = voiceData[settings.language] || [];
+                    const voice = voices.find(v => v.id === settings.voice_id);
+                    if (voice) {
+                        selectedVoiceGender = voice.gender;
+                        const selectedVoiceSpan = document.getElementById('selectedVoice');
+                        selectedVoiceSpan.textContent = `${voice.name} - ${voice.description}`;
+                        selectedVoiceSpan.classList.remove('text-gray-500');
+                        selectedVoiceSpan.classList.add('text-bermuda-text');
+                        enableVoicePreview();
+                    }
+                }
+                
+                // Set voice modulation settings
+                if (settings.voice_settings) {
+                    const voiceModSettings = settings.voice_settings;
+                    if (voiceModSettings.stability !== undefined) {
+                        document.getElementById('stabilitySlider').value = voiceModSettings.stability;
+                        document.getElementById('stabilityValue').textContent = voiceModSettings.stability;
+                    }
+                    if (voiceModSettings.similarity_boost !== undefined) {
+                        document.getElementById('claritySlider').value = voiceModSettings.similarity_boost;
+                        document.getElementById('clarityValue').textContent = voiceModSettings.similarity_boost;
+                    }
+                    if (voiceModSettings.style !== undefined) {
+                        document.getElementById('styleSlider').value = voiceModSettings.style;
+                        document.getElementById('styleValue').textContent = voiceModSettings.style;
+                    }
+                    if (voiceModSettings.use_speaker_boost !== undefined) {
+                        document.getElementById('speakerBoostSlider').value = voiceModSettings.use_speaker_boost ? 1 : 0;
+                        document.getElementById('speakerBoostValue').textContent = voiceModSettings.use_speaker_boost ? 'On' : 'Off';
+                    }
+                }
+            }
 
             // Render questions
             renderQuestions();
@@ -960,6 +1276,17 @@
             // Update title and bot context
             formData.title = document.getElementById('formTitle').value.trim();
             formData.bot_context = document.getElementById('botContext').value.trim();
+            
+            // Update mode and voice settings
+            formData.mode = currentFormMode;
+            if (currentFormMode === 'voice') {
+                formData.voice_settings = getVoiceSettings();
+                // Validate voice settings
+                if (!formData.voice_settings.language || !formData.voice_settings.voice_id) {
+                    alert('Please select language and voice for voice mode');
+                    return;
+                }
+            }
 
             const loadingState = document.getElementById('loadingState');
             loadingState.classList.remove('hidden');
@@ -1370,6 +1697,359 @@
                 handleNavigationAttempt(document.referrer || '/dashboard');
                 history.pushState(null, '', location.href);
             });
+
+            // Comprehensive voice data with language filtering and gender info
+            const voiceData = {
+                'en': [
+                    {id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', description: 'Calm & Professional', gender: 'female'},
+                    {id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', description: 'Strong & Confident', gender: 'female'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella', description: 'Sweet & Narration', gender: 'female'},
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', description: 'Well-rounded & Versatile', gender: 'male'},
+                    {id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli', description: 'Emotional & Expressive', gender: 'female'},
+                    {id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', description: 'Deep & Authoritative', gender: 'male'},
+                    {id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', description: 'Crisp & Clear', gender: 'male'},
+                    {id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', description: 'Deep & Narrative', gender: 'male'},
+                    {id: 'yoZ06aMxZJJ28mfd3POQ', name: 'Sam', description: 'Raspy & Casual', gender: 'male'},
+                    {id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', description: 'Warm & Friendly', gender: 'female'},
+                    {id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', description: 'Professional & Clear', gender: 'female'},
+                    {id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', description: 'Upbeat & Energetic', gender: 'female'}
+                ],
+                'en-GB': [
+                    {id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', description: 'British & Intense', gender: 'male'},
+                    {id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', description: 'British & Warm', gender: 'female'},
+                    {id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', description: 'British & Professional', gender: 'female'}
+                ],
+                'en-AU': [
+                    {id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', description: 'Australian & Crisp', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella', description: 'Australian & Sweet', gender: 'female'}
+                ],
+                'en-IN': [
+                    {id: 'pNInz6obpgDQGcFmaJgB', name: 'Arjun', description: 'Indian English & Professional', gender: 'male'},
+                    {id: 'cgSgspJ2msm6clMCkdW9', name: 'Priya', description: 'Indian English & Warm', gender: 'female'},
+                    {id: 'XrExE9yKIg1WjnnlVkGX', name: 'Ananya', description: 'Indian English & Friendly', gender: 'female'}
+                ],
+                'es': [
+                    {id: 'ThT5KcBeYPX3keUQqHPh', name: 'Diego', description: 'Professional & Clear', gender: 'male'},
+                    {id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', description: 'Warm & Expressive', gender: 'female'},
+                    {id: 'bVMeCyTHy58xNoL34h3p', name: 'Valentina', description: 'Elegant & Sophisticated', gender: 'female'}
+                ],
+                'es-MX': [
+                    {id: 'ThT5KcBeYPX3keUQqHPh', name: 'Carlos', description: 'Mexican & Friendly', gender: 'male'},
+                    {id: 'XB0fDUnXU5powFXDhCwa', name: 'Sofia', description: 'Mexican & Warm', gender: 'female'}
+                ],
+                'fr': [
+                    {id: 'XrExE9yKIg1WjnnlVkGX', name: 'Mathilde', description: 'French & Elegant', gender: 'female'},
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'Antoine', description: 'French & Professional', gender: 'male'}
+                ],
+                'de': [
+                    {id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Klaus', description: 'German & Authoritative', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Greta', description: 'German & Clear', gender: 'female'}
+                ],
+                'it': [
+                    {id: 'AZnzlk1XvdvUeBnXmlld', name: 'Marco', description: 'Italian & Expressive', gender: 'male'},
+                    {id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Giulia', description: 'Italian & Melodic', gender: 'female'}
+                ],
+                'pt': [
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'António', description: 'Portuguese & Professional', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Beatriz', description: 'Portuguese & Warm', gender: 'female'}
+                ],
+                'pt-BR': [
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'Roberto', description: 'Brazilian & Friendly', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Fernanda', description: 'Brazilian & Lively', gender: 'female'}
+                ],
+                'hi': [
+                    {id: 'pNInz6obpgDQGcFmaJgB', name: 'राज (Raj)', description: 'Hindi & Professional', gender: 'male'},
+                    {id: 'cgSgspJ2msm6clMCkdW9', name: 'प्रिया (Priya)', description: 'Hindi & Gentle', gender: 'female'},
+                    {id: 'XrExE9yKIg1WjnnlVkGX', name: 'अर्जुन (Arjun)', description: 'Hindi & Confident', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'सुनीता (Sunita)', description: 'Hindi & Melodious', gender: 'female'}
+                ],
+                'ja': [
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'Takeshi', description: 'Japanese & Professional', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Yuki', description: 'Japanese & Gentle', gender: 'female'}
+                ],
+                'ko': [
+                    {id: 'pNInz6obpgDQGcFmaJgB', name: 'Min-jun', description: 'Korean & Clear', gender: 'male'},
+                    {id: 'cgSgspJ2msm6clMCkdW9', name: 'So-young', description: 'Korean & Friendly', gender: 'female'}
+                ],
+                'zh': [
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'Li Wei', description: 'Chinese & Professional', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Mei Lin', description: 'Chinese & Gentle', gender: 'female'}
+                ],
+                'ar': [
+                    {id: 'pNInz6obpgDQGcFmaJgB', name: 'Omar', description: 'Arabic & Clear', gender: 'male'},
+                    {id: 'cgSgspJ2msm6clMCkdW9', name: 'Fatima', description: 'Arabic & Elegant', gender: 'female'}
+                ],
+                'ru': [
+                    {id: 'ErXwobaYiN019PkySvjV', name: 'Alexei', description: 'Russian & Authoritative', gender: 'male'},
+                    {id: 'EXAVITQu4vr4xnSDxMaL', name: 'Natasha', description: 'Russian & Expressive', gender: 'female'}
+                ]
+            };
+
+            // Global variables for selected values
+
+            // Custom dropdown functionality
+            function initializeCustomDropdowns() {
+                // Language dropdown
+                const languageBtn = document.getElementById('languageDropdownBtn');
+                const languageDropdown = document.getElementById('languageDropdown');
+                const selectedLanguageSpan = document.getElementById('selectedLanguage');
+                const voiceBtn = document.getElementById('voiceDropdownBtn');
+                const selectedVoiceSpan = document.getElementById('selectedVoice');
+
+                // Toggle language dropdown
+                languageBtn.addEventListener('click', () => {
+                    languageDropdown.classList.toggle('hidden');
+                    // Close voice dropdown if open
+                    document.getElementById('voiceDropdown').classList.add('hidden');
+                });
+
+                // Language selection
+                languageDropdown.addEventListener('click', (e) => {
+                    if (e.target.dataset.value) {
+                        selectedLanguageValue = e.target.dataset.value;
+                        selectedLanguageSpan.textContent = e.target.dataset.label;
+                        selectedLanguageSpan.classList.remove('text-gray-500');
+                        selectedLanguageSpan.classList.add('text-bermuda-text');
+                        languageDropdown.classList.add('hidden');
+                        
+                        // Enable voice dropdown and populate voices
+                        populateVoiceDropdown(selectedLanguageValue);
+                        voiceBtn.disabled = false;
+                        selectedVoiceSpan.textContent = 'Select Voice';
+                        selectedVoiceSpan.classList.add('text-gray-500');
+                        selectedVoiceSpan.classList.remove('text-bermuda-text');
+                        selectedVoiceValue = '';
+                        selectedVoiceGender = '';
+                        
+                        // Disable preview until voice is selected
+                        enableVoicePreview();
+                    }
+                });
+
+                // Voice dropdown
+                const voiceDropdownEl = document.getElementById('voiceDropdown');
+                voiceBtn.addEventListener('click', () => {
+                    if (!voiceBtn.disabled) {
+                        voiceDropdownEl.classList.toggle('hidden');
+                        // Close language dropdown if open
+                        languageDropdown.classList.add('hidden');
+                    }
+                });
+
+                // Voice selection
+                voiceDropdownEl.addEventListener('click', (e) => {
+                    if (e.target.dataset.value) {
+                        selectedVoiceValue = e.target.dataset.value;
+                        selectedVoiceGender = e.target.dataset.gender;
+                        selectedVoiceSpan.textContent = e.target.dataset.label;
+                        selectedVoiceSpan.classList.remove('text-gray-500');
+                        selectedVoiceSpan.classList.add('text-bermuda-text');
+                        voiceDropdownEl.classList.add('hidden');
+                        
+                        // Enable preview
+                        enableVoicePreview();
+                    }
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
+                        languageDropdown.classList.add('hidden');
+                    }
+                    if (!voiceBtn.contains(e.target) && !voiceDropdownEl.contains(e.target)) {
+                        voiceDropdownEl.classList.add('hidden');
+                    }
+                });
+            }
+
+            function populateVoiceDropdown(language) {
+                const voiceOptions = document.getElementById('voiceOptions');
+                const voices = voiceData[language] || [];
+                
+                voiceOptions.innerHTML = '';
+                
+                if (voices.length === 0) {
+                    voiceOptions.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No voices available</div>';
+                    return;
+                }
+                
+                voices.forEach(voice => {
+                    const option = document.createElement('div');
+                    option.className = 'px-3 py-2 hover:bg-gray-50 rounded cursor-pointer text-sm flex items-center justify-between';
+                    option.dataset.value = voice.id;
+                    option.dataset.label = `${voice.name} - ${voice.description}`;
+                    option.dataset.gender = voice.gender;
+                    
+                    option.innerHTML = `
+                        <div>
+                            <div class="font-medium text-bermuda-text">${voice.name}</div>
+                            <div class="text-xs text-gray-500">${voice.description}</div>
+                        </div>
+                        <div class="text-xs px-2 py-1 rounded ${voice.gender === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}">
+                            ${voice.gender === 'female' ? '👩' : '👨'} ${voice.gender}
+                        </div>
+                    `;
+                    
+                    voiceOptions.appendChild(option);
+                });
+            }
+
+            // Voice modulation sliders
+            function initializeVoiceModulation() {
+                const stabilitySlider = document.getElementById('stabilitySlider');
+                const claritySlider = document.getElementById('claritySlider');
+                const styleSlider = document.getElementById('styleSlider');
+                
+                const stabilityValue = document.getElementById('stabilityValue');
+                const clarityValue = document.getElementById('clarityValue');
+                const styleValue = document.getElementById('styleValue');
+
+                stabilitySlider.addEventListener('input', (e) => {
+                    stabilityValue.textContent = e.target.value;
+                });
+
+                claritySlider.addEventListener('input', (e) => {
+                    clarityValue.textContent = e.target.value;
+                });
+
+                styleSlider.addEventListener('input', (e) => {
+                    styleValue.textContent = e.target.value;
+                });
+            }
+
+            // Voice Preview Functionality
+            function enableVoicePreview() {
+                const previewBtn = document.getElementById('previewVoiceBtn');
+                const previewText = document.getElementById('previewText');
+                
+                if (selectedVoiceValue) {
+                    previewBtn.disabled = false;
+                    previewText.textContent = 'Click to hear a sample of this voice';
+                } else {
+                    previewBtn.disabled = true;
+                    previewText.textContent = 'Select a voice to hear a preview';
+                }
+            }
+
+            // Voice preview event listener
+            document.getElementById('previewVoiceBtn').addEventListener('click', async function() {
+                if (!selectedVoiceValue) {
+                    alert('Please select a voice first');
+                    return;
+                }
+
+                const btn = this;
+                const icon = btn.querySelector('i');
+                const originalText = btn.innerHTML;
+                
+                // Update button state
+                btn.disabled = true;
+                icon.className = 'ph ph-spinner-gap text-white animate-spin';
+                btn.innerHTML = icon.outerHTML + ' Playing...';
+                
+                try {
+                    // Gender-appropriate preview text
+                    const genderPreviewTexts = {
+                        'en': {
+                            'female': 'Hello! I\'m here to help you with your survey. I sound natural and friendly.',
+                            'male': 'Hello! I\'m here to help you with your survey. I sound professional and clear.'
+                        },
+                        'es': {
+                            'female': 'Hola! Estoy aquí para ayudarte con tu encuesta. Sueno natural y amigable.',
+                            'male': 'Hola! Estoy aquí para ayudarte con tu encuesta. Sueno profesional y claro.'
+                        },
+                        'fr': {
+                            'female': 'Bonjour! Je suis ici pour vous aider avec votre sondage. Je sonne naturelle et amicale.',
+                            'male': 'Bonjour! Je suis ici pour vous aider avec votre sondage. Je sonne professionnel et clair.'
+                        },
+                        'de': {
+                            'female': 'Hallo! Ich bin hier, um Ihnen bei Ihrer Umfrage zu helfen. Ich klinge natürlich und freundlich.',
+                            'male': 'Hallo! Ich bin hier, um Ihnen bei Ihrer Umfrage zu helfen. Ich klinge professionell und klar.'
+                        },
+                        'hi': {
+                            'female': 'नमस्ते! मैं आपके सर्वेक्षण में आपकी सहायता के लिए यहाँ हूँ। मैं प्राकृतिक और मित्रवत लगती हूँ।',
+                            'male': 'नमस्ते! मैं आपके सर्वेक्षण में आपकी सहायता के लिए यहाँ हूँ। मैं व्यावसायिक और स्पष्ट लगता हूँ।'
+                        },
+                        'it': {
+                            'female': 'Ciao! Sono qui per aiutarti con il tuo sondaggio. Suono naturale e amichevole.',
+                            'male': 'Ciao! Sono qui per aiutarti con il tuo sondaggio. Suono professionale e chiaro.'
+                        },
+                        'pt': {
+                            'female': 'Olá! Estou aqui para ajudá-la com sua pesquisa. Eu soou natural e amigável.',
+                            'male': 'Olá! Estou aqui para ajudá-lo com sua pesquisa. Eu soou profissional e claro.'
+                        },
+                        'ja': {
+                            'female': 'こんにちは！アンケートのお手伝いをします。自然で親しみやすく聞こえます。',
+                            'male': 'こんにちは！アンケートのお手伝いをします。プロフェッショナルで明確に聞こえます。'
+                        },
+                        'ko': {
+                            'female': '안녕하세요! 설문조사를 도와드리겠습니다. 자연스럽고 친근하게 들립니다.',
+                            'male': '안녕하세요! 설문조사를 도와드리겠습니다. 전문적이고 명확하게 들립니다.'
+                        }
+                    };
+                    
+                    const langCode = selectedLanguageValue.split('-')[0]; // Get base language
+                    const genderTexts = genderPreviewTexts[langCode] || genderPreviewTexts['en'];
+                    const text = genderTexts[selectedVoiceGender] || genderTexts['female'] || 'Hello! This is a preview of my voice.';
+                    
+                    // Get voice modulation settings
+                    const voiceSettings = {
+                        stability: parseFloat(document.getElementById('stabilitySlider').value),
+                        similarity_boost: parseFloat(document.getElementById('claritySlider').value),
+                        style: parseFloat(document.getElementById('styleSlider').value),
+                        use_speaker_boost: true
+                    };
+                    
+                    // Call ElevenLabs TTS API
+                    const response = await fetch('/api/voice/preview', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            voice_id: selectedVoiceValue,
+                            text: text,
+                            voice_settings: voiceSettings
+                        })
+                    });
+
+                    if (response.ok) {
+                        const audioBlob = await response.blob();
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+                        
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            // Reset button state
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        };
+                        
+                        audio.onerror = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            // Reset button state
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            alert('Error playing voice preview');
+                        };
+                        
+                        await audio.play();
+                    } else {
+                        throw new Error('Failed to generate voice preview');
+                    }
+                    
+                } catch (error) {
+                    console.error('Voice preview error:', error);
+                    alert('Unable to play voice preview. Please try again.');
+                    // Reset button state
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            });
+
+            // Initialize voice functionality
+            initializeCustomDropdowns();
+            initializeVoiceModulation();
         });
     </script>
 
