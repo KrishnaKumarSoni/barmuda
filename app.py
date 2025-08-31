@@ -219,7 +219,12 @@ from billing import (
     is_test_mode,
 )
 
-init_billing(db)
+# Only initialize billing if Firebase is available
+if firebase_initialized and db is not None:
+    init_billing(db)
+    print("✓ Billing system initialized")
+else:
+    print("⚠ Billing system skipped - Firebase not available")
 
 # Admin system disabled to prevent Firebase quota issues
 from admin import (
