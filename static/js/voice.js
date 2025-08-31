@@ -25,40 +25,19 @@ class VoiceConversation {
       
       const tokenData = await tokenResponse.json();
       
-      // Request microphone access first
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request microphone access for voice input
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Debug: Check what's available in window object
-      console.log('Available in window:', {
-        ElevenLabs: typeof window.ElevenLabs,
-        Conversation: typeof window.Conversation,
-        ElevenLabsClient: typeof window.ElevenLabsClient,
-        EL: typeof window.EL
+      // Initialize server-based voice conversation
+      this.conversation = new ServerVoiceConversation({
+        voiceId: this.voiceId,
+        formId: this.formId,
+        onConnect: () => this.onConnect(),
+        onDisconnect: () => this.onDisconnect(),
+        onMessage: (message) => this.onMessage(message),
+        onError: (error) => this.onError(error),
+        onTranscript: (transcript) => this.onTranscript(transcript)
       });
-      
-      // Initialize ElevenLabs conversation using real SDK
-      if (window.Conversation) {
-        this.conversation = await window.Conversation.startSession({
-          agentId: tokenData.conversation_id, // Use our conversation_id as agent_id 
-          onConnect: () => this.onConnect(),
-          onDisconnect: () => this.onDisconnect(),
-          onMessage: (message) => this.onMessage(message),
-          onError: (error) => this.onError(error),
-          onStatusChange: (status) => console.log('Status:', status),
-          onModeChange: (mode) => console.log('Mode:', mode)
-        });
-      } else {
-        // Fallback to mock for testing
-        this.conversation = new ElevenLabsConversation({
-          voiceId: this.voiceId,
-          apiKey: tokenData.token,
-          onConnect: () => this.onConnect(),
-          onDisconnect: () => this.onDisconnect(),
-          onMessage: (message) => this.onMessage(message),
-          onError: (error) => this.onError(error),
-          onTranscript: (transcript) => this.onTranscript(transcript)
-        });
-      }
       
       // Start session tracking
       await this.startSession();
@@ -335,31 +314,78 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Use the actual ElevenLabs SDK if available, otherwise fall back to mock
-const ElevenLabsConversation = window.ElevenLabs?.Conversation || class MockElevenLabsConversation {
+// Server-based voice conversation using ElevenLabs API via backend
+class ServerVoiceConversation {
   constructor(config) {
     this.config = config;
-    console.log('Mock ElevenLabs conversation initialized (SDK not loaded):', config);
+    this.isListening = false;
+    this.mediaRecorder = null;
+    this.audioChunks = [];
+    console.log('Server voice conversation initialized:', config);
   }
   
   async startConversation() {
-    console.log('Starting mock conversation...');
+    console.log('Starting server-based voice conversation...');
     this.config.onConnect?.();
-    // Simulate conversation start
-    setTimeout(() => {
-      this.config.onTranscript?.({
-        speaker: 'assistant',
-        text: 'Hello! I\'m ready to help you with the survey. Shall we begin?'
+    
+    // Start with greeting
+    await this.speak('Hello! I\'m ready to help you with the survey. Shall we begin?');
+    
+    // Start listening for voice input
+    this.startListening();
+  }
+  
+  async speak(text) {
+    try {
+      const response = await fetch('/api/voice/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: text,
+          voice_id: this.config.voiceId
+        })
       });
-    }, 1000);
+      
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        await audio.play();
+        
+        // Update transcript
+        this.config.onTranscript?.({
+          speaker: 'assistant',
+          text: text
+        });
+      }
+    } catch (error) {
+      console.error('TTS error:', error);
+    }
+  }
+  
+  startListening() {
+    // This would implement voice recognition
+    // For now, just simulate user input after speech
+    console.log('Listening for user voice...');
   }
   
   async pauseConversation() {
-    console.log('Pausing mock conversation...');
+    console.log('Pausing server conversation...');
+    this.stopListening();
   }
   
   async endConversation() {
-    console.log('Ending mock conversation...');
+    console.log('Ending server conversation...');
+    this.stopListening();
     this.config.onDisconnect?.();
+  }
+  
+  stopListening() {
+    this.isListening = false;
+    if (this.mediaRecorder) {
+      this.mediaRecorder.stop();
+    }
   }
 };
