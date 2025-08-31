@@ -2376,7 +2376,8 @@ def voice_form_page(form_id):
             "voice.html",
             form_id=form_id,
             form_title=form_data.get("title", "Survey"),
-            agent_id=form_data.get("voice_settings", {}).get("agent_id", ""),
+            voice_id=form_data.get("voice_settings", {}).get("voice_id", ""),
+            language=form_data.get("voice_settings", {}).get("language", "en"),
         )
     except Exception as e:
         print(f"Error loading voice form page: {str(e)}")
@@ -2466,12 +2467,28 @@ def widget_script():
 def get_voice_token():
     """Generate an ephemeral ElevenLabs token for voice sessions"""
     data = request.get_json() or {}
-    agent_id = data.get("agent_id")
-    if not agent_id:
-        return jsonify({"success": False, "error": "agent_id required"}), 400
+    voice_id = data.get("voice_id")
+    form_id = data.get("form_id")  # Optional form context
+    
+    if not voice_id:
+        return jsonify({"success": False, "error": "voice_id required"}), 400
+
+    # Get form context for better agent configuration
+    language = "en"
+    form_title = "Survey"
+    
+    if form_id:
+        try:
+            form_doc = db.collection("forms").document(form_id).get()
+            if form_doc.exists:
+                form_data = form_doc.to_dict()
+                language = form_data.get("voice_settings", {}).get("language", "en")
+                form_title = form_data.get("title", "Survey")
+        except Exception as e:
+            logger.warning(f"Could not fetch form data for agent context: {str(e)}")
 
     try:
-        token_info = create_ephemeral_token(agent_id)
+        token_info = create_ephemeral_token(voice_id, language, form_title)
         return jsonify({"success": True, **token_info})
     except Exception as e:
         logger.error(f"Error generating voice token: {str(e)}")

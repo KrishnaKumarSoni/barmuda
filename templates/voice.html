@@ -15,7 +15,10 @@
     {% include 'partials/nav.html' %}
 
     <div class="flex-1 flex flex-col items-center justify-center space-y-6">
-        <div id="visualizer" class="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 animate-pulse"></div>
+        <div id="visualizer" class="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-pink-400"></div>
+        <div id="status" class="text-center text-gray-600 text-sm min-h-[1.5rem]">
+            Ready to start voice conversation
+        </div>
         <div class="space-x-4">
             <button id="start-btn" class="px-4 py-2 bg-[#cc5500] text-white rounded-full">Start</button>
             <button id="pause-btn" class="px-4 py-2 bg-gray-300 rounded-full">Pause</button>
@@ -24,7 +27,10 @@
     </div>
 
     <script>
-        window.AGENT_ID = "{{ agent_id }}";
+        window.VOICE_ID = "{{ voice_id }}";
+        window.LANGUAGE = "{{ language }}";
+        window.FORM_ID = "{{ form_id }}";
+        window.FORM_TITLE = "{{ form_title }}";
     </script>
     <script src="/static/js/voice.js"></script>
 </body>
