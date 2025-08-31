@@ -95,7 +95,6 @@ class BackgroundExtractor:
     
     def _worker_loop(self):
         """Main worker loop for processing extraction jobs"""
-        global extraction_active
         
         while extraction_active:
             try:

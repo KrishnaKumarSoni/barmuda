@@ -555,7 +555,7 @@ def validate_response(
     import re
 
     try:
-        session = get_session(session_id)
+        session = load_session(session_id)
         if not session:
             return {"valid": False, "error": "Session not found"}
 
