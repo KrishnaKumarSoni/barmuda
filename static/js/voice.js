@@ -321,6 +321,8 @@ class ServerVoiceConversation {
     this.isListening = false;
     this.mediaRecorder = null;
     this.audioChunks = [];
+    this.currentAudio = null; // Track current playing audio
+    this.isPlaying = false;
     console.log('Server voice conversation initialized:', config);
   }
   
@@ -337,6 +339,12 @@ class ServerVoiceConversation {
   
   async speak(text) {
     try {
+      // Stop current audio if playing (interruption)
+      if (this.currentAudio && !this.currentAudio.paused) {
+        this.currentAudio.pause();
+        this.currentAudio = null;
+      }
+      
       const response = await fetch('/api/voice/speak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -351,7 +359,15 @@ class ServerVoiceConversation {
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         
-        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        this.currentAudio = audio;
+        this.isPlaying = true;
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          this.isPlaying = false;
+          this.currentAudio = null;
+        };
+        
         await audio.play();
         
         // Update transcript
@@ -362,13 +378,102 @@ class ServerVoiceConversation {
       }
     } catch (error) {
       console.error('TTS error:', error);
+      this.isPlaying = false;
     }
   }
   
-  startListening() {
-    // This would implement voice recognition
-    // For now, just simulate user input after speech
-    console.log('Listening for user voice...');
+  async startListening() {
+    console.log('Starting voice recognition...');
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      console.error('Speech recognition not supported');
+      return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.recognition = new SpeechRecognition();
+    
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US'; // Could be dynamic based on form settings
+    
+    this.recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      // Handle interruption - if user starts speaking while AI is talking
+      if (interimTranscript && this.isPlaying) {
+        console.log('User interrupting...');
+        // Stop current audio
+        if (this.currentAudio && !this.currentAudio.paused) {
+          this.currentAudio.pause();
+          this.currentAudio = null;
+          this.isPlaying = false;
+        }
+      }
+      
+      if (finalTranscript) {
+        console.log('User said:', finalTranscript);
+        this.handleUserSpeech(finalTranscript);
+      }
+    };
+    
+    this.recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error === 'no-speech') {
+        // Restart listening after a brief pause
+        setTimeout(() => this.startListening(), 1000);
+      }
+    };
+    
+    this.recognition.onend = () => {
+      if (this.isListening) {
+        // Restart recognition to keep listening
+        setTimeout(() => this.recognition.start(), 100);
+      }
+    };
+    
+    this.isListening = true;
+    this.recognition.start();
+  }
+  
+  async handleUserSpeech(transcript) {
+    // Add to transcript
+    this.config.onTranscript?.({
+      speaker: 'user',
+      text: transcript
+    });
+    
+    // Send to conversation API for response
+    try {
+      const response = await fetch('/api/voice/conversation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          form_id: this.config.formId,
+          user_input: transcript,
+          voice_id: this.config.voiceId
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.response) {
+          await this.speak(data.response);
+        }
+      }
+    } catch (error) {
+      console.error('Conversation API error:', error);
+    }
   }
   
   async pauseConversation() {
@@ -384,6 +489,9 @@ class ServerVoiceConversation {
   
   stopListening() {
     this.isListening = false;
+    if (this.recognition) {
+      this.recognition.stop();
+    }
     if (this.mediaRecorder) {
       this.mediaRecorder.stop();
     }
