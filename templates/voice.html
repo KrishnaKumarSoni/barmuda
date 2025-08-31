@@ -39,8 +39,8 @@
             <div id="visualizer" class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-[#cc5500] to-[#d12b2e] shadow-2xl flex items-center justify-center">
                 <i class="ph ph-microphone text-white text-4xl md:text-5xl"></i>
             </div>
-            <!-- Ripple effect -->
-            <div class="absolute inset-0 rounded-full border-4 border-[#cc5500] opacity-20 animate-ping"></div>
+            <!-- Ripple effect - only show when active -->
+            <div id="ripple-effect" class="absolute inset-0 rounded-full border-4 border-[#cc5500] opacity-20 animate-ping hidden"></div>
         </div>
         
         <!-- Controls -->
@@ -89,8 +89,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@11labs/voice-sdk@latest/dist/index.umd.js"></script>
     
     <script>
-        window.AGENT_ID = "{{ agent_id }}";
         window.FORM_ID = "{{ form_id }}";
+        window.VOICE_LANGUAGE = "{{ voice_language }}";
+        window.VOICE_ID = "{{ voice_id }}";
     </script>
     <script src="/static/js/voice.js"></script>
 </body>

@@ -1,8 +1,9 @@
 // Voice conversation handler for ElevenLabs Conversational AI
 class VoiceConversation {
-  constructor(formId, agentId) {
+  constructor(formId, voiceId, language) {
     this.formId = formId;
-    this.agentId = agentId;
+    this.voiceId = voiceId;
+    this.language = language;
     this.conversation = null;
     this.isActive = false;
     this.sessionId = null;
@@ -24,9 +25,9 @@ class VoiceConversation {
       
       const tokenData = await tokenResponse.json();
       
-      // Initialize ElevenLabs conversation
+      // Initialize ElevenLabs conversation using voice_id instead of agent_id
       this.conversation = new ElevenLabsConversation({
-        agentId: this.agentId,
+        voiceId: this.voiceId,
         apiKey: tokenData.token,
         onConnect: () => this.onConnect(),
         onDisconnect: () => this.onDisconnect(),
@@ -159,42 +160,65 @@ class VoiceConversation {
   
   updateUI(state) {
     const visualizer = document.getElementById('visualizer');
+    const rippleEffect = document.getElementById('ripple-effect');
     const startBtn = document.getElementById('start-btn');
     const pauseBtn = document.getElementById('pause-btn');
     const endBtn = document.getElementById('end-btn');
     
     switch(state) {
       case 'active':
-        visualizer.classList.add('animate-pulse');
-        startBtn.disabled = true;
-        startBtn.classList.add('opacity-50');
-        pauseBtn.disabled = false;
-        pauseBtn.classList.remove('opacity-50');
-        endBtn.disabled = false;
+      case 'connected':
+        // Show ripple animation when conversation is active
+        if (rippleEffect) rippleEffect.classList.remove('hidden');
+        if (visualizer) visualizer.classList.add('voice-active');
+        if (startBtn) {
+          startBtn.disabled = true;
+          startBtn.classList.add('opacity-50');
+        }
+        if (pauseBtn) {
+          pauseBtn.disabled = false;
+          pauseBtn.classList.remove('opacity-50');
+        }
+        if (endBtn) endBtn.disabled = false;
         break;
         
       case 'paused':
-        visualizer.classList.remove('animate-pulse');
-        startBtn.disabled = false;
-        startBtn.classList.remove('opacity-50');
-        startBtn.textContent = 'Resume';
-        pauseBtn.disabled = true;
-        pauseBtn.classList.add('opacity-50');
+        // Hide ripple animation when paused
+        if (rippleEffect) rippleEffect.classList.add('hidden');
+        if (visualizer) visualizer.classList.remove('voice-active');
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.classList.remove('opacity-50');
+          startBtn.querySelector('span').textContent = 'Resume';
+        }
+        if (pauseBtn) {
+          pauseBtn.disabled = true;
+          pauseBtn.classList.add('opacity-50');
+        }
         break;
         
       case 'ended':
-        visualizer.classList.remove('animate-pulse');
-        visualizer.classList.add('opacity-50');
-        startBtn.disabled = true;
-        pauseBtn.disabled = true;
-        endBtn.disabled = true;
+      case 'disconnected':
+        // Hide ripple animation when ended
+        if (rippleEffect) rippleEffect.classList.add('hidden');
+        if (visualizer) {
+          visualizer.classList.remove('voice-active');
+          visualizer.classList.add('opacity-50');
+        }
+        if (startBtn) startBtn.disabled = true;
+        if (pauseBtn) pauseBtn.disabled = true;
+        if (endBtn) endBtn.disabled = true;
         // Show completion message
         this.showCompletionMessage();
         break;
         
       case 'error':
-        visualizer.classList.remove('animate-pulse');
-        visualizer.classList.add('bg-red-400');
+        // Hide ripple animation on error
+        if (rippleEffect) rippleEffect.classList.add('hidden');
+        if (visualizer) {
+          visualizer.classList.remove('voice-active');
+          visualizer.classList.add('bg-red-400');
+        }
         break;
     }
   }
@@ -228,15 +252,21 @@ class VoiceConversation {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  const formId = window.location.pathname.split('/').pop();
-  const agentId = window.AGENT_ID;
+  const formId = window.FORM_ID;
+  const voiceId = window.VOICE_ID;
+  const language = window.VOICE_LANGUAGE;
   
-  if (!agentId) {
-    console.error('No agent ID provided');
+  if (!voiceId) {
+    console.error('No voice ID provided');
     return;
   }
   
-  const conversation = new VoiceConversation(formId, agentId);
+  if (!formId) {
+    console.error('No form ID provided');
+    return;
+  }
+  
+  const conversation = new VoiceConversation(formId, voiceId, language);
   
   // Button handlers
   const startBtn = document.getElementById('start-btn');
