@@ -122,6 +122,38 @@ def favicon():
     )
 
 
+# Debug route for environment testing
+@app.route("/debug-env")
+def debug_env():
+    if not os.environ.get("VERCEL"):
+        return "Not available in local environment", 403
+    
+    firebase_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+    
+    debug_info = {
+        "vercel_env": bool(os.environ.get("VERCEL")),
+        "firebase_project_id": os.environ.get("FIREBASE_PROJECT_ID", "NOT_SET"),
+        "firebase_client_email": os.environ.get("FIREBASE_CLIENT_EMAIL", "NOT_SET"),
+        "firebase_private_key_present": bool(firebase_key),
+        "firebase_private_key_length": len(firebase_key) if firebase_key else 0,
+        "firebase_private_key_starts_with": firebase_key[:30] + "..." if firebase_key else "EMPTY",
+        "is_base64": "BEGIN PRIVATE KEY" not in firebase_key if firebase_key else False,
+        "openai_key_present": bool(os.environ.get("OPENAI_API_KEY")),
+        "flask_secret_present": bool(os.environ.get("FLASK_SECRET_KEY")),
+    }
+    
+    if firebase_key and "BEGIN PRIVATE KEY" not in firebase_key:
+        try:
+            decoded = base64.b64decode(firebase_key).decode("utf-8")
+            debug_info["base64_decode_success"] = True
+            debug_info["decoded_starts_with"] = decoded[:30] + "..."
+            debug_info["decoded_is_pem"] = "BEGIN PRIVATE KEY" in decoded
+        except Exception as e:
+            debug_info["base64_decode_error"] = str(e)
+    
+    return jsonify(debug_info)
+
+
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
     # For production (Vercel), use environment variables
