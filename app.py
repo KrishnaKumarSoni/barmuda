@@ -132,6 +132,7 @@ def debug_env():
     
     debug_info = {
         "vercel_env": bool(os.environ.get("VERCEL")),
+        "firebase_initialized": firebase_initialized,
         "firebase_project_id": os.environ.get("FIREBASE_PROJECT_ID", "NOT_SET"),
         "firebase_client_email": os.environ.get("FIREBASE_CLIENT_EMAIL", "NOT_SET"),
         "firebase_private_key_present": bool(firebase_key),
@@ -140,6 +141,7 @@ def debug_env():
         "is_base64": "BEGIN PRIVATE KEY" not in firebase_key if firebase_key else False,
         "openai_key_present": bool(os.environ.get("OPENAI_API_KEY")),
         "flask_secret_present": bool(os.environ.get("FLASK_SECRET_KEY")),
+        "db_client_available": db is not None,
     }
     
     if firebase_key and "BEGIN PRIVATE KEY" not in firebase_key:
@@ -155,45 +157,55 @@ def debug_env():
 
 
 # Initialize Firebase Admin SDK
-if not firebase_admin._apps:
-    # For production (Vercel), use environment variables
-    # For local development, fall back to service account file
-    if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
-        # Production environment - use environment variables
-        private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
-        # Some environments provide the key base64 encoded or without newline escapes.
-        if "BEGIN PRIVATE KEY" not in private_key:
-            try:
-                private_key = base64.b64decode(private_key).decode("utf-8")
-            except Exception:
-                # Leave as-is; initialization will raise informative error if invalid.
-                pass
-        private_key = private_key.replace("\\n", "\n")
+firebase_initialized = False
+db = None
 
-        firebase_config = {
-            "type": "service_account",
-            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
-            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
-            "private_key": private_key,
-            "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
-            "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
-            "universe_domain": "googleapis.com",
-        }
-        cred = credentials.Certificate(firebase_config)
-    else:
-        # Local development - use service account file
-        cred = credentials.Certificate(
-            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
-        )
+try:
+    if not firebase_admin._apps:
+        # For production (Vercel), use environment variables
+        # For local development, fall back to service account file
+        if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
+            # Production environment - use environment variables
+            private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+            # Some environments provide the key base64 encoded or without newline escapes.
+            if "BEGIN PRIVATE KEY" not in private_key:
+                try:
+                    private_key = base64.b64decode(private_key).decode("utf-8")
+                except Exception:
+                    # Leave as-is; initialization will raise informative error if invalid.
+                    pass
+            private_key = private_key.replace("\\n", "\n")
 
-    firebase_admin.initialize_app(cred)
+            firebase_config = {
+                "type": "service_account",
+                "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
+                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+                "private_key": private_key,
+                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+                "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                "universe_domain": "googleapis.com",
+            }
+            cred = credentials.Certificate(firebase_config)
+        else:
+            # Local development - use service account file
+            cred = credentials.Certificate(
+                "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
+            )
 
-# Initialize Firestore
-db = firestore.client()
+        firebase_admin.initialize_app(cred)
+        # Initialize Firestore
+        db = firestore.client()
+        firebase_initialized = True
+        print("✓ Firebase initialized successfully")
+
+except Exception as e:
+    print(f"✗ Firebase initialization failed: {e}")
+    firebase_initialized = False
+    # Continue app startup even if Firebase fails
 
 # Initialize OpenAI client - strip whitespace from API key to prevent header errors
 openai_api_key = os.environ.get("OPENAI_API_KEY", "").strip()
