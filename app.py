@@ -2567,10 +2567,10 @@ def get_voice_token():
         if not form_data.get("status") == "active":
             return jsonify({"success": False, "error": "Form is not active"}), 400
             
-        # Extract agent_id from voice settings
-        agent_id = form_data.get("voice_settings", {}).get("agent_id")
-        if not agent_id:
-            return jsonify({"success": False, "error": "No agent_id configured for this form"}), 400
+        # Extract voice_id from voice settings
+        voice_id = form_data.get("voice_settings", {}).get("voice_id")
+        if not voice_id:
+            return jsonify({"success": False, "error": "No voice_id configured for this form"}), 400
 
         # Rate limiting: max 10 tokens per form per hour
         cache_key = f"voice_tokens:{form_id}"
@@ -2578,7 +2578,7 @@ def get_voice_token():
         if token_count >= 10:
             return jsonify({"success": False, "error": "Rate limit exceeded"}), 429
             
-        token_info = create_ephemeral_token(agent_id)
+        token_info = create_ephemeral_token(voice_id, form_data)
         
         # Update rate limit counter
         cache.set(cache_key, token_count + 1, timeout=3600)  # 1 hour
