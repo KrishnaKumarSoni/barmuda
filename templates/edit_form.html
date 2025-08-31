@@ -537,6 +537,9 @@
         let savedFormId = null;
         let backModalTarget = null;
         let currentFormMode = 'chat'; // Default to chat mode
+        let selectedLanguageValue = '';
+        let selectedVoiceValue = '';
+        let selectedVoiceGender = '';
 
         // Demographics options
         const demographicsOptions = [
@@ -1783,9 +1786,6 @@
             };
 
             // Global variables for selected values
-            let selectedLanguageValue = '';
-            let selectedVoiceValue = '';
-            let selectedVoiceGender = '';
 
             // Custom dropdown functionality
             function initializeCustomDropdowns() {
