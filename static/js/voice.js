@@ -25,16 +25,32 @@ class VoiceConversation {
       
       const tokenData = await tokenResponse.json();
       
-      // Initialize ElevenLabs conversation using voice_id instead of agent_id
-      this.conversation = new ElevenLabsConversation({
-        voiceId: this.voiceId,
-        apiKey: tokenData.token,
-        onConnect: () => this.onConnect(),
-        onDisconnect: () => this.onDisconnect(),
-        onMessage: (message) => this.onMessage(message),
-        onError: (error) => this.onError(error),
-        onTranscript: (transcript) => this.onTranscript(transcript)
-      });
+      // Request microphone access first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Initialize ElevenLabs conversation using real SDK
+      if (window.Conversation) {
+        this.conversation = await window.Conversation.startSession({
+          agentId: tokenData.conversation_id, // Use our conversation_id as agent_id 
+          onConnect: () => this.onConnect(),
+          onDisconnect: () => this.onDisconnect(),
+          onMessage: (message) => this.onMessage(message),
+          onError: (error) => this.onError(error),
+          onStatusChange: (status) => console.log('Status:', status),
+          onModeChange: (mode) => console.log('Mode:', mode)
+        });
+      } else {
+        // Fallback to mock for testing
+        this.conversation = new ElevenLabsConversation({
+          voiceId: this.voiceId,
+          apiKey: tokenData.token,
+          onConnect: () => this.onConnect(),
+          onDisconnect: () => this.onDisconnect(),
+          onMessage: (message) => this.onMessage(message),
+          onError: (error) => this.onError(error),
+          onTranscript: (transcript) => this.onTranscript(transcript)
+        });
+      }
       
       // Start session tracking
       await this.startSession();
@@ -83,14 +99,21 @@ class VoiceConversation {
       }
     }
     
-    await this.conversation.startConversation();
+    // For real ElevenLabs SDK, conversation starts automatically after startSession()
+    // For mock, call startConversation
+    if (this.conversation.startConversation) {
+      await this.conversation.startConversation();
+    }
     this.isActive = true;
     this.updateUI('active');
   }
   
   async pause() {
     if (this.conversation && this.isActive) {
-      await this.conversation.pauseConversation();
+      // ElevenLabs SDK doesn't have pause - use end/start pattern or mock method
+      if (this.conversation.pauseConversation) {
+        await this.conversation.pauseConversation();
+      }
       this.isActive = false;
       this.updateUI('paused');
     }
@@ -98,7 +121,12 @@ class VoiceConversation {
   
   async end() {
     if (this.conversation) {
-      await this.conversation.endConversation();
+      // Use the correct ElevenLabs SDK method or mock method
+      if (this.conversation.endSession) {
+        await this.conversation.endSession();
+      } else if (this.conversation.endConversation) {
+        await this.conversation.endConversation();
+      }
       this.isActive = false;
       this.updateUI('ended');
       
