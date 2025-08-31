@@ -35,7 +35,7 @@ from voice_agent import create_ephemeral_token
 # Load environment variables
 load_dotenv()
 
-# All environment variables added to Preview - deployment trigger
+# Complete environment parity with Production - final test
 
 # Simple in-memory cache for rate limiting
 class SimpleCache:
