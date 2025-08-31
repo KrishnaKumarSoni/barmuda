@@ -178,15 +178,15 @@ try:
 
             firebase_config = {
                 "type": "service_account",
-                "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
-                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+                "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in").strip(),
+                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID", "").strip(),
                 "private_key": private_key,
-                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
-                "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL", "").strip(),
+                "client_id": os.environ.get("FIREBASE_CLIENT_ID", "").strip(),
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').strip().replace('@', '%40')}",
                 "universe_domain": "googleapis.com",
             }
             cred = credentials.Certificate(firebase_config)
