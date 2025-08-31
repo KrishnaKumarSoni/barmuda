@@ -323,20 +323,25 @@ class ServerVoiceConversation {
     this.audioChunks = [];
     this.currentAudio = null; // Track current playing audio
     this.isPlaying = false;
+    this.ignoreRecognition = false; // Ignore recognition results when needed
     console.log('Server voice conversation initialized:', config);
   }
-  
+
   async startConversation() {
     console.log('Starting server-based voice conversation...');
     this.config.onConnect?.();
-    
+
+    // Start listening immediately to remain under initial user gesture
+    this.ignoreRecognition = true; // Ignore recognizer until greeting completes
+    this.startListening();
+
     // Start with greeting
     await this.speak('Hello! I\'m ready to help you with the survey. Shall we begin?');
-    
-    // Start listening for voice input
-    this.startListening();
+
+    // Allow recognition results after greeting finishes
+    this.ignoreRecognition = false;
   }
-  
+
   async speak(text) {
     try {
       // Stop current audio if playing (interruption)
@@ -358,22 +363,25 @@ class ServerVoiceConversation {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
-        
+
         this.currentAudio = audio;
         this.isPlaying = true;
-        
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          this.isPlaying = false;
-          this.currentAudio = null;
-        };
-        
-        await audio.play();
-        
-        // Update transcript
+
+        // Update transcript immediately
         this.config.onTranscript?.({
           speaker: 'assistant',
           text: text
+        });
+
+        // Play audio and resolve when finished
+        await new Promise((resolve) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            this.isPlaying = false;
+            this.currentAudio = null;
+            resolve();
+          };
+          audio.play();
         });
       }
     } catch (error) {
@@ -398,6 +406,8 @@ class ServerVoiceConversation {
     this.recognition.lang = 'en-US'; // Could be dynamic based on form settings
     
     this.recognition.onresult = (event) => {
+      if (this.ignoreRecognition) return; // Ignore unwanted early results
+
       let interimTranscript = '';
       let finalTranscript = '';
       
