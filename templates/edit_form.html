@@ -141,41 +141,163 @@
             </div>
             
             <!-- Voice Settings (hidden by default) -->
-            <div id="voiceSettings" class="hidden mt-4 p-3 bg-gray-50 rounded-lg">
-                <h3 class="font-jakarta font-medium text-sm text-bermuda-text mb-3">Voice Settings</h3>
-                <div class="grid grid-cols-2 gap-3">
+            <div id="voiceSettings" class="hidden mt-4 p-4 bg-white border border-gray-200 rounded-lg">
+                <h3 class="font-jakarta font-semibold text-base text-bermuda-text mb-4 flex items-center gap-2">
+                    <i class="ph ph-microphone text-bermuda-orange"></i>
+                    Voice Settings
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- Language Selection -->
                     <div>
-                        <label class="font-dm text-xs text-bermuda-gray mb-1 block">Language</label>
-                        <select id="voiceLanguage" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                            <option value="en">English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <option value="de">German</option>
-                            <option value="it">Italian</option>
-                            <option value="pt">Portuguese</option>
-                            <option value="zh">Chinese</option>
-                            <option value="ja">Japanese</option>
-                        </select>
+                        <label class="font-dm text-sm font-medium text-bermuda-text mb-2 block">Language</label>
+                        <div class="relative">
+                            <select id="voiceLanguage" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white focus:border-bermuda-orange focus:ring-1 focus:ring-bermuda-orange appearance-none pr-10">
+                                <option value="">Select Language</option>
+                                <!-- English -->
+                                <option value="en">🇺🇸 English (US)</option>
+                                <option value="en-GB">🇬🇧 English (UK)</option>
+                                <option value="en-AU">🇦🇺 English (Australia)</option>
+                                <option value="en-CA">🇨🇦 English (Canada)</option>
+                                <!-- Spanish -->
+                                <option value="es">🇪🇸 Spanish (Spain)</option>
+                                <option value="es-MX">🇲🇽 Spanish (Mexico)</option>
+                                <option value="es-AR">🇦🇷 Spanish (Argentina)</option>
+                                <!-- French -->
+                                <option value="fr">🇫🇷 French (France)</option>
+                                <option value="fr-CA">🇨🇦 French (Canada)</option>
+                                <!-- German -->
+                                <option value="de">🇩🇪 German</option>
+                                <!-- Italian -->
+                                <option value="it">🇮🇹 Italian</option>
+                                <!-- Portuguese -->
+                                <option value="pt">🇵🇹 Portuguese (Portugal)</option>
+                                <option value="pt-BR">🇧🇷 Portuguese (Brazil)</option>
+                                <!-- Chinese -->
+                                <option value="zh">🇨🇳 Chinese (Mandarin)</option>
+                                <!-- Japanese -->
+                                <option value="ja">🇯🇵 Japanese</option>
+                                <!-- Korean -->
+                                <option value="ko">🇰🇷 Korean</option>
+                                <!-- Hindi -->
+                                <option value="hi">🇮🇳 Hindi</option>
+                                <!-- Arabic -->
+                                <option value="ar">🇸🇦 Arabic</option>
+                                <!-- Russian -->
+                                <option value="ru">🇷🇺 Russian</option>
+                                <!-- Dutch -->
+                                <option value="nl">🇳🇱 Dutch</option>
+                                <!-- Polish -->
+                                <option value="pl">🇵🇱 Polish</option>
+                                <!-- Turkish -->
+                                <option value="tr">🇹🇷 Turkish</option>
+                                <!-- Swedish -->
+                                <option value="sv">🇸🇪 Swedish</option>
+                                <!-- Norwegian -->
+                                <option value="no">🇳🇴 Norwegian</option>
+                                <!-- Danish -->
+                                <option value="da">🇩🇰 Danish</option>
+                                <!-- Finnish -->
+                                <option value="fi">🇫🇮 Finnish</option>
+                                <!-- Czech -->
+                                <option value="cs">🇨🇿 Czech</option>
+                                <!-- Slovak -->
+                                <option value="sk">🇸🇰 Slovak</option>
+                                <!-- Hungarian -->
+                                <option value="hu">🇭🇺 Hungarian</option>
+                                <!-- Greek -->
+                                <option value="el">🇬🇷 Greek</option>
+                                <!-- Ukrainian -->
+                                <option value="uk">🇺🇦 Ukrainian</option>
+                                <!-- Bulgarian -->
+                                <option value="bg">🇧🇬 Bulgarian</option>
+                                <!-- Croatian -->
+                                <option value="hr">🇭🇷 Croatian</option>
+                                <!-- Romanian -->
+                                <option value="ro">🇷🇴 Romanian</option>
+                                <!-- Serbian -->
+                                <option value="sr">🇷🇸 Serbian</option>
+                                <!-- Slovenian -->
+                                <option value="sl">🇸🇮 Slovenian</option>
+                                <!-- Lithuanian -->
+                                <option value="lt">🇱🇹 Lithuanian</option>
+                                <!-- Latvian -->
+                                <option value="lv">🇱🇻 Latvian</option>
+                                <!-- Estonian -->
+                                <option value="et">🇪🇪 Estonian</option>
+                                <!-- Tamil -->
+                                <option value="ta">🇮🇳 Tamil</option>
+                                <!-- Indonesian -->
+                                <option value="id">🇮🇩 Indonesian</option>
+                                <!-- Malay -->
+                                <option value="ms">🇲🇾 Malay</option>
+                                <!-- Thai -->
+                                <option value="th">🇹🇭 Thai</option>
+                                <!-- Vietnamese -->
+                                <option value="vi">🇻🇳 Vietnamese</option>
+                                <!-- Filipino -->
+                                <option value="fil">🇵🇭 Filipino</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="ph ph-caret-down text-gray-400"></i>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Voice Selection -->
                     <div>
-                        <label class="font-dm text-xs text-bermuda-gray mb-1 block">Voice</label>
-                        <select id="voiceId" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                            <option value="sarah">Sarah (Female, Friendly)</option>
-                            <option value="alex">Alex (Male, Professional)</option>
-                            <option value="emma">Emma (Female, Warm)</option>
-                            <option value="james">James (Male, Casual)</option>
-                        </select>
+                        <label class="font-dm text-sm font-medium text-bermuda-text mb-2 block">Voice</label>
+                        <div class="relative">
+                            <select id="voiceId" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white focus:border-bermuda-orange focus:ring-1 focus:ring-bermuda-orange appearance-none pr-10">
+                                <option value="">Select Voice</option>
+                                <!-- English Voices -->
+                                <optgroup label="English">
+                                    <option value="21m00Tcm4TlvDq8ikWAM">Rachel - Calm</option>
+                                    <option value="AZnzlk1XvdvUeBnXmlld">Domi - Strong</option>
+                                    <option value="EXAVITQu4vr4xnSDxMaL">Bella - Sweet</option>
+                                    <option value="ErXwobaYiN019PkySvjV">Antoni - Well-rounded</option>
+                                    <option value="MF3mGyEYCl7XYWbV9V6O">Elli - Emotional</option>
+                                    <option value="TxGEqnHWrfWFTfGW9XjX">Josh - Deep</option>
+                                    <option value="VR6AewLTigWG4xSOukaG">Arnold - Crisp</option>
+                                    <option value="pNInz6obpgDQGcFmaJgB">Adam - Deep</option>
+                                    <option value="yoZ06aMxZJJ28mfd3POQ">Sam - Raspy</option>
+                                </optgroup>
+                                <!-- Spanish Voices -->
+                                <optgroup label="Spanish">
+                                    <option value="ThT5KcBeYPX3keUQqHPh">Diego - Professional</option>
+                                    <option value="XB0fDUnXU5powFXDhCwa">Charlotte - Warm</option>
+                                </optgroup>
+                                <!-- French Voices -->
+                                <optgroup label="French">
+                                    <option value="XrExE9yKIg1WjnnlVkGX">Matilda - Warm</option>
+                                </optgroup>
+                                <!-- German Voices -->
+                                <optgroup label="German">
+                                    <option value="N2lVS1w4EtoT3dr4eOWO">Callum - Intense</option>
+                                </optgroup>
+                                <!-- Add more voices for other languages -->
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="ph ph-caret-down text-gray-400"></i>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="mt-3">
-                    <label class="font-dm text-xs text-bermuda-gray mb-1 block">Agent ID</label>
-                    <input
-                        type="text"
-                        id="voiceAgentId"
-                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                        placeholder="ElevenLabs Agent ID (optional)"
-                    >
-                    <p class="text-xs text-gray-500 mt-1">Leave empty to auto-generate</p>
+
+                    <!-- Voice Preview -->
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <button 
+                            id="previewVoiceBtn" 
+                            type="button" 
+                            class="flex items-center gap-2 px-4 py-2 bg-bermuda-orange text-white rounded-lg hover:bg-bermuda-orange/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled
+                        >
+                            <i class="ph ph-play text-white"></i>
+                            Preview Voice
+                        </button>
+                        <div id="previewText" class="text-sm text-bermuda-gray">
+                            Select a voice to hear a preview
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -471,8 +593,7 @@
         function getVoiceSettings() {
             return {
                 language: document.getElementById('voiceLanguage').value,
-                voice_id: document.getElementById('voiceId').value,
-                agent_id: document.getElementById('voiceAgentId').value || null
+                voice_id: document.getElementById('voiceId').value
             };
         }
 
@@ -568,9 +689,7 @@
                 }
                 if (settings.voice_id) {
                     document.getElementById('voiceId').value = settings.voice_id;
-                }
-                if (settings.agent_id) {
-                    document.getElementById('voiceAgentId').value = settings.agent_id;
+                    enableVoicePreview(); // Enable preview if voice is selected
                 }
             }
 
@@ -1517,6 +1636,105 @@
             window.addEventListener('popstate', function() {
                 handleNavigationAttempt(document.referrer || '/dashboard');
                 history.pushState(null, '', location.href);
+            });
+
+            // Voice Preview Functionality
+            function enableVoicePreview() {
+                const previewBtn = document.getElementById('previewVoiceBtn');
+                const previewText = document.getElementById('previewText');
+                const voiceId = document.getElementById('voiceId').value;
+                
+                if (voiceId) {
+                    previewBtn.disabled = false;
+                    previewText.textContent = 'Click to hear a sample of this voice';
+                } else {
+                    previewBtn.disabled = true;
+                    previewText.textContent = 'Select a voice to hear a preview';
+                }
+            }
+
+            // Voice preview event listeners
+            document.getElementById('voiceId').addEventListener('change', enableVoicePreview);
+
+            document.getElementById('previewVoiceBtn').addEventListener('click', async function() {
+                const voiceId = document.getElementById('voiceId').value;
+                const language = document.getElementById('voiceLanguage').value;
+                
+                if (!voiceId) {
+                    alert('Please select a voice first');
+                    return;
+                }
+
+                const btn = this;
+                const icon = btn.querySelector('i');
+                const originalText = btn.innerHTML;
+                
+                // Update button state
+                btn.disabled = true;
+                icon.className = 'ph ph-spinner-gap text-white animate-spin';
+                btn.innerHTML = icon.outerHTML + ' Playing...';
+                
+                try {
+                    // Generate preview text based on language
+                    const previewTexts = {
+                        'en': 'Hello! This is a preview of my voice. I sound friendly and natural.',
+                        'es': 'Hola! Esta es una vista previa de mi voz. Sueno amigable y natural.',
+                        'fr': 'Bonjour! Ceci est un aperçu de ma voix. Je sonne amical et naturel.',
+                        'de': 'Hallo! Das ist eine Vorschau meiner Stimme. Ich klinge freundlich und natürlich.',
+                        'it': 'Ciao! Questa è un\'anteprima della mia voce. Suono amichevole e naturale.',
+                        'pt': 'Olá! Esta é uma prévia da minha voz. Eu soou amigável e natural.',
+                        'zh': '你好！这是我声音的预览。我听起来友好而自然。',
+                        'ja': 'こんにちは！これは私の声のプレビューです。フレンドリーで自然に聞こえます。',
+                        'ko': '안녕하세요! 이것은 제 목소리의 미리보기입니다. 친근하고 자연스럽게 들립니다.',
+                        'hi': 'नमस्ते! यह मेरी आवाज़ का पूर्वावलोकन है। मैं दोस्ताना और प्राकृतिक लगता हूँ।'
+                    };
+                    
+                    const text = previewTexts[language] || previewTexts['en'];
+                    
+                    // Call ElevenLabs TTS API
+                    const response = await fetch('/api/voice/preview', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            voice_id: voiceId,
+                            text: text
+                        })
+                    });
+
+                    if (response.ok) {
+                        const audioBlob = await response.blob();
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+                        
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            // Reset button state
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        };
+                        
+                        audio.onerror = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            // Reset button state
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            alert('Error playing voice preview');
+                        };
+                        
+                        await audio.play();
+                    } else {
+                        throw new Error('Failed to generate voice preview');
+                    }
+                    
+                } catch (error) {
+                    console.error('Voice preview error:', error);
+                    alert('Unable to play voice preview. Please try again.');
+                    // Reset button state
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
             });
         });
     </script>
