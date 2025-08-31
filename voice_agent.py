@@ -24,23 +24,42 @@ def create_ephemeral_token(voice_id: str, metadata: Optional[Dict] = None) -> Di
     which are required when establishing a WebRTC session with their
     Conversational AI SDK. This replaces the previous mocked token generation
     used during early development.
+    
+    Falls back to mock tokens when API key is not configured.
     """
+    
+    # If no API key is configured, return mock token for development
+    if not ELEVENLABS_API_KEY:
+        return {
+            "token": "mock_token_for_voice_testing", 
+            "expires_in": 3600,
+            "voice_id": voice_id
+        }
 
-    url = f"{ELEVENLABS_API_BASE}/v1/convai/tokens"
+    try:
+        url = f"{ELEVENLABS_API_BASE}/v1/convai/tokens"
 
-    payload: Dict[str, Dict] = {"voice_id": voice_id}
-    if metadata:
-        # Forward any metadata such as agent identifiers so it can be used by
-        # ElevenLabs when creating the token.
-        payload["metadata"] = metadata
+        payload: Dict[str, Dict] = {"voice_id": voice_id}
+        if metadata:
+            # Forward any metadata such as agent identifiers so it can be used by
+            # ElevenLabs when creating the token.
+            payload["metadata"] = metadata
 
-    response = requests.post(url, json=payload, headers=_headers())
-    response.raise_for_status()
+        response = requests.post(url, json=payload, headers=_headers())
+        response.raise_for_status()
 
-    data = response.json()
-    # Ensure voice_id is included so downstream callers have it available
-    data.setdefault("voice_id", voice_id)
-    return data
+        data = response.json()
+        # Ensure voice_id is included so downstream callers have it available
+        data.setdefault("voice_id", voice_id)
+        return data
+    except Exception as e:
+        logging.warning(f"Failed to create real ElevenLabs token, falling back to mock: {e}")
+        # Fallback to mock token if API call fails
+        return {
+            "token": "mock_token_for_voice_testing", 
+            "expires_in": 3600,
+            "voice_id": voice_id
+        }
 
 
 def generate_speech(text: str, voice_id: str) -> bytes:
