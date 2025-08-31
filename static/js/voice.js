@@ -13,88 +13,104 @@ class VoiceConversation {
   async initialize() {
     try {
       // Get ephemeral token from backend
-      const tokenResponse = await fetch('/api/voice/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ form_id: this.formId })
+      const tokenResponse = await fetch("/api/voice/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ form_id: this.formId }),
       });
-      
+
       if (!tokenResponse.ok) {
-        throw new Error('Failed to get voice token');
+        throw new Error("Failed to get voice token");
       }
-      
+
       const tokenData = await tokenResponse.json();
-      
+      this.token = tokenData.token;
+
       // Request microphone access for voice input
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Initialize server-based voice conversation
-      this.conversation = new ServerVoiceConversation({
-        voiceId: this.voiceId,
-        formId: this.formId,
-        onConnect: () => this.onConnect(),
-        onDisconnect: () => this.onDisconnect(),
-        onMessage: (message) => this.onMessage(message),
-        onError: (error) => this.onError(error),
-        onTranscript: (transcript) => this.onTranscript(transcript)
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
       });
-      
+
+      if (window?.ElevenLabs?.startConversation) {
+        // Use the ElevenLabs SDK when available
+        this.conversation = await window.ElevenLabs.startConversation({
+          token: this.token,
+        });
+        this.conversation.on("connect", () => this.onConnect());
+        this.conversation.on("disconnect", () => this.onDisconnect());
+        this.conversation.on("error", (err) => this.onError(err));
+        this.conversation.on("message", (msg) => this.onMessage(msg));
+        this.conversation.on("transcript", (t) => this.onTranscript(t));
+      } else {
+        // Fallback to server-side mock implementation
+        this.conversation = new ServerVoiceConversation({
+          token: this.token,
+          voiceId: this.voiceId,
+          formId: this.formId,
+          onConnect: () => this.onConnect(),
+          onDisconnect: () => this.onDisconnect(),
+          onMessage: (message) => this.onMessage(message),
+          onError: (error) => this.onError(error),
+          onTranscript: (transcript) => this.onTranscript(transcript),
+        });
+      }
+
       // Start session tracking
       await this.startSession();
-      
+
       return true;
     } catch (error) {
-      console.error('Failed to initialize voice conversation:', error);
+      console.error("Failed to initialize voice conversation:", error);
       return false;
     }
   }
-  
+
   async startSession() {
     try {
       // Create a session in the backend
-      const response = await fetch('/api/voice/session/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/voice/session/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           form_id: this.formId,
-          device_id: await this.getDeviceId()
-        })
+          device_id: await this.getDeviceId(),
+        }),
       });
-      
+
       const data = await response.json();
       this.sessionId = data.session_id;
     } catch (error) {
-      console.error('Failed to start session:', error);
+      console.error("Failed to start session:", error);
     }
   }
-  
+
   async getDeviceId() {
     // Simple device fingerprinting
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.textBaseline = 'top';
-    ctx.font = '14px Arial';
-    ctx.fillText('device_id', 2, 2);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.textBaseline = "top";
+    ctx.font = "14px Arial";
+    ctx.fillText("device_id", 2, 2);
     return canvas.toDataURL().slice(-50);
   }
-  
+
   async start() {
     if (!this.conversation) {
       const initialized = await this.initialize();
       if (!initialized) {
-        throw new Error('Failed to initialize conversation');
+        throw new Error("Failed to initialize conversation");
       }
     }
-    
+
     // For real ElevenLabs SDK, conversation starts automatically after startSession()
     // For mock, call startConversation
     if (this.conversation.startConversation) {
       await this.conversation.startConversation();
     }
     this.isActive = true;
-    this.updateUI('active');
+    this.updateUI("active");
   }
-  
+
   async pause() {
     if (this.conversation && this.isActive) {
       // ElevenLabs SDK doesn't have pause - use end/start pattern or mock method
@@ -102,10 +118,10 @@ class VoiceConversation {
         await this.conversation.pauseConversation();
       }
       this.isActive = false;
-      this.updateUI('paused');
+      this.updateUI("paused");
     }
   }
-  
+
   async end() {
     if (this.conversation) {
       // Use the correct ElevenLabs SDK method or mock method
@@ -115,110 +131,110 @@ class VoiceConversation {
         await this.conversation.endConversation();
       }
       this.isActive = false;
-      this.updateUI('ended');
-      
+      this.updateUI("ended");
+
       // Save the conversation
       await this.saveConversation();
     }
   }
-  
+
   async saveConversation() {
     if (!this.sessionId || this.transcript.length === 0) return;
-    
+
     try {
-      await fetch('/api/voice/session/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/voice/session/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: this.sessionId,
           form_id: this.formId,
           transcript: this.transcript,
-          mode: 'voice'
-        })
+          mode: "voice",
+        }),
       });
     } catch (error) {
-      console.error('Failed to save conversation:', error);
+      console.error("Failed to save conversation:", error);
     }
   }
-  
+
   onConnect() {
-    console.log('Voice conversation connected');
-    this.updateUI('connected');
+    console.log("Voice conversation connected");
+    this.updateUI("connected");
   }
-  
+
   onDisconnect() {
-    console.log('Voice conversation disconnected');
-    this.updateUI('disconnected');
+    console.log("Voice conversation disconnected");
+    this.updateUI("disconnected");
   }
-  
+
   onMessage(message) {
-    console.log('Received message:', message);
+    console.log("Received message:", message);
     // Handle conversation messages
   }
-  
+
   onError(error) {
-    console.error('Voice conversation error:', error);
-    this.updateUI('error');
+    console.error("Voice conversation error:", error);
+    this.updateUI("error");
   }
-  
+
   onTranscript(transcript) {
     // Store transcript for later saving
     this.transcript.push({
       timestamp: new Date().toISOString(),
       speaker: transcript.speaker,
-      text: transcript.text
+      text: transcript.text,
     });
-    
+
     // Update UI with transcript
     this.updateTranscript(transcript);
   }
-  
+
   updateUI(state) {
-    const visualizer = document.getElementById('visualizer');
-    const rippleEffect = document.getElementById('ripple-effect');
-    const startBtn = document.getElementById('start-btn');
-    const pauseBtn = document.getElementById('pause-btn');
-    const endBtn = document.getElementById('end-btn');
-    
-    switch(state) {
-      case 'active':
-      case 'connected':
+    const visualizer = document.getElementById("visualizer");
+    const rippleEffect = document.getElementById("ripple-effect");
+    const startBtn = document.getElementById("start-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const endBtn = document.getElementById("end-btn");
+
+    switch (state) {
+      case "active":
+      case "connected":
         // Show ripple animation when conversation is active
-        if (rippleEffect) rippleEffect.classList.remove('hidden');
-        if (visualizer) visualizer.classList.add('voice-active');
+        if (rippleEffect) rippleEffect.classList.remove("hidden");
+        if (visualizer) visualizer.classList.add("voice-active");
         if (startBtn) {
           startBtn.disabled = true;
-          startBtn.classList.add('opacity-50');
+          startBtn.classList.add("opacity-50");
         }
         if (pauseBtn) {
           pauseBtn.disabled = false;
-          pauseBtn.classList.remove('opacity-50');
+          pauseBtn.classList.remove("opacity-50");
         }
         if (endBtn) endBtn.disabled = false;
         break;
-        
-      case 'paused':
+
+      case "paused":
         // Hide ripple animation when paused
-        if (rippleEffect) rippleEffect.classList.add('hidden');
-        if (visualizer) visualizer.classList.remove('voice-active');
+        if (rippleEffect) rippleEffect.classList.add("hidden");
+        if (visualizer) visualizer.classList.remove("voice-active");
         if (startBtn) {
           startBtn.disabled = false;
-          startBtn.classList.remove('opacity-50');
-          startBtn.querySelector('span').textContent = 'Resume';
+          startBtn.classList.remove("opacity-50");
+          startBtn.querySelector("span").textContent = "Resume";
         }
         if (pauseBtn) {
           pauseBtn.disabled = true;
-          pauseBtn.classList.add('opacity-50');
+          pauseBtn.classList.add("opacity-50");
         }
         break;
-        
-      case 'ended':
-      case 'disconnected':
+
+      case "ended":
+      case "disconnected":
         // Hide ripple animation when ended
-        if (rippleEffect) rippleEffect.classList.add('hidden');
+        if (rippleEffect) rippleEffect.classList.add("hidden");
         if (visualizer) {
-          visualizer.classList.remove('voice-active');
-          visualizer.classList.add('opacity-50');
+          visualizer.classList.remove("voice-active");
+          visualizer.classList.add("opacity-50");
         }
         if (startBtn) startBtn.disabled = true;
         if (pauseBtn) pauseBtn.disabled = true;
@@ -226,24 +242,25 @@ class VoiceConversation {
         // Show completion message
         this.showCompletionMessage();
         break;
-        
-      case 'error':
+
+      case "error":
         // Hide ripple animation on error
-        if (rippleEffect) rippleEffect.classList.add('hidden');
+        if (rippleEffect) rippleEffect.classList.add("hidden");
         if (visualizer) {
-          visualizer.classList.remove('voice-active');
-          visualizer.classList.add('bg-red-400');
+          visualizer.classList.remove("voice-active");
+          visualizer.classList.add("bg-red-400");
         }
         break;
     }
   }
-  
+
   updateTranscript(transcript) {
     // Update transcript display if needed
-    const transcriptContainer = document.getElementById('transcript');
+    const transcriptContainer = document.getElementById("transcript");
     if (transcriptContainer) {
-      const entry = document.createElement('div');
-      entry.className = transcript.speaker === 'user' ? 'text-right' : 'text-left';
+      const entry = document.createElement("div");
+      entry.className =
+        transcript.speaker === "user" ? "text-right" : "text-left";
       entry.innerHTML = `
         <span class="text-xs text-gray-500">${transcript.speaker}</span>
         <p class="text-sm">${transcript.text}</p>
@@ -252,11 +269,11 @@ class VoiceConversation {
       transcriptContainer.scrollTop = transcriptContainer.scrollHeight;
     }
   }
-  
+
   showCompletionMessage() {
-    const container = document.querySelector('.flex-1');
-    const message = document.createElement('div');
-    message.className = 'mt-6 p-4 bg-green-100 rounded-lg text-center';
+    const container = document.querySelector(".flex-1");
+    const message = document.createElement("div");
+    message.className = "mt-6 p-4 bg-green-100 rounded-lg text-center";
     message.innerHTML = `
       <h3 class="font-semibold text-green-800">Thank you!</h3>
       <p class="text-sm text-green-600 mt-1">Your response has been recorded.</p>
@@ -266,48 +283,48 @@ class VoiceConversation {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const formId = window.FORM_ID;
   const voiceId = window.VOICE_ID;
   const language = window.VOICE_LANGUAGE;
-  
+
   if (!voiceId) {
-    console.error('No voice ID provided');
+    console.error("No voice ID provided");
     return;
   }
-  
+
   if (!formId) {
-    console.error('No form ID provided');
+    console.error("No form ID provided");
     return;
   }
-  
+
   const conversation = new VoiceConversation(formId, voiceId, language);
-  
+
   // Button handlers
-  const startBtn = document.getElementById('start-btn');
-  const pauseBtn = document.getElementById('pause-btn');
-  const endBtn = document.getElementById('end-btn');
-  
+  const startBtn = document.getElementById("start-btn");
+  const pauseBtn = document.getElementById("pause-btn");
+  const endBtn = document.getElementById("end-btn");
+
   if (startBtn) {
-    startBtn.addEventListener('click', async () => {
+    startBtn.addEventListener("click", async () => {
       try {
         await conversation.start();
       } catch (error) {
-        console.error('Failed to start conversation:', error);
-        alert('Failed to start voice conversation. Please try again.');
+        console.error("Failed to start conversation:", error);
+        alert("Failed to start voice conversation. Please try again.");
       }
     });
   }
-  
+
   if (pauseBtn) {
-    pauseBtn.addEventListener('click', async () => {
+    pauseBtn.addEventListener("click", async () => {
       await conversation.pause();
     });
   }
-  
+
   if (endBtn) {
-    endBtn.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to end the conversation?')) {
+    endBtn.addEventListener("click", async () => {
+      if (confirm("Are you sure you want to end the conversation?")) {
         await conversation.end();
       }
     });
@@ -323,20 +340,22 @@ class ServerVoiceConversation {
     this.audioChunks = [];
     this.currentAudio = null; // Track current playing audio
     this.isPlaying = false;
-    console.log('Server voice conversation initialized:', config);
+    console.log("Server voice conversation initialized:", config);
   }
-  
+
   async startConversation() {
-    console.log('Starting server-based voice conversation...');
+    console.log("Starting server-based voice conversation...");
     this.config.onConnect?.();
-    
+
     // Start with greeting
-    await this.speak('Hello! I\'m ready to help you with the survey. Shall we begin?');
-    
+    await this.speak(
+      "Hello! I'm ready to help you with the survey. Shall we begin?",
+    );
+
     // Start listening for voice input
     this.startListening();
   }
-  
+
   async speak(text) {
     try {
       // Stop current audio if playing (interruption)
@@ -344,63 +363,67 @@ class ServerVoiceConversation {
         this.currentAudio.pause();
         this.currentAudio = null;
       }
-      
-      const response = await fetch('/api/voice/speak', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+
+      const response = await fetch("/api/voice/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: text,
-          voice_id: this.config.voiceId
-        })
+          voice_id: this.config.voiceId,
+        }),
       });
-      
+
       if (response.ok) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
-        
+
         this.currentAudio = audio;
         this.isPlaying = true;
-        
+
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl);
           this.isPlaying = false;
           this.currentAudio = null;
         };
-        
+
         await audio.play();
-        
+
         // Update transcript
         this.config.onTranscript?.({
-          speaker: 'assistant',
-          text: text
+          speaker: "assistant",
+          text: text,
         });
       }
     } catch (error) {
-      console.error('TTS error:', error);
+      console.error("TTS error:", error);
       this.isPlaying = false;
     }
   }
-  
+
   async startListening() {
-    console.log('Starting voice recognition...');
-    
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      console.error('Speech recognition not supported');
+    console.log("Starting voice recognition...");
+
+    if (
+      !("webkitSpeechRecognition" in window) &&
+      !("SpeechRecognition" in window)
+    ) {
+      console.error("Speech recognition not supported");
       return;
     }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     this.recognition = new SpeechRecognition();
-    
+
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US'; // Could be dynamic based on form settings
-    
+    this.recognition.lang = "en-US"; // Could be dynamic based on form settings
+
     this.recognition.onresult = (event) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-      
+      let interimTranscript = "";
+      let finalTranscript = "";
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -409,10 +432,10 @@ class ServerVoiceConversation {
           interimTranscript += transcript;
         }
       }
-      
+
       // Handle interruption - if user starts speaking while AI is talking
       if (interimTranscript && this.isPlaying) {
-        console.log('User interrupting...');
+        console.log("User interrupting...");
         // Stop current audio
         if (this.currentAudio && !this.currentAudio.paused) {
           this.currentAudio.pause();
@@ -420,51 +443,51 @@ class ServerVoiceConversation {
           this.isPlaying = false;
         }
       }
-      
+
       if (finalTranscript) {
-        console.log('User said:', finalTranscript);
+        console.log("User said:", finalTranscript);
         this.handleUserSpeech(finalTranscript);
       }
     };
-    
+
     this.recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      if (event.error === 'no-speech') {
+      console.error("Speech recognition error:", event.error);
+      if (event.error === "no-speech") {
         // Restart listening after a brief pause
         setTimeout(() => this.startListening(), 1000);
       }
     };
-    
+
     this.recognition.onend = () => {
       if (this.isListening) {
         // Restart recognition to keep listening
         setTimeout(() => this.recognition.start(), 100);
       }
     };
-    
+
     this.isListening = true;
     this.recognition.start();
   }
-  
+
   async handleUserSpeech(transcript) {
     // Add to transcript
     this.config.onTranscript?.({
-      speaker: 'user',
-      text: transcript
+      speaker: "user",
+      text: transcript,
     });
-    
+
     // Send to conversation API for response
     try {
-      const response = await fetch('/api/voice/conversation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/voice/conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           form_id: this.config.formId,
           user_input: transcript,
-          voice_id: this.config.voiceId
-        })
+          voice_id: this.config.voiceId,
+        }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.response) {
@@ -472,21 +495,21 @@ class ServerVoiceConversation {
         }
       }
     } catch (error) {
-      console.error('Conversation API error:', error);
+      console.error("Conversation API error:", error);
     }
   }
-  
+
   async pauseConversation() {
-    console.log('Pausing server conversation...');
+    console.log("Pausing server conversation...");
     this.stopListening();
   }
-  
+
   async endConversation() {
-    console.log('Ending server conversation...');
+    console.log("Ending server conversation...");
     this.stopListening();
     this.config.onDisconnect?.();
   }
-  
+
   stopListening() {
     this.isListening = false;
     if (this.recognition) {
@@ -496,4 +519,4 @@ class ServerVoiceConversation {
       this.mediaRecorder.stop();
     }
   }
-};
+}
