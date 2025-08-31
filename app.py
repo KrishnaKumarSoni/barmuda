@@ -32,6 +32,9 @@ from voice_agent import create_ephemeral_token
 # Load environment variables
 load_dotenv()
 
+# Engine configuration
+USE_GROQ = os.environ.get('USE_GROQ', 'false').lower() == 'true'
+
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get(
@@ -3505,13 +3508,13 @@ def admin_login_post():
         client_ip = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr)
 
         # Verify admin password
-        if admin.verify_admin_password(password):
+        if verify_admin_password(password):
             session["admin_authenticated"] = True
             session["admin_last_activity"] = datetime.now().timestamp()
-            admin.log_admin_login(True, client_ip)
+            log_admin_login(True, client_ip)
             return jsonify({"success": True})
         else:
-            admin.log_admin_login(False, client_ip)
+            log_admin_login(False, client_ip)
             return jsonify({"success": False, "error": "Invalid password"}), 401
 
     except Exception as e:
