@@ -32,6 +32,7 @@ class VoiceConversation {
       this.conversation = new ServerVoiceConversation({
         voiceId: this.voiceId,
         formId: this.formId,
+        language: this.language,
         onConnect: () => this.onConnect(),
         onDisconnect: () => this.onDisconnect(),
         onMessage: (message) => this.onMessage(message),
@@ -411,8 +412,7 @@ class ServerVoiceConversation {
 
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US'; // Could be dynamic based on form settings
-
+    this.recognition.lang = this.config.language || 'en-US'; // Use configured language or default
     this.recognition.onresult = (event) => {
       let interimTranscript = '';
       let finalTranscript = '';
