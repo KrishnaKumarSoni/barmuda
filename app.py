@@ -2766,6 +2766,126 @@ def voice_speak():
         return jsonify({"error": "Failed to generate speech"}), 500
 
 
+@app.route("/api/voice/conversation", methods=["POST"])
+def voice_conversation():
+    """Handle conversational AI for voice mode"""
+    try:
+        data = request.get_json()
+        form_id = data.get("form_id")
+        user_input = data.get("user_input", "")
+        voice_id = data.get("voice_id")
+        
+        if not form_id or not user_input:
+            return jsonify({"error": "form_id and user_input required"}), 400
+        
+        # Get form data for conversation context
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+            
+        form_data = form_doc.to_dict()
+        questions = form_data.get("questions", [])
+        
+        # Get or create conversation session
+        session_key = f"voice_conversation:{form_id}"
+        conversation_state = cache.get(session_key, {
+            "current_question": 0,
+            "responses": {},
+            "conversation_started": False
+        })
+        
+        # Generate AI response using OpenAI
+        ai_response = generate_conversation_response(
+            user_input, 
+            questions, 
+            conversation_state
+        )
+        
+        # Update conversation state
+        if ai_response.get("advance_question"):
+            conversation_state["current_question"] += 1
+            
+        if ai_response.get("save_response"):
+            conversation_state["responses"][str(conversation_state["current_question"])] = user_input
+        
+        # Cache conversation state (expire in 30 minutes)
+        cache.set(session_key, conversation_state, timeout=1800)
+        
+        return jsonify({
+            "response": ai_response.get("text", ""),
+            "current_question": conversation_state["current_question"],
+            "total_questions": len(questions),
+            "completed": conversation_state["current_question"] >= len(questions)
+        })
+        
+    except Exception as e:
+        logger.error(f"Voice conversation error: {str(e)}")
+        return jsonify({"error": "Failed to process conversation"}), 500
+
+
+def generate_conversation_response(user_input, questions, state):
+    """Generate AI response for voice conversation"""
+    try:
+        current_q_idx = state["current_question"]
+        
+        if current_q_idx >= len(questions):
+            return {
+                "text": "Thank you for completing the survey! Your responses have been recorded.",
+                "advance_question": False,
+                "save_response": False
+            }
+        
+        current_question = questions[current_q_idx]
+        
+        # Create conversation prompt
+        system_prompt = f"""You are conducting a voice survey. Current question: "{current_question['text']}"
+        
+Question type: {current_question['type']}
+{f"Options: {', '.join(current_question.get('options', []))}" if current_question.get('options') else ""}
+
+Guidelines:
+1. Be conversational and natural
+2. If the user answered the question, acknowledge and move to next question
+3. If unclear, ask for clarification
+4. If user wants to skip, that's okay
+5. Keep responses under 50 words
+6. Be friendly and encouraging
+
+User just said: "{user_input}"
+"""
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        ai_text = response.choices[0].message.content.strip()
+        
+        # Simple logic to determine if we should advance
+        advance = any(word in user_input.lower() for word in [
+            "yes", "no", "okay", "sure", "next", "done", "finished"
+        ]) and len(user_input.split()) > 1
+        
+        return {
+            "text": ai_text,
+            "advance_question": advance,
+            "save_response": True
+        }
+        
+    except Exception as e:
+        logger.error(f"AI response generation error: {str(e)}")
+        return {
+            "text": "I'm sorry, could you please repeat that?",
+            "advance_question": False,
+            "save_response": False
+        }
+
+
 def validate_mode_and_voice_settings(mode, voice_settings):
     """Validate mode and voice settings for form creation/update"""
     if mode not in ["chat", "voice"]:
