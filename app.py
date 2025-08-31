@@ -236,8 +236,14 @@ from admin import (
     verify_admin_password,
 )
 
-init_admin(db)
-admin_metrics = AdminMetrics()
+# Only initialize admin if Firebase is available
+if firebase_initialized and db is not None:
+    init_admin(db)
+    admin_metrics = AdminMetrics()
+    print("✓ Admin system initialized")
+else:
+    admin_metrics = None
+    print("⚠ Admin system skipped - Firebase not available")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
