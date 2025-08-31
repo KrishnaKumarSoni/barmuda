@@ -2448,11 +2448,13 @@ def voice_form_page(form_id):
                 403,
             )
 
+        voice_settings = form_data.get("voice_settings", {})
         return render_template(
             "voice.html",
             form_id=form_id,
             form_title=form_data.get("title", "Survey"),
-            agent_id=form_data.get("voice_settings", {}).get("agent_id", ""),
+            voice_language=voice_settings.get("language", "en"),
+            voice_id=voice_settings.get("voice_id", "21m00Tcm4TlvDq8ikWAM"),
         )
     except Exception as e:
         print(f"Error loading voice form page: {str(e)}")
