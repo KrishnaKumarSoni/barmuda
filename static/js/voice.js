@@ -47,6 +47,7 @@ class VoiceConversation {
           token: this.token,
           voiceId: this.voiceId,
           formId: this.formId,
+          language: this.language,
           onConnect: () => this.onConnect(),
           onDisconnect: () => this.onDisconnect(),
           onMessage: (message) => this.onMessage(message),
@@ -340,6 +341,7 @@ class ServerVoiceConversation {
     this.audioChunks = [];
     this.currentAudio = null; // Track current playing audio
     this.isPlaying = false;
+    this.ignoreRecognition = false; // Ignore recognition results when needed
     console.log("Server voice conversation initialized:", config);
   }
 
@@ -347,13 +349,17 @@ class ServerVoiceConversation {
     console.log("Starting server-based voice conversation...");
     this.config.onConnect?.();
 
+    // Start listening immediately to remain under initial user gesture
+    this.ignoreRecognition = true; // Ignore recognizer until greeting completes
+    this.startListening();
+
     // Start with greeting
     await this.speak(
       "Hello! I'm ready to help you with the survey. Shall we begin?",
     );
 
-    // Start listening for voice input
-    this.startListening();
+    // Allow recognition results after greeting finishes
+    this.ignoreRecognition = false;
   }
 
   async speak(text) {
@@ -381,18 +387,21 @@ class ServerVoiceConversation {
         this.currentAudio = audio;
         this.isPlaying = true;
 
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          this.isPlaying = false;
-          this.currentAudio = null;
-        };
-
-        await audio.play();
-
-        // Update transcript
+        // Update transcript immediately
         this.config.onTranscript?.({
           speaker: "assistant",
           text: text,
+        });
+
+        // Play audio and resolve when finished
+        await new Promise((resolve) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            this.isPlaying = false;
+            this.currentAudio = null;
+            resolve();
+          };
+          audio.play();
         });
       }
     } catch (error) {
@@ -409,6 +418,22 @@ class ServerVoiceConversation {
       !("SpeechRecognition" in window)
     ) {
       console.error("Speech recognition not supported");
+      const status = document.getElementById('status-message');
+      if (status) {
+        status.textContent = 'Your browser does not support voice input.';
+        status.classList.remove('hidden');
+        status.classList.add('text-red-500', 'font-semibold');
+      }
+
+      const startBtn = document.getElementById('start-btn');
+      const pauseBtn = document.getElementById('pause-btn');
+      const endBtn = document.getElementById('end-btn');
+      [startBtn, pauseBtn, endBtn].forEach((btn) => {
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add('opacity-50');
+        }
+      });
       return;
     }
 
@@ -418,11 +443,13 @@ class ServerVoiceConversation {
 
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = "en-US"; // Could be dynamic based on form settings
+    this.recognition.lang = this.config.language || "en-US"; // Use configured language or default
 
     this.recognition.onresult = (event) => {
+      if (this.ignoreRecognition) return; // Ignore unwanted early results
+
       let interimTranscript = "";
-      let finalTranscript = "";
+      let finalTranscript = ""
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
