@@ -2594,11 +2594,9 @@ def get_voice_token():
 
         # Forward relevant metadata to ElevenLabs when creating the token
         token_metadata = {
-            "agent_id": form_data.get("voice_settings", {}).get("agent_id"),
             "form_id": form_id,
+            "language": form_data.get("voice_settings", {}).get("language", "en-US"),
         }
-        # Remove None values
-        token_metadata = {k: v for k, v in token_metadata.items() if v is not None}
 
         token_info = create_ephemeral_token(voice_id, token_metadata)
 
