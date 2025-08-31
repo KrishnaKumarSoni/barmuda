@@ -28,6 +28,14 @@ class VoiceConversation {
       // Request microphone access first
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
+      // Debug: Check what's available in window object
+      console.log('Available in window:', {
+        ElevenLabs: typeof window.ElevenLabs,
+        Conversation: typeof window.Conversation,
+        ElevenLabsClient: typeof window.ElevenLabsClient,
+        EL: typeof window.EL
+      });
+      
       // Initialize ElevenLabs conversation using real SDK
       if (window.Conversation) {
         this.conversation = await window.Conversation.startSession({
