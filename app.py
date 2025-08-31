@@ -2606,7 +2606,7 @@ def start_voice_session():
             return jsonify({"error": "Form not found"}), 404
             
         form_data = form_doc.to_dict()
-        if form_data.get("status") != "active":
+        if not form_data.get("active", False):
             return jsonify({"error": "Survey not available"}), 403
             
         # Create session
