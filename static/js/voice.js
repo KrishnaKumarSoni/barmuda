@@ -299,15 +299,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ElevenLabs SDK placeholder (would be loaded from CDN in production)
-class ElevenLabsConversation {
+// Use the actual ElevenLabs SDK if available, otherwise fall back to mock
+const ElevenLabsConversation = window.ElevenLabs?.Conversation || class MockElevenLabsConversation {
   constructor(config) {
     this.config = config;
-    console.log('ElevenLabs conversation initialized with config:', config);
+    console.log('Mock ElevenLabs conversation initialized (SDK not loaded):', config);
   }
   
   async startConversation() {
-    console.log('Starting ElevenLabs conversation...');
+    console.log('Starting mock conversation...');
     this.config.onConnect?.();
     // Simulate conversation start
     setTimeout(() => {
@@ -319,11 +319,11 @@ class ElevenLabsConversation {
   }
   
   async pauseConversation() {
-    console.log('Pausing conversation...');
+    console.log('Pausing mock conversation...');
   }
   
   async endConversation() {
-    console.log('Ending conversation...');
+    console.log('Ending mock conversation...');
     this.config.onDisconnect?.();
   }
-}
+};
