@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import re
+import requests
 import sys
 import time
 import uuid
@@ -210,6 +211,9 @@ except Exception as e:
 # Initialize OpenAI client - strip whitespace from API key to prevent header errors
 openai_api_key = os.environ.get("OPENAI_API_KEY", "").strip()
 openai_client = OpenAI(api_key=openai_api_key)
+
+# ElevenLabs API key for voice functionality
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "").strip()
 
 # Initialize billing system
 from billing import (
@@ -2678,6 +2682,57 @@ def save_voice_session():
         return jsonify({"error": "Failed to save session"}), 500
 
 
+@app.route("/api/voice/preview", methods=["POST"])
+def voice_preview():
+    """Generate voice preview using ElevenLabs TTS"""
+    try:
+        data = request.get_json()
+        voice_id = data.get("voice_id")
+        text = data.get("text", "Hello! This is a preview of my voice.")
+        
+        if not voice_id:
+            return jsonify({"error": "Voice ID required"}), 400
+            
+        if not ELEVENLABS_API_KEY:
+            return jsonify({"error": "ElevenLabs API key not configured"}), 500
+            
+        # Generate speech using ElevenLabs API
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+        
+        headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": ELEVENLABS_API_KEY
+        }
+        
+        payload = {
+            "text": text,
+            "model_id": "eleven_multilingual_v2",
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.8,
+                "style": 0.0,
+                "use_speaker_boost": True
+            }
+        }
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            return Response(
+                response.content,
+                mimetype="audio/mpeg",
+                headers={"Content-Disposition": "attachment; filename=voice_preview.mp3"}
+            )
+        else:
+            logger.error(f"ElevenLabs API error: {response.status_code} - {response.text}")
+            return jsonify({"error": "Failed to generate voice preview"}), 500
+            
+    except Exception as e:
+        logger.error(f"Voice preview error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
 def validate_mode_and_voice_settings(mode, voice_settings):
     """Validate mode and voice settings for form creation/update"""
     if mode not in ["chat", "voice"]:
@@ -2688,9 +2743,8 @@ def validate_mode_and_voice_settings(mode, voice_settings):
             not voice_settings
             or not voice_settings.get("language")
             or not voice_settings.get("voice_id")
-            or not voice_settings.get("agent_id")
         ):
-            return jsonify({"success": False, "error": "Voice settings (language, voice_id, agent_id) required"}), 400
+            return jsonify({"success": False, "error": "Voice settings (language, voice_id) required"}), 400
     
     return None  # No error
 
