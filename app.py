@@ -31,7 +31,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from openai import OpenAI
 
 # Voice agent utilities
-from voice_agent import create_ephemeral_token
+from voice_agent import create_ephemeral_token, generate_speech, get_available_voices
 
 # Load environment variables
 load_dotenv()
@@ -2733,6 +2733,37 @@ def voice_preview():
     except Exception as e:
         logger.error(f"Voice preview error: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route("/api/voice/speak", methods=["POST"])
+def voice_speak():
+    """Convert text to speech using ElevenLabs for voice conversations"""
+    try:
+        data = request.get_json()
+        text = data.get("text", "")
+        voice_id = data.get("voice_id")
+        
+        if not text:
+            return jsonify({"error": "Text required"}), 400
+            
+        if not voice_id:
+            return jsonify({"error": "Voice ID required"}), 400
+        
+        # Use the voice_agent function
+        audio_content = generate_speech(text, voice_id)
+        
+        return Response(
+            audio_content,
+            mimetype="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline; filename=speech.mp3",
+                "Access-Control-Allow-Origin": "*"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Voice speak error: {str(e)}")
+        return jsonify({"error": "Failed to generate speech"}), 500
 
 
 def validate_mode_and_voice_settings(mode, voice_settings):
