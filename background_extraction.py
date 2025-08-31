@@ -286,7 +286,7 @@ def queue_extraction(session_id: str, reason: str = "chat_ended"):
 
 def shutdown_background_extraction():
     """Shutdown the background extraction system"""
-    global extraction_active, background_extractor
+    global extraction_active
     
     print("Shutting down background extraction...")
     extraction_active = False
