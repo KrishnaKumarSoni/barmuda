@@ -2230,6 +2230,100 @@ def dodo_webhook():
         return jsonify({"error": "Webhook processing failed"}), 500
 
 
+# ================================
+# VOICE MODE ENDPOINTS
+# ================================
+
+@app.route("/api/voice/token", methods=["POST"])
+def get_voice_token():
+    """Get ElevenLabs voice token for conversation"""
+    try:
+        data = request.get_json()
+        form_id = data.get("form_id")
+        
+        if not form_id:
+            return jsonify({"success": False, "error": "Form ID required"}), 400
+        
+        # Get form from Firestore to get voice settings
+        form_ref = db.collection("forms").document(form_id)
+        form_doc = form_ref.get()
+        
+        if not form_doc.exists:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+        
+        form_data = form_doc.to_dict()
+        voice_settings = form_data.get("voice_settings", {})
+        voice_id = voice_settings.get("voice_id", "21m00Tcm4TlvDq8ikWAM")
+        
+        # For MVP, return a mock token
+        token_data = {
+            "token": "mock_token_for_voice_testing",
+            "expires_in": 3600,
+            "voice_id": voice_id,
+            "conversation_id": f"conv_{form_id}_{int(time.time())}"
+        }
+        
+        return jsonify({
+            "success": True,
+            "token_data": token_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting voice token: {str(e)}")
+        return jsonify({"success": False, "error": "Failed to get voice token"}), 500
+
+
+@app.route("/voice/<form_id>")
+def voice_form_page(form_id):
+    """Voice conversation page for forms in voice mode"""
+    try:
+        # Verify form exists
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return render_template(
+                "error.html",
+                error_title="Form Not Found",
+                error_message="This form doesn't exist or has been removed.",
+            ), 404
+
+        form_data = form_doc.to_dict()
+
+        # Check if form is active
+        if not form_data.get("active", False):
+            return render_template(
+                "error.html",
+                error_title="Survey Not Available", 
+                error_message="This survey is currently paused and not accepting responses.",
+            ), 403
+
+        # Check if form is in voice mode
+        if form_data.get("mode") != "voice":
+            return render_template(
+                "error.html",
+                error_title="Survey Not Available",
+                error_message="This survey is not configured for voice mode.",
+            ), 403
+
+        # Get voice settings
+        voice_settings = form_data.get("voice_settings", {})
+        
+        return render_template(
+            "voice.html",
+            form_id=form_id,
+            form_title=form_data.get("title", "Survey"),
+            voice_language=voice_settings.get("language", "en"),
+            voice_id=voice_settings.get("voice_id", "21m00Tcm4TlvDq8ikWAM"),
+        )
+        
+    except Exception as e:
+        logger.error(f"Error loading voice form: {str(e)}")
+        return render_template(
+            "error.html",
+            error_title="Error Loading Survey",
+            error_message="Unable to load this survey. Please try again later.",
+        ), 500
+
+
 # Error handlers
 @app.errorhandler(401)
 def unauthorized(error):
@@ -2465,87 +2559,17 @@ def widget_script():
 @app.route("/api/voice/token", methods=["POST"])
 def get_voice_token():
     """Generate an ephemeral ElevenLabs token for voice sessions"""
+    data = request.get_json() or {}
+    agent_id = data.get("agent_id")
+    if not agent_id:
+        return jsonify({"success": False, "error": "agent_id required"}), 400
+
     try:
-        data = request.get_json() or {}
-        form_id = data.get("form_id")
-        
-        if not form_id:
-            return jsonify({"success": False, "error": "form_id required"}), 400
-
-        # Get form from Firestore to get voice settings
-        form_ref = db.collection("forms").document(form_id)
-        form_doc = form_ref.get()
-        
-        if not form_doc.exists:
-            return jsonify({"success": False, "error": "Form not found"}), 404
-        
-        form_data = form_doc.to_dict()
-        voice_settings = form_data.get("voice_settings", {})
-        voice_id = voice_settings.get("voice_id", "21m00Tcm4TlvDq8ikWAM")
-
-        # For MVP, return a mock token
-        token_info = {
-            "token": "mock_token_for_voice_testing",
-            "expires_in": 3600,
-            "voice_id": voice_id,
-            "conversation_id": f"conv_{form_id}_{int(time.time())}"
-        }
-        
+        token_info = create_ephemeral_token(agent_id)
         return jsonify({"success": True, **token_info})
     except Exception as e:
         logger.error(f"Error generating voice token: {str(e)}")
         return jsonify({"success": False, "error": "Failed to generate token"}), 500
-
-
-@app.route("/voice/<form_id>")
-def voice_form_page(form_id):
-    """Voice conversation page for forms in voice mode"""
-    try:
-        # Verify form exists
-        form_doc = db.collection("forms").document(form_id).get()
-        if not form_doc.exists:
-            return render_template(
-                "error.html",
-                error_title="Form Not Found",
-                error_message="This form doesn't exist or has been removed.",
-            ), 404
-
-        form_data = form_doc.to_dict()
-
-        # Check if form is active
-        if not form_data.get("active", False):
-            return render_template(
-                "error.html",
-                error_title="Survey Not Available", 
-                error_message="This survey is currently paused and not accepting responses.",
-            ), 403
-
-        # Check if form is in voice mode
-        if form_data.get("mode") != "voice":
-            return render_template(
-                "error.html",
-                error_title="Survey Not Available",
-                error_message="This survey is not configured for voice mode.",
-            ), 403
-
-        # Get voice settings
-        voice_settings = form_data.get("voice_settings", {})
-        
-        return render_template(
-            "voice.html",
-            form_id=form_id,
-            form_title=form_data.get("title", "Survey"),
-            voice_language=voice_settings.get("language", "en"),
-            voice_id=voice_settings.get("voice_id", "21m00Tcm4TlvDq8ikWAM"),
-        )
-        
-    except Exception as e:
-        logger.error(f"Error loading voice form: {str(e)}")
-        return render_template(
-            "error.html",
-            error_title="Error Loading Survey",
-            error_message="Unable to load this survey. Please try again later.",
-        ), 500
 
 
 @app.route("/api/chat/start", methods=["POST"])
