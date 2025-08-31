@@ -18,16 +18,16 @@ class VoiceConversation {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form_id: this.formId })
       });
-      
+
       if (!tokenResponse.ok) {
         throw new Error('Failed to get voice token');
       }
-      
+
       const tokenData = await tokenResponse.json();
-      
+
       // Request microphone access for voice input
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       // Initialize server-based voice conversation
       this.conversation = new ServerVoiceConversation({
         voiceId: this.voiceId,
@@ -38,17 +38,17 @@ class VoiceConversation {
         onError: (error) => this.onError(error),
         onTranscript: (transcript) => this.onTranscript(transcript)
       });
-      
+
       // Start session tracking
       await this.startSession();
-      
+
       return true;
     } catch (error) {
       console.error('Failed to initialize voice conversation:', error);
       return false;
     }
   }
-  
+
   async startSession() {
     try {
       // Create a session in the backend
@@ -60,14 +60,14 @@ class VoiceConversation {
           device_id: await this.getDeviceId()
         })
       });
-      
+
       const data = await response.json();
       this.sessionId = data.session_id;
     } catch (error) {
       console.error('Failed to start session:', error);
     }
   }
-  
+
   async getDeviceId() {
     // Simple device fingerprinting
     const canvas = document.createElement('canvas');
@@ -77,7 +77,7 @@ class VoiceConversation {
     ctx.fillText('device_id', 2, 2);
     return canvas.toDataURL().slice(-50);
   }
-  
+
   async start() {
     if (!this.conversation) {
       const initialized = await this.initialize();
@@ -85,7 +85,7 @@ class VoiceConversation {
         throw new Error('Failed to initialize conversation');
       }
     }
-    
+
     // For real ElevenLabs SDK, conversation starts automatically after startSession()
     // For mock, call startConversation
     if (this.conversation.startConversation) {
@@ -94,7 +94,7 @@ class VoiceConversation {
     this.isActive = true;
     this.updateUI('active');
   }
-  
+
   async pause() {
     if (this.conversation && this.isActive) {
       // ElevenLabs SDK doesn't have pause - use end/start pattern or mock method
@@ -105,7 +105,7 @@ class VoiceConversation {
       this.updateUI('paused');
     }
   }
-  
+
   async end() {
     if (this.conversation) {
       // Use the correct ElevenLabs SDK method or mock method
@@ -116,15 +116,15 @@ class VoiceConversation {
       }
       this.isActive = false;
       this.updateUI('ended');
-      
+
       // Save the conversation
       await this.saveConversation();
     }
   }
-  
+
   async saveConversation() {
     if (!this.sessionId || this.transcript.length === 0) return;
-    
+
     try {
       await fetch('/api/voice/session/save', {
         method: 'POST',
@@ -140,27 +140,27 @@ class VoiceConversation {
       console.error('Failed to save conversation:', error);
     }
   }
-  
+
   onConnect() {
     console.log('Voice conversation connected');
     this.updateUI('connected');
   }
-  
+
   onDisconnect() {
     console.log('Voice conversation disconnected');
     this.updateUI('disconnected');
   }
-  
+
   onMessage(message) {
     console.log('Received message:', message);
     // Handle conversation messages
   }
-  
+
   onError(error) {
     console.error('Voice conversation error:', error);
     this.updateUI('error');
   }
-  
+
   onTranscript(transcript) {
     // Store transcript for later saving
     this.transcript.push({
@@ -168,18 +168,18 @@ class VoiceConversation {
       speaker: transcript.speaker,
       text: transcript.text
     });
-    
+
     // Update UI with transcript
     this.updateTranscript(transcript);
   }
-  
+
   updateUI(state) {
     const visualizer = document.getElementById('visualizer');
     const rippleEffect = document.getElementById('ripple-effect');
     const startBtn = document.getElementById('start-btn');
     const pauseBtn = document.getElementById('pause-btn');
     const endBtn = document.getElementById('end-btn');
-    
+
     switch(state) {
       case 'active':
       case 'connected':
@@ -196,7 +196,7 @@ class VoiceConversation {
         }
         if (endBtn) endBtn.disabled = false;
         break;
-        
+
       case 'paused':
         // Hide ripple animation when paused
         if (rippleEffect) rippleEffect.classList.add('hidden');
@@ -211,7 +211,7 @@ class VoiceConversation {
           pauseBtn.classList.add('opacity-50');
         }
         break;
-        
+
       case 'ended':
       case 'disconnected':
         // Hide ripple animation when ended
@@ -226,7 +226,7 @@ class VoiceConversation {
         // Show completion message
         this.showCompletionMessage();
         break;
-        
+
       case 'error':
         // Hide ripple animation on error
         if (rippleEffect) rippleEffect.classList.add('hidden');
@@ -237,7 +237,7 @@ class VoiceConversation {
         break;
     }
   }
-  
+
   updateTranscript(transcript) {
     // Update transcript display if needed
     const transcriptContainer = document.getElementById('transcript');
@@ -252,7 +252,7 @@ class VoiceConversation {
       transcriptContainer.scrollTop = transcriptContainer.scrollHeight;
     }
   }
-  
+
   showCompletionMessage() {
     const container = document.querySelector('.flex-1');
     const message = document.createElement('div');
@@ -270,24 +270,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const formId = window.FORM_ID;
   const voiceId = window.VOICE_ID;
   const language = window.VOICE_LANGUAGE;
-  
+
   if (!voiceId) {
     console.error('No voice ID provided');
     return;
   }
-  
+
   if (!formId) {
     console.error('No form ID provided');
     return;
   }
-  
+
   const conversation = new VoiceConversation(formId, voiceId, language);
-  
+
   // Button handlers
   const startBtn = document.getElementById('start-btn');
   const pauseBtn = document.getElementById('pause-btn');
   const endBtn = document.getElementById('end-btn');
-  
+
   if (startBtn) {
     startBtn.addEventListener('click', async () => {
       try {
@@ -298,13 +298,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
+
   if (pauseBtn) {
     pauseBtn.addEventListener('click', async () => {
       await conversation.pause();
     });
   }
-  
+
   if (endBtn) {
     endBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to end the conversation?')) {
@@ -325,18 +325,18 @@ class ServerVoiceConversation {
     this.isPlaying = false;
     console.log('Server voice conversation initialized:', config);
   }
-  
+
   async startConversation() {
     console.log('Starting server-based voice conversation...');
     this.config.onConnect?.();
-    
+
     // Start with greeting
     await this.speak('Hello! I\'m ready to help you with the survey. Shall we begin?');
-    
+
     // Start listening for voice input
     this.startListening();
   }
-  
+
   async speak(text) {
     try {
       // Stop current audio if playing (interruption)
@@ -344,7 +344,7 @@ class ServerVoiceConversation {
         this.currentAudio.pause();
         this.currentAudio = null;
       }
-      
+
       const response = await fetch('/api/voice/speak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -353,23 +353,23 @@ class ServerVoiceConversation {
           voice_id: this.config.voiceId
         })
       });
-      
+
       if (response.ok) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
-        
+
         this.currentAudio = audio;
         this.isPlaying = true;
-        
+
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl);
           this.isPlaying = false;
           this.currentAudio = null;
         };
-        
+
         await audio.play();
-        
+
         // Update transcript
         this.config.onTranscript?.({
           speaker: 'assistant',
@@ -381,26 +381,42 @@ class ServerVoiceConversation {
       this.isPlaying = false;
     }
   }
-  
+
   async startListening() {
     console.log('Starting voice recognition...');
-    
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       console.error('Speech recognition not supported');
+      const status = document.getElementById('status-message');
+      if (status) {
+        status.textContent = 'Your browser does not support voice input.';
+        status.classList.remove('hidden');
+        status.classList.add('text-red-500', 'font-semibold');
+      }
+
+      const startBtn = document.getElementById('start-btn');
+      const pauseBtn = document.getElementById('pause-btn');
+      const endBtn = document.getElementById('end-btn');
+      [startBtn, pauseBtn, endBtn].forEach((btn) => {
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add('opacity-50');
+        }
+      });
       return;
     }
-    
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     this.recognition = new SpeechRecognition();
-    
+
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
     this.recognition.lang = 'en-US'; // Could be dynamic based on form settings
-    
+
     this.recognition.onresult = (event) => {
       let interimTranscript = '';
       let finalTranscript = '';
-      
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -409,7 +425,7 @@ class ServerVoiceConversation {
           interimTranscript += transcript;
         }
       }
-      
+
       // Handle interruption - if user starts speaking while AI is talking
       if (interimTranscript && this.isPlaying) {
         console.log('User interrupting...');
@@ -420,13 +436,13 @@ class ServerVoiceConversation {
           this.isPlaying = false;
         }
       }
-      
+
       if (finalTranscript) {
         console.log('User said:', finalTranscript);
         this.handleUserSpeech(finalTranscript);
       }
     };
-    
+
     this.recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       if (event.error === 'no-speech') {
@@ -434,25 +450,25 @@ class ServerVoiceConversation {
         setTimeout(() => this.startListening(), 1000);
       }
     };
-    
+
     this.recognition.onend = () => {
       if (this.isListening) {
         // Restart recognition to keep listening
         setTimeout(() => this.recognition.start(), 100);
       }
     };
-    
+
     this.isListening = true;
     this.recognition.start();
   }
-  
+
   async handleUserSpeech(transcript) {
     // Add to transcript
     this.config.onTranscript?.({
       speaker: 'user',
       text: transcript
     });
-    
+
     // Send to conversation API for response
     try {
       const response = await fetch('/api/voice/conversation', {
@@ -464,7 +480,7 @@ class ServerVoiceConversation {
           voice_id: this.config.voiceId
         })
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.response) {
@@ -475,18 +491,18 @@ class ServerVoiceConversation {
       console.error('Conversation API error:', error);
     }
   }
-  
+
   async pauseConversation() {
     console.log('Pausing server conversation...');
     this.stopListening();
   }
-  
+
   async endConversation() {
     console.log('Ending server conversation...');
     this.stopListening();
     this.config.onDisconnect?.();
   }
-  
+
   stopListening() {
     this.isListening = false;
     if (this.recognition) {
