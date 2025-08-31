@@ -2564,7 +2564,7 @@ def get_voice_token():
             return jsonify({"success": False, "error": "Form is not in voice mode"}), 400
             
         # Verify form is active
-        if not form_data.get("status") == "active":
+        if not form_data.get("active", False):
             return jsonify({"success": False, "error": "Form is not active"}), 400
             
         # Extract voice_id from voice settings
