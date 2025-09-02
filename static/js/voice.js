@@ -493,6 +493,22 @@ class ServerVoiceConversation {
       if (event.error === "no-speech") {
         // Restart listening after a brief pause
         setTimeout(() => this.startListening(), 1000);
+      } else if (event.error === "network") {
+        // Handle network errors - retry after delay
+        console.log("Network error in speech recognition, retrying...");
+        setTimeout(() => {
+          if (this.isListening) {
+            this.startListening();
+          }
+        }, 2000);
+      } else if (event.error === "not-allowed") {
+        console.error("Microphone access denied");
+        const status = document.getElementById('status-message');
+        if (status) {
+          status.textContent = 'Microphone access denied. Please allow microphone access and refresh.';
+          status.classList.remove('hidden');
+          status.classList.add('text-red-500', 'font-semibold');
+        }
       }
     };
 
