@@ -2824,6 +2824,9 @@ def voice_conversation():
 
         form_data = form_doc.to_dict()
         questions = form_data.get("questions", [])
+        
+        # Get language from voice settings
+        language = form_data.get("voice_settings", {}).get("language", "en")
 
         # Get or create conversation session
         session_key = f"voice_conversation:{form_id}"
@@ -2832,9 +2835,9 @@ def voice_conversation():
             {"current_question": 0, "responses": {}, "conversation_started": False},
         )
 
-        # Generate AI response using OpenAI
+        # Generate AI response using OpenAI with language context
         ai_response = generate_conversation_response(
-            user_input, questions, conversation_state
+            user_input, questions, conversation_state, language
         )
 
         # Update conversation state
@@ -2863,22 +2866,46 @@ def voice_conversation():
         return jsonify({"error": "Failed to process conversation"}), 500
 
 
-def generate_conversation_response(user_input, questions, state):
-    """Generate AI response for voice conversation"""
+def generate_conversation_response(user_input, questions, state, language="en"):
+    """Generate AI response for voice conversation with language support"""
     try:
         current_q_idx = state["current_question"]
 
+        # Completion messages based on language
+        completion_messages = {
+            "hi": "धन्यवाद! सर्वे पूरा हो गया। आपके उत्तर दर्ज कर लिए गए हैं।",
+            "en": "Thank you for completing the survey! Your responses have been recorded."
+        }
+
         if current_q_idx >= len(questions):
             return {
-                "text": "Thank you for completing the survey! Your responses have been recorded.",
+                "text": completion_messages.get(language, completion_messages["en"]),
                 "advance_question": False,
                 "save_response": False,
             }
 
         current_question = questions[current_q_idx]
 
-        # Create conversation prompt
-        system_prompt = f"""You are conducting a voice survey. Current question: "{current_question['text']}"
+        # Language-specific system prompts
+        if language == "hi":
+            system_prompt = f"""आप एक हिंदी वॉइस सर्वे कंडक्ट कर रहे हैं। वर्तमान प्रश्न: "{current_question['text']}"
+
+प्रश्न का प्रकार: {current_question['type']}
+{f"विकल्प: {', '.join(current_question.get('options', []))}" if current_question.get('options') else ""}
+
+दिशानिर्देश:
+1. बातचीत प्राकृतिक और मिलनसार रखें
+2. यदि उपयोगकर्ता ने प्रश्न का उत्तर दिया है, तो स्वीकार करें और अगले प्रश्न पर बढ़ें
+3. यदि अस्पष्ट है, तो स्पष्टीकरण मांगें
+4. यदि उपयोगकर्ता छोड़ना चाहता है, तो यह ठीक है
+5. उत्तर 50 शब्दों से कम रखें
+6. मित्रवत और उत्साहजनक रहें
+7. केवल हिंदी में उत्तर दें
+
+उपयोगकर्ता ने अभी कहा: "{user_input}"
+"""
+        else:
+            system_prompt = f"""You are conducting a voice survey. Current question: "{current_question['text']}"
 
 Question type: {current_question['type']}
 {f"Options: {', '.join(current_question.get('options', []))}" if current_question.get('options') else ""}
@@ -2906,11 +2933,16 @@ User just said: "{user_input}"
 
         ai_text = response.choices[0].message.content.strip()
 
-        # Simple logic to determine if we should advance
+        # Language-specific logic to determine if we should advance
+        if language == "hi":
+            advance_words = ["हाँ", "जी", "ठीक", "अच्छा", "अगला", "समाप्त", "बस", "हो गया"]
+        else:
+            advance_words = ["yes", "no", "okay", "sure", "next", "done", "finished"]
+            
         advance = (
             any(
                 word in user_input.lower()
-                for word in ["yes", "no", "okay", "sure", "next", "done", "finished"]
+                for word in advance_words
             )
             and len(user_input.split()) > 1
         )
@@ -2919,8 +2951,12 @@ User just said: "{user_input}"
 
     except Exception as e:
         logger.error(f"AI response generation error: {str(e)}")
+        error_messages = {
+            "hi": "क्षमा करें, कृपया फिर से कहें?",
+            "en": "I'm sorry, could you please repeat that?"
+        }
         return {
-            "text": "I'm sorry, could you please repeat that?",
+            "text": error_messages.get(language, error_messages["en"]),
             "advance_question": False,
             "save_response": False,
         }
