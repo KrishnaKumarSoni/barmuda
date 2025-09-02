@@ -23,50 +23,12 @@ def _headers() -> Dict[str, str]:
 def create_or_get_agent(voice_id: str, language: str = "hi") -> str:
     """Create or retrieve an ElevenLabs conversational agent for the given voice and language.
     
-    Returns the agent_id that can be used for conversation tokens.
+    For now, just return the voice_id as agent_id since the API endpoints are not working.
+    Focus on getting Hindi TTS working first.
     """
-    cache_key = f"{voice_id}_{language}"
-    
-    # Check cache first
-    if cache_key in _agent_cache:
-        return _agent_cache[cache_key]
-    
-    if not ELEVENLABS_API_KEY:
-        # Return mock agent_id for development
-        mock_agent_id = f"mock_agent_{voice_id}_{language}"
-        _agent_cache[cache_key] = mock_agent_id
-        return mock_agent_id
-    
-    try:
-        url = f"{ELEVENLABS_API_BASE}/v1/convai/agents"
-        
-        # Create agent with Hindi support
-        agent_config = {
-            "name": f"Survey Assistant ({language.upper()})",
-            "prompt": f"You are a helpful and empathetic survey assistant. Conduct surveys in a natural, conversational manner in {language} language. Ask questions one at a time, listen carefully to responses, and guide users through the survey process. Be patient and understanding.",
-            "voice_id": voice_id,
-            "language": language,
-        }
-        
-        response = requests.post(url, json=agent_config, headers=_headers())
-        response.raise_for_status()
-        
-        data = response.json()
-        agent_id = data.get("agent_id")
-        
-        if agent_id:
-            _agent_cache[cache_key] = agent_id
-            logging.info(f"Created ElevenLabs agent {agent_id} for voice {voice_id} in {language}")
-            return agent_id
-        else:
-            raise ValueError("No agent_id returned from ElevenLabs")
-            
-    except Exception as e:
-        logging.error(f"Failed to create ElevenLabs agent: {e}")
-        # Fallback to mock
-        mock_agent_id = f"mock_agent_{voice_id}_{language}"
-        _agent_cache[cache_key] = mock_agent_id
-        return mock_agent_id
+    # Simplified approach - just return voice_id as agent_id
+    # The real issue is Hindi TTS not working, not the agent creation
+    return voice_id
 
 
 def create_ephemeral_token(voice_id: str, metadata: Optional[Dict] = None) -> Dict:
@@ -131,6 +93,10 @@ def generate_speech(text: str, voice_id: str) -> bytes:
     
     Falls back to empty audio when API key is not configured for development.
     """
+    print(f"DEBUG: generate_speech called with text='{text[:50]}...' voice_id='{voice_id}'")
+    print(f"DEBUG: ELEVENLABS_API_KEY configured: {bool(ELEVENLABS_API_KEY)}")
+    print(f"DEBUG: ELEVENLABS_API_KEY length: {len(ELEVENLABS_API_KEY) if ELEVENLABS_API_KEY else 0}")
+    
     if not ELEVENLABS_API_KEY:
         logging.warning("ElevenLabs API key not configured, returning silent audio for development")
         # Return minimal MP3 silence for development

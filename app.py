@@ -2776,6 +2776,9 @@ def voice_speak():
         data = request.get_json()
         text = data.get("text", "")
         voice_id = data.get("voice_id")
+        
+        print(f"DEBUG: voice_speak called with text='{text}' voice_id='{voice_id}'")
+        print(f"DEBUG: ELEVENLABS_API_KEY in app.py: {bool(os.environ.get('ELEVENLABS_API_KEY'))}")
 
         if not text:
             return jsonify({"error": "Text required"}), 400
@@ -2783,8 +2786,10 @@ def voice_speak():
         if not voice_id:
             return jsonify({"error": "Voice ID required"}), 400
 
-        # Use the voice_agent function
+        # Use the voice_agent function with debug
+        print(f"DEBUG: About to call generate_speech with voice_id: {voice_id}")
         audio_content = generate_speech(text, voice_id)
+        print(f"DEBUG: generate_speech returned {len(audio_content)} bytes")
 
         return Response(
             audio_content,
