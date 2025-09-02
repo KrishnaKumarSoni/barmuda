@@ -31,30 +31,19 @@ class VoiceConversation {
         audio: true,
       });
 
-      if (window?.ElevenLabs?.startConversation) {
-        // Use the ElevenLabs SDK when available
-        this.conversation = await window.ElevenLabs.startConversation({
-          token: this.token,
-        });
-        this.conversation.on("connect", () => this.onConnect());
-        this.conversation.on("disconnect", () => this.onDisconnect());
-        this.conversation.on("error", (err) => this.onError(err));
-        this.conversation.on("message", (msg) => this.onMessage(msg));
-        this.conversation.on("transcript", (t) => this.onTranscript(t));
-      } else {
-        // Fallback to server-side mock implementation
-        this.conversation = new ServerVoiceConversation({
-          token: this.token,
-          voiceId: this.voiceId,
-          formId: this.formId,
-          language: this.language,
-          onConnect: () => this.onConnect(),
-          onDisconnect: () => this.onDisconnect(),
-          onMessage: (message) => this.onMessage(message),
-          onError: (error) => this.onError(error),
-          onTranscript: (transcript) => this.onTranscript(transcript),
-        });
-      }
+      // Always use server-side implementation for Hindi voice conversations
+      // This ensures proper Hindi TTS and speech recognition integration
+      this.conversation = new ServerVoiceConversation({
+        token: this.token,
+        voiceId: this.voiceId,
+        formId: this.formId,
+        language: this.language,
+        onConnect: () => this.onConnect(),
+        onDisconnect: () => this.onDisconnect(),
+        onMessage: (message) => this.onMessage(message),
+        onError: (error) => this.onError(error),
+        onTranscript: (transcript) => this.onTranscript(transcript),
+      });
 
       // Start session tracking
       await this.startSession();
@@ -103,8 +92,7 @@ class VoiceConversation {
       }
     }
 
-    // For real ElevenLabs SDK, conversation starts automatically after startSession()
-    // For mock, call startConversation
+    // Always use server-side conversation (no ElevenLabs SDK)
     if (this.conversation.startConversation) {
       await this.conversation.startConversation();
     }
@@ -353,10 +341,12 @@ class ServerVoiceConversation {
     this.ignoreRecognition = true; // Ignore recognizer until greeting completes
     this.startListening();
 
-    // Start with greeting
-    await this.speak(
-      "Hello! I'm ready to help you with the survey. Shall we begin?",
-    );
+    // Start with Hindi greeting if language is Hindi
+    const greeting = this.config.language === 'hi' 
+      ? "नमस्ते! मैं आपके सर्वे में आपकी मदद के लिए तैयार हूँ। क्या हम शुरू करें?"
+      : "Hello! I'm ready to help you with the survey. Shall we begin?";
+    
+    await this.speak(greeting);
 
     // Allow recognition results after greeting finishes
     this.ignoreRecognition = false;
