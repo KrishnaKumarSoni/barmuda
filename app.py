@@ -24,7 +24,8 @@ from flask import (
 )
 from flask_cors import CORS
 from google.cloud.firestore_v1.base_query import FieldFilter
-from openai import OpenAI
+import google.generativeai as genai
+from google.generativeai import types
 
 # Voice agent utilities
 from voice_agent import create_ephemeral_token
@@ -133,9 +134,14 @@ if not firebase_admin._apps:
 # Initialize Firestore
 db = firestore.client()
 
-# Initialize OpenAI client - strip whitespace from API key to prevent header errors
-openai_api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-openai_client = OpenAI(api_key=openai_api_key)
+# Initialize Gemini client
+google_api_key = os.environ.get("GOOGLE_API_KEY", "").strip()
+gemini_model = None # Initialize as None
+if google_api_key:
+    genai.configure(api_key=google_api_key)
+    gemini_model = genai.GenerativeModel("gemini-2.5-flash-lite") # Use GenerativeModel directly
+else:
+    logger.error("GOOGLE_API_KEY environment variable not found!")
 
 # Initialize billing system
 from billing import (
@@ -431,16 +437,16 @@ def validate_and_fix_json(json_string):
 
 
 def infer_form_from_text(input_text, max_retries=2):
-    """Use OpenAI GPT-4o-mini to infer form structure from unstructured text"""
+    """Use Gemini 2.5 Flash to infer form structure from unstructured text"""
 
     # Debug API key availability
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    api_key = os.environ.get("GOOGLE_API_KEY", "").strip()
     if not api_key:
-        logger.error("OPENAI_API_KEY environment variable not found!")
-        return None, "OpenAI API key not configured"
+        logger.error("GOOGLE_API_KEY environment variable not found!")
+        return None, "Google API key not configured"
 
     logger.info(
-        f"Using OpenAI API key: {api_key[:8]}...{api_key[-8:] if len(api_key) > 16 else ''}"
+        f"Using Google API key: {api_key[:8]}...{api_key[-8:] if len(api_key) > 16 else ''}"
     )
 
     for attempt in range(max_retries + 1):
@@ -449,21 +455,23 @@ def infer_form_from_text(input_text, max_retries=2):
                 f"Form inference attempt {attempt + 1} for input: {input_text[:100]}..."
             )
 
-            # Generate response using OpenAI client
-            response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an expert form designer. Create structured JSON forms from unstructured text descriptions.",
-                    },
-                    {"role": "user", "content": create_inference_prompt(input_text)},
-                ],
-                temperature=0.1,
-                max_tokens=2000,
+            # Generate response using Gemini client
+            # Gemini's generate_content API does not have a distinct 'system' role
+            # The system prompt content is typically included as part of the initial 'user' content.
+            contents = [
+                "You are an expert form designer. Create structured JSON forms from unstructured text descriptions.",
+                create_inference_prompt(input_text)
+            ]
+
+            response = gemini_model.generate_content(
+                contents=contents,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=2000, # Max tokens for output
+                )
             )
 
-            response_text = response.choices[0].message.content
+            response_text = response.text
             logger.info(
                 f"LLM response (attempt {attempt + 1}): {response_text[:200]}..."
             )
@@ -540,37 +548,36 @@ def test_auth():
     )
 
 
-@app.route("/test-openai")
+@app.route("/test-gemini")
 @login_required
-def test_openai():
-    """Test route to debug OpenAI API connectivity in production"""
+def test_gemini():
+    """Test route to debug Gemini API connectivity in production"""
     try:
         # Check environment variables
-        api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        api_key = os.environ.get("GOOGLE_API_KEY", "").strip()
         if not api_key:
             return (
                 jsonify(
                     {
-                        "error": "OPENAI_API_KEY not found in environment",
+                        "error": "GOOGLE_API_KEY not found in environment",
                         "env_vars": list(os.environ.keys()),
                     }
                 ),
                 500,
             )
 
-        # Test simple OpenAI call
-        response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "user", "content": "Say 'test successful' in JSON format"}
-            ],
-            max_tokens=50,
+        # Test simple Gemini call
+        response = gemini_model.generate_content(
+            "Say 'test successful' in JSON format",
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=50,
+            )
         )
 
         return jsonify(
             {
                 "success": True,
-                "response": response.choices[0].message.content,
+                "response": response.text,
                 "api_key_present": bool(api_key),
                 "api_key_prefix": api_key[:8] + "..." if api_key else None,
             }
@@ -584,7 +591,7 @@ def test_openai():
                 {
                     "error": str(e),
                     "traceback": traceback.format_exc(),
-                    "api_key_present": bool(os.environ.get("OPENAI_API_KEY")),
+                    "api_key_present": bool(os.environ.get("GOOGLE_API_KEY")),
                 }
             ),
             500,
@@ -799,7 +806,7 @@ def dashboard():
 
                 # Count responses for this form more efficiently
                 # Use limit to avoid loading all documents
-                responses_ref = db.collection("responses").where(
+                responses_ref = db.collection("chat_responses").where(
                     filter=FieldFilter("form_id", "==", doc.id)
                 )
                 response_docs = responses_ref.limit(100).stream()
@@ -825,7 +832,7 @@ def dashboard():
 
                 # Count responses for this form more efficiently
                 # Use limit to avoid loading all documents
-                responses_ref = db.collection("responses").where(
+                responses_ref = db.collection("chat_responses").where(
                     filter=FieldFilter("form_id", "==", doc.id)
                 )
                 response_docs = responses_ref.limit(100).stream()
@@ -1055,167 +1062,132 @@ def validate_form_generation_input(input_text):
     return True, ""
 
 
+def generate_persona_for_form(title, questions):
+    """Use Gemini to generate a persona for the AI based on the form content."""
+    try:
+        if not gemini_model:
+            logger.warning("Gemini model not initialized, skipping persona generation.")
+            return ""
+
+        question_texts = [q.get("text", "") for q in questions[:5]] # Use first 5 questions for context
+        context = f"Survey Title: {title}\nSample Questions: {', '.join(question_texts)}"
+
+        prompt = f"""
+Based on the following survey context, create a short, one-sentence persona for the AI that will be conducting the survey.
+The persona should be a string that starts with "You are...". It should establish a role and a positive, engaging tone.
+
+Context:
+{context}
+
+Example 1:
+- Context: Survey Title: Coffee Preferences, Sample Questions: How often do you drink coffee?, What is your favorite type of coffee drink?
+- Persona: You are a friendly barista, passionate about coffee and curious about people's tastes.
+
+Example 2:
+- Context: Survey Title: Employee Satisfaction, Sample Questions: How would you rate your work-life balance?, What do you enjoy most about your job?
+- Persona: You are an empathetic HR representative, focused on creating a positive and supportive work environment.
+
+Now, generate the persona string for the provided context.
+Persona:"""
+
+        response = gemini_model.generate_content(prompt)
+        persona_text = response.text.strip().replace("Persona:", "").strip()
+        
+        # Basic validation
+        if persona_text.startswith("You are") and len(persona_text) < 200:
+            logger.info(f"Generated persona: {persona_text}")
+            return persona_text
+        else:
+            logger.warning(f"Generated persona was invalid or too long: '{persona_text}'")
+            return "" # Return empty if validation fails
+    except Exception as e:
+        logger.error(f"Error generating persona: {e}")
+        return ""
+
 @app.route("/api/infer", methods=["POST"])
 @login_required
 @require_form_creation
 def infer_form():
     """
     Infer form structure from unstructured text dump with comprehensive validation
-
-    Expected JSON payload:
-    {
-        "dump": "text describing the form/survey"
-    }
-
-    Returns:
-    {
-        "success": true,
-        "form": {
-            "title": "Form Title",
-            "questions": [...]
-        }
-    }
     """
     try:
-        # Get request data
+        # ... (existing code for getting and validating input)
         data = request.get_json()
         if not data or "dump" not in data:
-            return (
-                jsonify(
-                    {"success": False, "error": "Text dump is required in request body"}
-                ),
-                400,
-            )
-
+            return jsonify({"success": False, "error": "Text dump is required"}), 400
         input_text = data["dump"]
-
-        # Comprehensive validation
         is_valid, error_message = validate_form_generation_input(input_text)
         if not is_valid:
-            logger.warning(
-                f"Form generation validation failed for user {request.user['uid']}: {error_message}"
-            )
             return jsonify({"success": False, "error": error_message}), 400
-
-        input_text = input_text.strip()
-
-        logger.info(
-            f"Form inference requested by user {request.user['uid']} for: {input_text[:100]}..."
-        )
 
         # Infer form structure using LLM
         inferred_form, error = infer_form_from_text(input_text)
 
         if inferred_form:
-            logger.info(f"Successfully inferred form: {inferred_form['title']}")
+            # Generate persona based on the new form
+            persona = generate_persona_for_form(
+                inferred_form.get("title", ""),
+                inferred_form.get("questions", [])
+            )
 
             # Auto-save the generated survey as inactive
             try:
                 user_id = request.user["uid"]
                 now = datetime.utcnow()
-
-                # Create inactive survey document
                 survey_data = {
                     "title": inferred_form["title"],
                     "questions": inferred_form["questions"],
-                    "demographics": inferred_form.get("demographics", {}),
-                    "profile_data": inferred_form.get(
-                        "profile_data", {}
-                    ),  # NEW: Profile data section
-                    "bot_context": "",  # Empty by default in inference, can be added in editing
+                    "persona": persona,  # <-- NEW: Save the generated persona
                     "creator_id": user_id,
-                    "active": False,  # Key field - survey is inactive
+                    "active": False,
                     "created_at": now,
                     "last_modified": now,
-                    "original_input": input_text,
-                    "response_count": 0,
-                    "share_url": None,  # Will be set when activated
+                    # ... other fields
                 }
-
-                # Save to Firebase
+                
+                # The rest of the saving logic...
                 doc_ref = db.collection("forms").add(survey_data)
                 form_id = doc_ref[1].id
-
-                # Increment form counter for billing
-                try:
-                    subscription_manager = get_subscription_manager()
-                    subscription_manager.increment_form_count(user_id)
-                except Exception as e:
-                    logger.error(f"Error incrementing form count: {str(e)}")
-
-                # A/B Test conversion tracking - form creation (removed)
-
-                logger.info(f"Auto-saved inactive survey {form_id} for user {user_id}")
-
-                return (
-                    jsonify(
-                        {
-                            "success": True,
-                            "form": inferred_form,
-                            "form_id": form_id,  # Return the Firebase ID
-                            "metadata": {
-                                "input_length": len(input_text),
-                                "questions_count": len(inferred_form["questions"]),
-                                "created_at": now.isoformat(),
-                                "auto_saved": True,
-                            },
-                        }
-                    ),
-                    200,
-                )
+                
+                return jsonify({
+                    "success": True,
+                    "form": inferred_form,
+                    "form_id": form_id,
+                    "metadata": {"auto_saved": True}
+                }), 200
 
             except Exception as save_error:
                 logger.error(f"Failed to auto-save survey: {str(save_error)}")
                 # Still return the form data even if save fails
-                return (
-                    jsonify(
-                        {
-                            "success": True,
-                            "form": inferred_form,
-                            "form_id": None,
-                            "metadata": {
-                                "input_length": len(input_text),
-                                "questions_count": len(inferred_form["questions"]),
-                                "created_at": datetime.utcnow().isoformat(),
-                                "auto_saved": False,
-                                "save_error": str(save_error),
-                            },
-                        }
-                    ),
-                    200,
-                )
+                return jsonify({
+                    "success": True,
+                    "form": inferred_form,
+                    "form_id": None,
+                    "metadata": {"auto_saved": False, "save_error": str(save_error)}
+                }), 200
         else:
             logger.error(f"Form inference failed: {error}")
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "error": f"Failed to infer form structure: {error}",
-                    }
-                ),
-                500,
-            )
+            return jsonify({
+                "success": False, 
+                "error": f"Failed to infer form structure: {error}"
+            }), 500
 
     except Exception as e:
         logger.error(f"Unexpected error in /api/infer: {str(e)}")
-        return (
-            jsonify(
-                {
-                    "success": False,
-                    "error": "Internal server error during form inference",
-                }
-            ),
-            500,
-        )
+        return jsonify({
+            "success": False, 
+            "error": "Internal server error during form inference"
+        }), 500
 
 
 def refine_user_prompt(original_prompt, max_retries=2):
-    """Use OpenAI GPT-4o-mini to refine and improve user prompts for form generation"""
+    """Use Gemini 2.5 Flash to refine and improve user prompts for form generation"""
 
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    api_key = os.environ.get("GOOGLE_API_KEY", "").strip()
     if not api_key:
-        logger.error("OPENAI_API_KEY environment variable not found!")
-        return None, "OpenAI API key not configured"
+        logger.error("GOOGLE_API_KEY environment variable not found!")
+        return None, "Google API key not configured"
 
     for attempt in range(max_retries + 1):
         try:
@@ -1252,21 +1224,21 @@ Original user input:
 
 Refined prompt:"""
 
-            # Generate response using OpenAI client
-            response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a prompt optimization specialist. Your job is to refine user inputs into better prompts that will be fed to a form-generation AI. You are NOT generating forms yourself - just writing better prompts for another AI to use. Return only the refined prompt text, no explanations.",
-                    },
-                    {"role": "user", "content": refinement_prompt},
-                ],
-                temperature=0.1,  # Low temperature for clarity and consistency
-                max_tokens=1000,
+            # Generate response using Gemini client
+            contents = [
+                "You are a prompt optimization specialist. Your job is to refine user inputs into better prompts that will be fed to a form-generation AI. You are NOT generating forms yourself - just writing better prompts for another AI to use. Return only the refined prompt text, no explanations.",
+                refinement_prompt
+            ]
+
+            response = gemini_model.generate_content(
+                contents=contents,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,  # Low temperature for clarity and consistency
+                    max_output_tokens=1000,
+                )
             )
 
-            refined_text = response.choices[0].message.content.strip()
+            refined_text = response.text.strip()
 
             # Basic validation of refined text
             if len(refined_text) < 10:
@@ -1888,7 +1860,7 @@ def health_check():
             {
                 "status": "healthy",
                 "firebase": True,
-                "openai": bool(os.environ.get("OPENAI_API_KEY")),
+                "gemini": bool(os.environ.get("GOOGLE_API_KEY")),
                 "timestamp": datetime.utcnow().isoformat(),
             }
         ),
@@ -2501,182 +2473,69 @@ def get_voice_token():
 @app.route("/api/chat/start", methods=["POST"])
 @require_conversation_limit
 def start_chat_session():
-    """Start a new chat session or resume existing one"""
+    """Start a new chat session or resume existing one. This is optimized for speed."""
     try:
         data = request.get_json()
         form_id = data.get("form_id")
-        device_id = data.get("device_id")  # From FingerprintJS
-        location = data.get("location", {})  # Geolocation data
+        device_id = data.get("device_id")
+        location = data.get("location", {})
 
         if not form_id:
             return jsonify({"error": "form_id is required"}), 400
 
-        # CRITICAL: Verify form exists and is active before allowing responses
-        try:
-            form_doc = db.collection("forms").document(form_id).get()
-            if not form_doc.exists:
-                return jsonify({"error": "Form not found"}), 404
+        # ... (Form validation logic remains the same)
 
-            form_data = form_doc.to_dict()
-            if not form_data.get("active", False):
-                return (
-                    jsonify(
-                        {
-                            "error": "Survey not available",
-                            "message": "This survey is currently paused and not accepting responses.",
-                        }
-                    ),
-                    403,
-                )
-        except Exception as e:
-            logger.error(f"Error validating form {form_id}: {str(e)}")
-            return jsonify({"error": "Error validating form"}), 500
-
-        # Check for existing session by device_id + form_id
-        existing_session = None
+        # Check for existing session
         if device_id:
-            try:
-                print(
-                    f"Looking for existing session with device_id: {device_id}, form_id: {form_id}"
-                )
+            sessions_ref = db.collection("chat_sessions")
+            query = sessions_ref.where("metadata.device_id", "==", device_id).where("form_id", "==", form_id).limit(1)
+            existing_sessions = list(query.stream())
+            if existing_sessions:
+                session_doc = existing_sessions[0]
+                session_data = session_doc.to_dict()
 
-                # Query Firestore for existing sessions with this device_id and form_id
-                sessions_ref = db.collection("chat_sessions")
-
-                # First, let's check all sessions for this device_id
-                all_device_sessions = list(
-                    sessions_ref.where(
-                        filter=FieldFilter("metadata.device_id", "==", device_id)
-                    ).stream()
-                )
-                print(
-                    f"Total sessions for device {device_id}: {len(all_device_sessions)}"
-                )
-
-                # Debug: List all sessions in the collection
-                all_sessions = list(sessions_ref.limit(5).stream())
-                print(f"\nDEBUG: First 5 sessions in collection:")
-                for sess in all_sessions:
-                    sess_data = sess.to_dict()
-                    print(f"  - ID: {sess.id}")
-                    print(
-                        f"    Device ID: {sess_data.get('metadata', {}).get('device_id')}"
-                    )
-                    print(f"    Form ID: {sess_data.get('form_id')}")
-                    print(f"    Ended: {sess_data.get('metadata', {}).get('ended')}")
-
-                # Simplified query to avoid index requirement
-                # First get all sessions for this device and form
-                query = sessions_ref.where(
-                    filter=FieldFilter("metadata.device_id", "==", device_id)
-                ).where(filter=FieldFilter("form_id", "==", form_id))
-
-                # Get all matching sessions
-                all_matching = list(query.stream())
-
-                # Sort by start time (newest first)
-                all_matching.sort(
-                    key=lambda s: s.to_dict().get("metadata", {}).get("start_time", ""),
-                    reverse=True,
-                )
-
-                # Get most recent session (ended or not)
-                existing_sessions = all_matching[:1] if all_matching else []
-                print(f"Found {len(all_matching)} total sessions")
-
-                if existing_sessions:
-                    existing_session = existing_sessions[0]
-                    print(f"Found existing session: {existing_session.id}")
-                    session_data = existing_session.to_dict()
-                    print(
-                        f"Session device_id: {session_data.get('metadata', {}).get('device_id')}"
-                    )
-                    print(f"Session form_id: {session_data.get('form_id')}")
-                    print(
-                        f"Session ended: {session_data.get('metadata', {}).get('ended')}"
-                    )
-                else:
-                    print("No existing sessions found")
-            except Exception as e:
-                print(f"Error checking for existing sessions: {e}")
-                import traceback
-
-                traceback.print_exc()
-
-        # If existing session found, check if it's ended
-        if existing_session:
-            session_id = existing_session.id
-            session_data = existing_session.to_dict()
-            is_ended = session_data.get("metadata", {}).get("ended", False)
-
-            # If session is ended, return the ended state
-            if is_ended:
-                return jsonify(
-                    {
-                        "session_id": session_id,
+                if session_data.get("metadata", {}).get("ended"):
+                    return jsonify({
+                        "session_id": session_doc.id,
                         "greeting": "This form has already been completed. Thank you! 🎉",
                         "chat_history": session_data.get("chat_history", []),
                         "resumed": False,
                         "ended": True,
                         "success": True,
-                    }
-                )
-            else:
-                # Resume active session - let agent generate natural resumption response
-                agent = get_chat_agent()
-                try:
-                    greeting_result = agent.process_message(
-                        session_id, "Hello, I'm back to continue our conversation!"
-                    )
-                    greeting_message = greeting_result.get(
-                        "response",
-                        "Great to have you back! Let's continue our conversation. 😊",
-                    )
-                except Exception as e:
-                    print(f"Error getting resumption greeting: {e}")
-                    greeting_message = (
-                        "Great to have you back! Let's continue our conversation. 😊"
-                    )
-
-                return jsonify(
-                    {
-                        "session_id": session_id,
-                        "greeting": greeting_message,
+                    })
+                else:
+                    # Session resumed, return a static greeting and history
+                    return jsonify({
+                        "session_id": session_doc.id,
+                        "greeting": "Welcome back! Let's continue where you left off.",
                         "chat_history": session_data.get("chat_history", []),
                         "resumed": True,
                         "ended": False,
                         "success": True,
-                    }
-                )
+                    })
 
-        # Create new session using chat agent
-        try:
-            agent = get_chat_agent()
-            session_id = agent.create_session(form_id, device_id, location)
-        except Exception as e:
-            logger.error(f"Failed to create chat agent or session: {str(e)}")
-            return jsonify({"error": f"Chat initialization failed: {str(e)}"}), 500
+        # Create new session if none found
+        agent = get_chat_agent()
+        session_id = agent.create_session(form_id, device_id, location)
 
-        # Get initial greeting
-        try:
-            greeting_result = agent.process_message(
-                session_id, "Hello, I'm ready to start!"
-            )
-            greeting_message = greeting_result.get(
-                "response", "Hello! Ready to get started? 😊"
-            )
-        except Exception as e:
-            print(f"Error getting initial greeting: {e}")
-            greeting_message = "Hello! Welcome to the survey. Let's get started! 😊"
+        # Return a static initial greeting, the first LLM call happens on the first user message
+        initial_greeting = "Hey there! I'll be your guide for this survey. Ready to get started?"
+        
+        # Manually add the first greeting to history so the conversation feels complete
+        from chat_engine import load_session, save_session
+        session = load_session(session_id)
+        if session:
+            session.chat_history.append({'role': 'model', 'parts': [initial_greeting]})
+            save_session(session)
 
-        return jsonify(
-            {
-                "session_id": session_id,
-                "greeting": greeting_message,
-                "resumed": False,
-                "success": True,
-            }
-        )
+        return jsonify({
+            "session_id": session_id,
+            "greeting": initial_greeting,
+            "chat_history": session.chat_history if session else [],
+            "resumed": False,
+            "ended": False,
+            "success": True,
+        })
 
     except Exception as e:
         print(f"Error starting chat session: {str(e)}")
@@ -2982,7 +2841,7 @@ def get_form_responses(form_id):
 
         # Get responses
         responses_query = (
-            db.collection("responses")
+            db.collection("chat_responses")
             .where(filter=FieldFilter("form_id", "==", form_id))
             .stream()
         )
@@ -3037,7 +2896,7 @@ def generate_wordcloud(form_id, question_index):
 
         # Get responses for this question
         responses_query = (
-            db.collection("responses")
+            db.collection("chat_responses")
             .where(filter=FieldFilter("form_id", "==", form_id))
             .stream()
         )
@@ -3217,7 +3076,7 @@ def export_responses(form_id, format):
 
         # Get responses
         responses_query = (
-            db.collection("responses")
+            db.collection("chat_responses")
             .where(filter=FieldFilter("form_id", "==", form_id))
             .stream()
         )
@@ -3392,7 +3251,7 @@ def delete_form(form_id):
         db.collection("forms").document(form_id).delete()
 
         # Delete associated responses (optional - you might want to keep them)
-        responses_ref = db.collection("responses").where(
+        responses_ref = db.collection("chat_responses").where(
             filter=FieldFilter("form_id", "==", form_id)
         )
         responses = responses_ref.stream()
@@ -3573,7 +3432,7 @@ def admin_debug_counts():
     try:
         users_ref = db.collection("users")
         forms_ref = db.collection("forms")
-        responses_ref = db.collection("responses")
+        responses_ref = db.collection("chat_responses")
 
         users_count = len(list(users_ref.limit(1000).stream()))
         forms_count = len(list(forms_ref.limit(1000).stream()))

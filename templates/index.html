@@ -1073,6 +1073,135 @@
             return signInWithGoogleUniversal(window.auth, redirectUrl);
         }
 
+        // --- Start of newly added functions for unauthenticated flow ---
+        let unauthValidationTimeout;
+        let isUnauthInputValid = false;
+
+        function handleUnauthenticatedInput() {
+            const input = document.getElementById('formDescription');
+            const generateBtn = document.getElementById('unauthGenerateBtn');
+            // Check if all required elements exist
+            if (!input || !generateBtn) {
+                console.warn('Some required elements not found in handleUnauthenticatedInput');
+                return;
+            }
+
+            clearTimeout(unauthValidationTimeout);
+            unauthValidationTimeout = setTimeout(() => {
+                const text = input.value.trim();
+                const validation = validateFormInput(text); // Re-use existing validation logic if globally available, otherwise define here
+
+                isUnauthInputValid = validation.isValid;
+                generateBtn.disabled = !isUnauthInputValid;
+                if (isUnauthInputValid) {
+                    setUnauthButtonState('idle');
+                } else {
+                    setUnauthButtonState('disabled');
+                }
+            }, 300); // Debounce
+        }
+
+        // Re-using the comprehensive validation function as it's general purpose
+        // If not globally available, this would need to be defined here or imported
+        function validateFormInput(text) {
+            // Empty or too short
+            if (!text || text.length === 0) {
+                return { isValid: false, message: '' };
+            }
+
+            if (text.length < 20) {
+                return {
+                    isValid: false,
+                    message: 'Please provide more details about your form (minimum 20 characters)'
+                };
+            }
+
+            // Only whitespace or newlines
+            if (!/\S/.test(text) || text.replace(/\s/g, '').length < 10) {
+                return {
+                    isValid: false,
+                    message: 'Please describe what kind of form you want to create'
+                };
+            }
+
+            // Repetitive characters (like "aaaaaaa" or "1111111")
+            const repetitivePattern = /(.)\1{6,}/;
+            if (repetitivePattern.test(text)) {
+                return {
+                    isValid: false,
+                    message: 'Please provide a meaningful description of your form'
+                };
+            }
+
+            // Keyboard mashing detection
+            const keyboardMashing = /^[qwertyuiop]+$|^[asdfghjkl]+$|^[zxcvbnm]+$/i;
+            if (keyboardMashing.test(text.replace(/\s/g, ''))) {
+                return {
+                    isValid: false,
+                    message: 'Please provide a real description of the form you want to create'
+                };
+            }
+
+            // Not form-related (basic check)
+            const formKeywords = /\b(form|survey|question|data|collect|response|feedback|poll|quiz|assessment|evaluation|information|details|input)\b/i;
+            const nonFormKeywords = /\b(weather|time|date|news|sports|movie|music|food|recipe|game|joke|story)\b/i;
+
+            if (nonFormKeywords.test(text) && !formKeywords.test(text)) {
+                return {
+                    isValid: false,
+                    message: 'This doesn\'t seem to be about creating a form. Please describe your form goals.'
+                };
+            }
+
+            return { isValid: true, message: '' };
+        }
+
+        function setUnauthButtonState(state) {
+            const generateBtn = document.getElementById('unauthGenerateBtn');
+            const buttonText = document.getElementById('unauthButtonText');
+            const buttonSpinner = document.getElementById('unauthSpinner');
+
+            if (!generateBtn || !buttonText || !buttonSpinner) return;
+
+            switch(state) {
+                case 'signing_in':
+                    buttonText.textContent = 'Signing in...';
+                    buttonSpinner.classList.remove('hidden');
+                    generateBtn.disabled = true;
+                    break;
+                case 'idle':
+                    buttonText.textContent = 'Generate';
+                    buttonSpinner.classList.add('hidden');
+                    generateBtn.disabled = !isUnauthInputValid; // Re-enable based on current valid state
+                    break;
+                case 'disabled':
+                    buttonText.textContent = 'Generate';
+                    buttonSpinner.classList.add('hidden');
+                    generateBtn.disabled = true;
+                    break;
+            }
+        }
+
+        async function handleUnauthenticatedGenerate() {
+            const formDescriptionElement = document.getElementById('formDescription');
+            const formDescription = formDescriptionElement.value.trim();
+
+            if (!isUnauthInputValid) {
+                alert('Please provide a valid description before generating.'); // Or show message in UI
+                return;
+            }
+
+            setUnauthButtonState('signing_in');
+
+            // Store the form description in session storage so it can be retrieved after login
+            sessionStorage.setItem('pendingFormDescription', formDescription);
+            console.log('Pending form description saved:', formDescription);
+
+            // Initiate Google Sign-In and redirect to /create-form after login
+            await signInWithGoogle('/create-form');
+        }
+        // --- End of newly added functions for unauthenticated flow ---
+
         // Template data
         const templates = {
             'customer-feedback': `Create a customer feedback survey to collect insights about our product experience. I want to understand customer satisfaction levels, identify areas for improvement, and gather specific feedback about features they love or dislike. Include questions about overall satisfaction rating, likelihood to recommend, specific product features, customer support experience, and suggestions for improvement.`,
