@@ -123,10 +123,12 @@ if not firebase_admin._apps:
         }
         cred = credentials.Certificate(firebase_config)
     else:
-        # Local development - use service account file
-        cred = credentials.Certificate(
-            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
+        # Local development - use service account file path from env or fallback
+        service_account_path = os.environ.get(
+            "FIREBASE_SERVICE_ACCOUNT_PATH",
+            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json",
         )
+        cred = credentials.Certificate(service_account_path)
 
     firebase_admin.initialize_app(cred)
 
