@@ -1,14 +1,32 @@
+import os
 from google.cloud import firestore
+from google.oauth2 import service_account
 from datetime import datetime
 from typing import Dict, Any, Literal, cast
 from dotenv import load_dotenv
 
 load_dotenv()
-# --- Firestore Client Initialization ---
-# Ensure you have authenticated via `gcloud auth application-default login`
-# or have the GOOGLE_APPLICATION_CREDENTIALS environment variable set.
 
-db = firestore.AsyncClient()
+# --- Firestore Client Initialization ---
+def get_db_client():
+    """
+    Returns an initialized Firestore AsyncClient using environment variables.
+    """
+    # Prefer the explicit path variable you use in .env
+    cred_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH")
+    
+    # Fallback to standard Google var if set
+    if not cred_path:
+        cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+
+    if cred_path and os.path.exists(cred_path):
+        print(f"[DB] Initializing Firestore AsyncClient with {cred_path}")
+        return firestore.AsyncClient.from_service_account_json(cred_path)
+    else:
+        print("[DB] Initializing Firestore AsyncClient with default credentials")
+        return firestore.AsyncClient()
+
+db = get_db_client()
 
 def get_utc_now() -> str:
     """Returns the current UTC time in ISO 8601 format with 'Z'."""

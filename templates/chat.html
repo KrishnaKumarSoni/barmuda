@@ -228,21 +228,21 @@
                 let location = {};
 
                 // Start chat session
-                const response = await fetch('/api/chat/start', {
+                const response = await fetch('/api/v2/chat/start', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         form_id: formId,
-                        device_id: deviceId,
+                        session_id: deviceId, // Use deviceId as sessionId
                         location: location
                     })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    sessionId = data.session_id;
+                    sessionId = deviceId; // Unique ID for this device
                     
                     // Hide typing indicator
                     hideTypingIndicator();

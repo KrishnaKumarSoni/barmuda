@@ -1,25 +1,30 @@
 # Core Flask and server requirements
-flask==3.0.0
-gunicorn==21.2.0
+flask
+gunicorn
 
 # Firebase integration
-firebase-admin==6.2.0
+firebase-admin
 
 # AI/ML APIs
-openai==1.97.1
-openai-agents==0.2.5
+openai
+openai-agents
+google-genai
+
+# LangChain & LangGraph Ecosystem
+langchain
+langchain-core
+langchain-community
+langchain-google-genai
+langgraph
 
 # Utilities
-python-dotenv==1.0.0
-requests==2.31.0
-flask-cors==4.0.0
+python-dotenv
+requests
+flask-cors
 
 # Development and testing
-pytest==7.4.0
-faker==19.3.0
+pytest
+faker
 
 # Email service
-resend==2.13.0
-
-google-genai
-google-genai
+resend
