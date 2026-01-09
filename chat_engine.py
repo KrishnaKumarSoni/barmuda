@@ -75,13 +75,27 @@ if not firebase_admin._apps:
         cred = firebase_admin.credentials.Certificate(firebase_config)
         firebase_admin.initialize_app(cred)
     else:
-        # Local development - use service account file
-        cred = firebase_admin.credentials.Certificate(
-            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json"
+        # Local development - use service account file from env or default
+        service_account_path = os.environ.get(
+            "FIREBASE_SERVICE_ACCOUNT_PATH",
+            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json",
         )
-        firebase_admin.initialize_app(cred)
+        if os.path.exists(service_account_path):
+            cred = firebase_admin.credentials.Certificate(service_account_path)
+            firebase_admin.initialize_app(cred)
+        else:
+            print(f"Warning: Firebase credentials not found at {service_account_path}", file=os.sys.stderr)
 
-firestore_db = firestore.client()
+# Initialize Firestore client safely
+try:
+    if firebase_admin._apps:
+        firestore_db = firestore.client()
+    else:
+        print("Warning: Firebase not initialized, firestore_db will be None", file=os.sys.stderr)
+        firestore_db = None
+except Exception as e:
+    print(f"Error initializing Firestore client: {e}", file=os.sys.stderr)
+    firestore_db = None
 
 
 @dataclass

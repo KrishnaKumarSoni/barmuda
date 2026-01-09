@@ -25,7 +25,10 @@ def init_admin(db_client):
     """Initialize admin module with Firestore client"""
     global db
     db = db_client
-    load_admin_config()
+    if db:
+        load_admin_config()
+    else:
+        logger.warning("Admin module initialized without DB client")
 
 def load_admin_config():
     """Load admin configuration from Firebase"""
@@ -39,6 +42,10 @@ def load_admin_config():
     default_password = "barmuda_admin_2025"
     default_hash = hashlib.sha256(default_password.encode()).hexdigest()
     
+    if not db:
+        ADMIN_PASSWORD_HASH = default_hash
+        return
+
     try:
         config_ref = db.collection("admin_config").document("settings")
         config = config_ref.get()

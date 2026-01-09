@@ -1,0 +1,105 @@
+import os
+import logging
+import firebase_admin
+from firebase_admin import credentials, firestore
+from openai import OpenAI
+from google import genai
+from google.genai import types
+from web.config import Config
+
+logger = logging.getLogger(__name__)
+
+# Initialize Firebase Admin SDK
+if not firebase_admin._apps:
+    if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
+        # Production environment
+        firebase_config = {
+            "type": "service_account",
+            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
+            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+            "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace("\n", "\n"),
+            "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+            "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
+            "universe_domain": "googleapis.com",
+        }
+        cred = credentials.Certificate(firebase_config)
+    else:
+        # Local development
+        service_account_path = os.environ.get(
+            "FIREBASE_SERVICE_ACCOUNT_PATH",
+            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json",
+        )
+        if os.path.exists(service_account_path):
+            cred = credentials.Certificate(service_account_path)
+        else:
+            logger.warning(f"Firebase service account file not found at {service_account_path}")
+            cred = None
+    
+    if cred:
+        firebase_admin.initialize_app(cred)
+
+# Global Extensions
+db = firestore.client() if firebase_admin._apps else None
+
+# --- LLM Clients ---
+openai_client = None
+if Config.OPENAI_API_KEY:
+    openai_client = OpenAI(api_key=Config.OPENAI_API_KEY)
+
+gemini_client = None
+if Config.GEMINI_API_KEY:
+    gemini_client = genai.Client(api_key=Config.GEMINI_API_KEY)
+
+# --- Unified LLM Wrapper ---
+def generate_text(system_prompt: str, user_prompt: str, model: str = None, temperature: float = 0.1) -> str:
+    """
+    Generates text using the configured LLM provider (OpenAI or Gemini).
+    """
+    provider = Config.LLM_PROVIDER
+    
+    if provider == 'gemini':
+        try:
+            if not gemini_client:
+                raise ValueError("Gemini API Key not configured")
+
+            # Use gemini-2.0-flash as default for new SDK, or fallback to 1.5
+            gemini_model_name = model or "gemini-2.0-flash"
+            
+            response = gemini_client.models.generate_content(
+                model=gemini_model_name,
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    temperature=temperature
+                )
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Gemini generation failed: {e}")
+            # Fallback to OpenAI if configured
+            if openai_client:
+                logger.info("Falling back to OpenAI")
+                provider = 'openai'
+            else:
+                raise e
+
+    if provider == 'openai':
+        if not openai_client:
+            raise ValueError("OpenAI API Key not configured")
+            
+        gpt_model = model or "gpt-4o-mini"
+        response = openai_client.chat.completions.create(
+            model=gpt_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+        )
+        return response.choices[0].message.content
+
+    raise ValueError(f"Unknown LLM Provider: {provider}")
