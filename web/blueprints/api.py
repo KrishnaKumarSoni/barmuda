@@ -17,41 +17,62 @@ api_bp = Blueprint('api', __name__)
 
 def create_inference_prompt(input_text):
     """Create the form inference prompt with Chain-of-Thought and few-shot examples"""
-    return f"""You are an expert form designer. Given an unstructured text dump describing a form or survey, you need to infer a structured form with appropriate questions and answer types.
+    return f"""You are an expert form designer and systems architect. Given an unstructured text dump describing a form or survey, you need to infer a structured JSON schema compatible with our autonomous survey agent.
 
-TASK: Analyze the input text and create a JSON form structure following the exact format below.
+TASK: Analyze the input text and create a JSON form structure following the EXACT format below.
 
 REASONING PROCESS (Chain-of-Thought):
-1. First, summarize the main intent/purpose of the form from the input
-2. Identify 5-10 key questions that would capture the needed information
-3. For each question, determine the most appropriate input type
-4. Generate logical answer options for multiple choice questions
-5. Self-critique: Are the questions comprehensive? Are types appropriate?
+1.  **Summarize Intent:** What is the main goal? Who is the target audience?
+2.  **Define Persona:** What personality should the AI interviewer adopt? (e.g., "professional and concise", "casual and high-energy", "empathetic listener").
+3.  **Identify Questions:** Determine 5-10 key questions.
+4.  **Select Types:** Map each to one of: 'text', 'integer', 'mcq', 'rating', 'boolean'.
+5.  **Define Validation:** Write clear natural language rules for `responseDataValidationRule` (e.g., "Must be a valid email", "Min 50 chars").
+6.  **Structure Options:** For 'mcq', 'rating', 'boolean', create precise `responseOptions`.
 
 OUTPUT FORMAT (JSON only, no additional text):
 {{
-  "title": "Form Title (concise, descriptive)",
+  "formId": "generated_form_id",
+  "formTitle": "Form Title (concise)",
+  "formDescription": "Description for the frontend user",
+  "persona": "Description of the agent's personality and tone",
+  "isEnabled": true,
+  "isDeleted": false,
+  "createdAt": "2025-01-01T12:00:00Z",
+  "deletedAt": null,
+  "latestEnabledAt": "2025-01-01T12:00:00Z",
   "questions": [
     {{
-      "text": "Question text",
-      "type": "text|multiple_choice|yes_no|number|rating",
-      "options": ["option1", "option2", "..."] or null,
-      "enabled": true
+      "questionKey": "camelCaseKey",
+      "questionType": "text|integer|mcq|rating|boolean",
+      "source": "inference",
+      "sequenceNumber": 1,
+      "questionText": "The actual question to ask?",
+      "responseDataValidationRule": "Natural language validation rule",
+      "isEnabled": true,
+      "isDeleted": false,
+      "createdAt": "2025-01-01T12:00:00Z",
+      "deletedAt": null,
+      "latestEnabledAt": "2025-01-01T12:00:00Z",
+      "responseOptions": {{
+        "placeholder": "e.g. Placeholder",
+        "minLength": 0,
+        "maxLength": 1000,
+        "min": 0,
+        "max": 10,
+        "choices": [
+          {{ "label": "Option Label", "value": "option_value" }}
+        ]
+      }}
     }}
   ]
 }}
 
-QUESTION TYPES:
-- text: Open-ended text responses
-- multiple_choice: Select one from predefined options (include "Other" and "Prefer not to say" when appropriate)
-- yes_no: Simple yes/no questions
-- number: Numeric input (age, quantity, etc.)
-- rating: 1-5 or 1-10 scale ratings
-
-DEMOGRAPHICS TEMPLATE:
-Always consider including these standard demographic questions when appropriate:
-- Age (multiple_choice: "18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say")
-- Gender (multiple_choice: "Male", "Female", "Non-binary", "Other", "Prefer not to say")
+TYPE GUIDELINES:
+- **text**: Open-ended. responseOptions: {{ "placeholder": "...", "maxLength": 500 }}
+- **integer**: Numeric. responseOptions: {{ "min": 0, "max": 100 }}
+- **rating**: 1-N scale. responseOptions: {{ "min": 1, "max": 5 }}
+- **boolean**: Yes/No. responseOptions: {{ "choices": [ {{ "label": "Yes", "value": true }}, {{ "label": "No", "value": false }} ] }}
+- **mcq**: Select one/many. responseOptions: {{ "choices": [ {{ "label": "Label", "value": "value" }} ] }}
 
 INPUT: {input_text}
 OUTPUT:"""
@@ -107,15 +128,36 @@ def infer_form_from_text(input_text, max_retries=2):
 
 def refine_user_prompt(original_prompt, max_retries=2):
     """Use configured LLM to refine prompts"""
+    
+    # Define schema for structured output
+    refined_prompt_schema = {
+        "type": "OBJECT",
+        "properties": {
+            "refined_prompt": {"type": "STRING"}
+        },
+        "required": ["refined_prompt"]
+    }
+
     for attempt in range(max_retries + 1):
         try:
-            refinement_prompt = f"Refine this form generation prompt: \"{original_prompt}\"\nRefined prompt:"
-            refined_text = generate_text(
-                system_prompt="You are a prompt optimization specialist. Return ONLY the refined prompt text. No explanations, no quotes, no markdown.",
+            refinement_prompt = f"Refine this form generation prompt: \"{original_prompt}\""
+            
+            response_text = generate_text(
+                system_prompt="You are a prompt optimization specialist. Return the refined prompt in JSON format.",
                 user_prompt=refinement_prompt,
-                temperature=0.1
+                temperature=0.1,
+                response_mime_type="application/json",
+                response_schema=refined_prompt_schema
             )
-            return refined_text.strip(), None
+            
+            # Parse the JSON response
+            try:
+                parsed = json.loads(response_text)
+                return parsed.get("refined_prompt", "").strip(), None
+            except json.JSONDecodeError:
+                # Fallback if model returns raw text despite instructions
+                return response_text.strip(), None
+                
         except Exception as e:
             if attempt == max_retries:
                 return None, str(e)

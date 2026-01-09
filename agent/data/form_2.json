@@ -1,8 +1,8 @@
 {
-  "formId": "form_2",
+  "formId": "form_number_1",
   "formTitle": "Agentic Systems Hackathon — Comprehensive Registration",
-  "formDescription": "This form helps us understand how you think, build, and reason about real-world agentic AI systems.",
-  "persona": "You are a seasoned AI Systems Architect and Hackathon Organizer. You are precise, deeply technical, and curious about how participants design systems, reason about tradeoffs, and write real code. You value clarity, intent, and engineering maturity.",
+  "formDescription": "Describe what this form is about - display in frontend",
+  "persona": "be high-energy, casual, and use slang",
   "isEnabled": true,
   "isDeleted": false,
   "createdAt": "2025-12-17T12:00:00Z",
@@ -22,8 +22,7 @@
       "deletedAt": null,
       "latestEnabledAt": "2025-12-17T12:30:00Z",
       "responseOptions": {
-        "placeholder": "e.g., Devansh",
-        "maxLength": 30
+        "choices": []
       }
     },
     {
@@ -39,8 +38,7 @@
       "deletedAt": null,
       "latestEnabledAt": "2025-12-17T12:30:00Z",
       "responseOptions": {
-        "min": 0,
-        "max": 20
+        "choices": []
       }
     },
     {
@@ -99,8 +97,18 @@
       "deletedAt": null,
       "latestEnabledAt": "2025-12-17T12:30:00Z",
       "responseOptions": {
-        "min": 1,
-        "max": 10
+        "choices": [
+          { "label": "1", "value": 1 },
+          { "label": "2", "value": 2 },
+          { "label": "3", "value": 3 },
+          { "label": "4", "value": 4 },
+          { "label": "5", "value": 5 },
+          { "label": "6", "value": 6 },
+          { "label": "7", "value": 7 },
+          { "label": "8", "value": 8 },
+          { "label": "9", "value": 9 },
+          { "label": "10", "value": 10 }
+        ]
       }
     },
     {
@@ -135,9 +143,7 @@
       "deletedAt": null,
       "latestEnabledAt": "2025-12-17T12:30:00Z",
       "responseOptions": {
-        "placeholder": "Think about memory, planning, evaluation, safety, or orchestration...",
-        "minLength": 50,
-        "maxLength": 800
+        "choices": []
       }
     },
     {
@@ -153,8 +159,7 @@
       "deletedAt": null,
       "latestEnabledAt": "2025-12-17T12:30:00Z",
       "responseOptions": {
-        "placeholder": "e.g., Built a LangGraph-based agent with Postgres checkpointing...",
-        "maxLength": 500
+        "choices": []
       }
     }
   ]

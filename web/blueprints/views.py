@@ -37,6 +37,19 @@ def service_worker():
     response.headers["Service-Worker-Allowed"] = "/"
     return response
 
+@views_bp.route("/widget.js")
+def widget_script():
+    """Serve the widget JavaScript file with proper CORS headers"""
+    response = send_from_directory(
+        os.path.join(views_bp.root_path, "../../static"), 
+        "widget.js", 
+        mimetype="application/javascript"
+    )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET"
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
+
 @views_bp.route("/")
 def home():
     """Home page - redirect authenticated users to create-form, show landing page for anonymous"""
@@ -107,6 +120,103 @@ def create_form():
 def edit_form():
     """Form editing page"""
     return render_template("edit_form.html", user=request.user)
+
+@views_bp.route("/form/<form_id>")
+def form_response_page(form_id):
+    """Public form response page for respondents"""
+    try:
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return render_template(
+                "error.html",
+                error_title="Form Not Found",
+                error_message="This form doesn't exist or has been removed."
+            ), 404
+
+        form_data = form_doc.to_dict()
+
+        if not form_data.get("active", False):
+            return render_template(
+                "error.html",
+                error_title="Survey Not Available",
+                error_message="This survey is currently paused and not accepting responses."
+            ), 403
+
+        if form_data.get("mode") == "voice":
+            return redirect(url_for("views.voice_form_page", form_id=form_id))
+
+        return render_template(
+            "chat.html",
+            form_id=form_id,
+            form_title=form_data.get("title", "Survey"),
+            form_description=form_data.get("description", ""),
+        )
+    except Exception as e:
+        logger.error(f"Error loading form page: {e}")
+        return render_template(
+            "error.html",
+            error_title="Error Loading Form",
+            error_message="There was an error loading this form."
+        ), 500
+
+@views_bp.route("/voice/<form_id>")
+def voice_form_page(form_id):
+    """Voice interview page"""
+    try:
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return render_template(
+                "error.html",
+                error_title="Form Not Found",
+                error_message="This form doesn't exist."
+            ), 404
+
+        form_data = form_doc.to_dict()
+        if form_data.get("mode") != "voice":
+            return redirect(url_for("views.form_response_page", form_id=form_id))
+
+        if not form_data.get("active", False):
+            return render_template(
+                "error.html",
+                error_title="Survey Not Available",
+                error_message="This survey is paused."
+            ), 403
+
+        return render_template(
+            "voice.html",
+            form_id=form_id,
+            form_title=form_data.get("title", "Survey"),
+            voice_id=form_data.get("voice_settings", {}).get("voice_id", ""),
+            language=form_data.get("voice_settings", {}).get("language", "en"),
+        )
+    except Exception as e:
+        logger.error(f"Error loading voice form page: {e}")
+        return render_template(
+            "error.html",
+            error_title="Error Loading Form",
+            error_message="Error loading voice mode."
+        ), 500
+
+@views_bp.route("/embed/<form_id>")
+def embed_form(form_id):
+    """Embeddable chat widget"""
+    try:
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return "Form not found", 404
+            
+        form_data = form_doc.to_dict()
+        if not form_data.get("active", False):
+            return render_template("error.html", error_title="Inactive", error_message="Survey is paused."), 403
+
+        return render_template(
+            "embed.html", 
+            form_id=form_id,
+            form_title=form_data.get("title", "Survey")
+        )
+    except Exception as e:
+        logger.error(f"Error loading embed: {e}")
+        return "Internal Server Error", 500
 
 @views_bp.route("/pricing")
 def pricing():

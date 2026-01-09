@@ -55,9 +55,17 @@ if Config.GEMINI_API_KEY:
     gemini_client = genai.Client(api_key=Config.GEMINI_API_KEY)
 
 # --- Unified LLM Wrapper ---
-def generate_text(system_prompt: str, user_prompt: str, model: str = None, temperature: float = 0.1) -> str:
+def generate_text(
+    system_prompt: str, 
+    user_prompt: str, 
+    model: str = None, 
+    temperature: float = 0.1,
+    response_mime_type: str = None,
+    response_schema = None
+) -> str:
     """
     Generates text using the configured LLM provider (OpenAI or Gemini).
+    Supports structured output via response_mime_type and response_schema (Gemini only currently).
     """
     provider = Config.LLM_PROVIDER
     
@@ -66,16 +74,23 @@ def generate_text(system_prompt: str, user_prompt: str, model: str = None, tempe
             if not gemini_client:
                 raise ValueError("Gemini API Key not configured")
 
-            # Use gemini-2.0-flash as default for new SDK, or fallback to 1.5
+            # Use gemini-2.0-flash as default for new SDK
             gemini_model_name = model or "gemini-2.0-flash"
             
+            config_args = {
+                "system_instruction": system_prompt,
+                "temperature": temperature
+            }
+            
+            if response_mime_type:
+                config_args["response_mime_type"] = response_mime_type
+            if response_schema:
+                config_args["response_schema"] = response_schema
+
             response = gemini_client.models.generate_content(
                 model=gemini_model_name,
                 contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    temperature=temperature
-                )
+                config=types.GenerateContentConfig(**config_args)
             )
             return response.text
         except Exception as e:
@@ -92,6 +107,12 @@ def generate_text(system_prompt: str, user_prompt: str, model: str = None, tempe
             raise ValueError("OpenAI API Key not configured")
             
         gpt_model = model or "gpt-4o-mini"
+        
+        # OpenAI basic structured output fallback (JSON mode)
+        response_format = None
+        if response_mime_type == "application/json":
+            response_format = {"type": "json_object"}
+
         response = openai_client.chat.completions.create(
             model=gpt_model,
             messages=[
@@ -99,6 +120,7 @@ def generate_text(system_prompt: str, user_prompt: str, model: str = None, tempe
                 {"role": "user", "content": user_prompt},
             ],
             temperature=temperature,
+            response_format=response_format
         )
         return response.choices[0].message.content
 
