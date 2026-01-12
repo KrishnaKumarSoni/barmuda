@@ -14,8 +14,7 @@ from core.database import (
     init_session,
     update_response_in_db,
     update_session_lifecycle,
-    get_form_schema,
-    db
+    get_form_schema
 )
 
 # --- Helper: Load JSON Schema from directory---

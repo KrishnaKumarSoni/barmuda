@@ -9,7 +9,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
 # from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.redis.aio import AsyncRedisSaver
-from core.redis_client import redis_client
+from core.redis_client import redis_client, get_redis_client
 # Import base class
 from langchain.agents import AgentState as BaseAgentState 
 from langchain.agents.middleware import (
@@ -359,13 +359,18 @@ cleanup_middleware = ContextEditingMiddleware(
 # =======================================================
 
 # def build_survey_graph(db_client: firestore.AsyncClient):
-def build_survey_graph():
+def build_survey_graph(redis_client=None):
     model = ChatGoogleGenerativeAI(
         model=MODEL_NAME,
         thinking_level="low",
     )
     # Initialize Async Checkpointer using the shared async client
     # checkpointer = AsyncFirestoreSaver(client=db)
+    
+    # If no client provided, creating a new one (important for Flask request isolation)
+    if redis_client is None:
+        redis_client = get_redis_client()
+
     checkpointer = AsyncRedisSaver(redis_client=redis_client)
     app = create_agent(
         model=model, # change model as required

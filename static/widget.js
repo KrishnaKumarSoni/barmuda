@@ -57,6 +57,13 @@
             return;
         }
         
+        // Restore session ID if exists
+        const storedSession = localStorage.getItem(`barmuda_session_id_${config.formId}`);
+        if (storedSession) {
+            sessionId = storedSession;
+            console.log('Restored session ID:', sessionId);
+        }
+
         createWidgetElements();
         initializeDeviceId();
         setupEventListeners();
@@ -647,9 +654,9 @@
             document.body.style.overflow = 'hidden';
         }
         
-        // Initialize chat if not already done
-        if (!sessionId) {
-            initializeChat();
+        // Initialize chat if not already done, or resume if sessionId exists
+        if (!messageCount && !document.querySelector('.barmuda-message')) {
+             initializeChat();
         }
         
         // Focus input
@@ -685,62 +692,55 @@
             const apiUrl = `${config.apiBase}/api/chat/start`;
             console.log('Making request to:', apiUrl);
             
+            const payload = {
+                form_id: config.formId,
+                device_id: deviceId,
+                location: {}
+            };
+            
+            // Pass session_id if we have one to attempt resume
+            if (sessionId) {
+                payload.session_id = sessionId;
+            }
+
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    form_id: config.formId,
-                    device_id: deviceId,
-                    location: {}
-                })
+                body: JSON.stringify(payload)
             });
             
             console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
             
             if (!response.ok) {
+                // If 404 or other error on resume, clear session and try fresh next time
+                if (sessionId) {
+                    console.warn('Session resumption failed, clearing session storage.');
+                    localStorage.removeItem(`barmuda_session_id_${config.formId}`);
+                    sessionId = null;
+                }
                 const errorText = await response.text();
-                console.log('Error response text:', errorText);
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
-            const responseText = await response.text();
-            console.log('Raw response text:', responseText.substring(0, 200) + '...');
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-                console.log('Parsed response data:', data);
-            } catch (parseError) {
-                console.error('JSON parsing failed:', parseError);
-                console.log('Full response text:', responseText);
-                throw new Error(`Invalid JSON response: ${parseError.message}`);
-            }
+            const data = await response.json();
             
             if (data.success) {
                 sessionId = data.session_id;
+                // Save session for persistence
+                localStorage.setItem(`barmuda_session_id_${config.formId}`, sessionId);
                 
                 // Get form title from public API
                 try {
                     const formResponse = await fetch(`${config.apiBase}/api/form/${config.formId}/public`);
-                    console.log('Form title request to:', `${config.apiBase}/api/form/${config.formId}/public`);
-                    console.log('Form title response status:', formResponse.status);
-                    
                     if (formResponse.ok) {
                         const formData = await formResponse.json();
-                        console.log('Form title data:', formData);
-                        
                         if (formData.success && formData.form.title) {
                             document.querySelector('.barmuda-form-title').textContent = formData.form.title;
-                            console.log('Form title set to:', formData.form.title);
                         } else {
-                            console.log('Form title not available in response, using default');
                             document.querySelector('.barmuda-form-title').textContent = 'Survey';
                         }
-                    } else {
-                        throw new Error(`HTTP ${formResponse.status}`);
                     }
                 } catch (error) {
                     console.log('Could not load form title, using default:', error);
@@ -749,43 +749,53 @@
                 
                 hideTypingIndicator();
                 
-                if (data.ended) {
-                    isEnded = true;
-                    if (data.chat_history) {
+                // Handle Resumed Session
+                if (data.resumed) {
+                    console.log('Resuming session...');
+                    const messagesContainer = document.getElementById('barmuda-chat-messages');
+                    messagesContainer.innerHTML = ''; // Clear previous if any
+                    
+                    if (data.chat_history && data.chat_history.length > 0) {
                         data.chat_history.forEach(msg => {
                             const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                            if (msg.role === 'user') {
-                                addMessage('user', msg.content, timestamp);
-                            } else if (msg.role === 'assistant') {
-                                addMessage('assistant', msg.content, timestamp);
-                            }
+                            addMessage(msg.role, msg.content, timestamp);
                         });
                     }
                     
-                    addMessage('assistant', data.greeting);
-                    checkForChipOptions(data.greeting);
-                    setTimeout(() => {
-                        showCompletionScreen();
-                    }, 1500);
+                    // Add chips if applicable
+                    if (data.chip_options && data.chip_options.show_chips) {
+                        addChipOptions(data.chip_options);
+                    }
                     
-                    document.getElementById('barmuda-message-input').disabled = true;
-                    document.getElementById('barmuda-send-button').disabled = true;
-                } else if (data.resumed && data.chat_history) {
-                    data.chat_history.forEach(msg => {
-                        const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                        if (msg.role === 'user') {
-                            addMessage('user', msg.content, timestamp);
-                        } else if (msg.role === 'assistant') {
-                            addMessage('assistant', msg.content, timestamp);
-                        }
-                    });
-                    addMessage('assistant', data.greeting);
-                    checkForChipOptions(data.greeting);
-                    enableInput();
+                    // Check if already ended
+                    if (data.ended) { // Note: Backend needs to return 'ended' in resume payload too if applicable
+                         isEnded = true;
+                         setTimeout(() => showCompletionScreen(), 500);
+                         disableInput();
+                         // Optional: Clear session if ended so refresh starts new? 
+                         // Or keep it to show history? Keeping history is usually better.
+                    } else {
+                        enableInput();
+                    }
+                    
                 } else {
-                    addMessage('assistant', data.greeting);
-                    checkForChipOptions(data.greeting);
-                    enableInput();
+                    // New Session
+                    if (data.ended) {
+                        isEnded = true;
+                        // ... history logic if applicable ...
+                        addMessage('assistant', data.greeting);
+                        setTimeout(() => showCompletionScreen(), 1500);
+                        disableInput();
+                        // If ended immediately, maybe clear session?
+                        localStorage.removeItem(`barmuda_session_id_${config.formId}`);
+                    } else {
+                        addMessage('assistant', data.greeting);
+                        // Check chips for greeting? Usually handled by checking next question
+                        // The backend start_chat doesn't return chip_options for new session yet, 
+                        // maybe we should or call check_chips.
+                        checkForChipOptions(data.greeting);
+                        enableInput();
+                    }
                 }
             } else {
                 hideTypingIndicator();
@@ -795,7 +805,12 @@
         } catch (error) {
             console.error('Error initializing chat:', error);
             hideTypingIndicator();
-            addMessage('system', 'Sorry, there was an error starting the chat. Please try again.');
+            addMessage('system', 'Sorry, there was an error connecting to the chat. Please try again.');
+            // If failed, maybe clear session to be safe
+            if (sessionId) {
+                 localStorage.removeItem(`barmuda_session_id_${config.formId}`);
+                 sessionId = null;
+            }
         }
     }
     
@@ -804,7 +819,7 @@
         if (!sessionId || !message) return;
         
         try {
-            const response = await fetch(`${baseUrl}/api/chat/check_chips`, {
+            const response = await fetch(`${config.apiBase}/api/chat/check_chips`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -851,6 +866,7 @@
         
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        messageCount++;
     }
     
     async function sendMessage() {
@@ -895,6 +911,8 @@
                     setTimeout(() => {
                         showCompletionScreen();
                     }, 1500);
+                    // Clear session on end?
+                    localStorage.removeItem(`barmuda_session_id_${config.formId}`);
                 } else {
                     enableInput();
                 }
@@ -974,8 +992,13 @@
                 outline: none;
                 font-family: 'DM Sans', system-ui, sans-serif;
             `;
-            chip.textContent = option;
-            chip.setAttribute('data-chip-value', option);
+            
+            // Handle object vs string options
+            const label = typeof option === 'object' ? option.label : option;
+            const value = typeof option === 'object' ? option.value : option;
+            
+            chip.textContent = label;
+            chip.setAttribute('data-chip-value', value);
             
             // Hover effects
             chip.addEventListener('mouseenter', function() {
@@ -990,7 +1013,7 @@
             
             chip.addEventListener('click', function(e) {
                 e.preventDefault();
-                handleChipClick(option);
+                handleChipClick(value);
             });
             
             chipContainer.appendChild(chip);

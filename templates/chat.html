@@ -191,143 +191,185 @@
                 // Show typing indicator immediately when page loads
                 showTypingIndicator();
                 
-                // Get consistent device ID - try FingerprintJS first, then localStorage fallback
-                try {
-                    // Wait a bit for FingerprintJS to load if it's not ready
-                    if (typeof FingerprintJS === 'undefined') {
-                        // Wait up to 2 seconds for FingerprintJS to load
-                        for (let i = 0; i < 20; i++) {
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                            if (typeof FingerprintJS !== 'undefined') break;
-                        }
-                    }
-                    
-                    if (typeof FingerprintJS !== 'undefined') {
-                        // Get device fingerprint
-                        const fp = await FingerprintJS.load();
-                        const result = await fp.get();
-                        deviceId = result.visitorId;
-                        console.log('Using FingerprintJS device ID:', deviceId);
-                    } else {
-                        throw new Error('FingerprintJS not available');
-                    }
-                } catch (fpError) {
-                    console.log('FingerprintJS failed:', fpError.message, '- using localStorage fallback');
-                    // Use a consistent fallback stored in localStorage
-                    deviceId = localStorage.getItem('bermuda_device_id');
-                    if (!deviceId) {
-                        deviceId = 'fallback-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                        localStorage.setItem('bermuda_device_id', deviceId);
-                        console.log('Generated new fallback device ID:', deviceId);
-                    } else {
-                        console.log('Using stored fallback device ID:', deviceId);
-                    }
+                // Restore session ID if exists
+                const storedSession = localStorage.getItem(`barmuda_session_id_${formId}`);
+                if (storedSession) {
+                    sessionId = storedSession;
+                    console.log('Restored session ID from localStorage:', sessionId);
                 }
 
                 // Skip location collection to avoid permission prompt
                 let location = {};
 
-                // Start chat session
-                const response = await fetch('/api/v2/chat/start', {
+                const payload = {
+                    form_id: formId,
+                    location: location
+                };
+
+                // Use stored session if we have it, otherwise let server generate one
+                if (sessionId) {
+                    payload.session_id = sessionId;
+                }
+
+                // Start chat session using legacy endpoint which supports server-side ID generation
+                const response = await fetch('/api/chat/start', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        form_id: formId,
-                        session_id: deviceId, // Use deviceId as sessionId
-                        location: location
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
-                if (data.success) {
-                    sessionId = deviceId; // Unique ID for this device
-                    
-                    // Hide typing indicator
-                    hideTypingIndicator();
-                    
-                    // Check if session is ended
-                    if (data.ended) {
-                        console.log('Session is already ended');
-                        isEnded = true;
+                if (!response.ok) {
+                    if (sessionId) {
+                        console.warn('Session resumption failed, clearing localStorage.');
+                        localStorage.removeItem(`barmuda_session_id_${formId}`);
+                        sessionId = null;
                         
-                        // Show chat history if available
-                        if (data.chat_history) {
-                            data.chat_history.forEach(msg => {
-                                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                                if (msg.role === 'user') {
-                                    addMessage('user', msg.content, timestamp);
-                                } else if (msg.role === 'assistant') {
-                                    addMessage('assistant', msg.content, timestamp);
-                                }
-                            });
-                        }
-                        
-                        // Show completion message
-                        addMessage('assistant', data.greeting);
-                        
-                        // Show completion screen immediately
-                        setTimeout(() => {
-                            showCompletionScreen();
-                        }, 1500);
-                        
-                        // Keep input disabled
-                        document.getElementById('message-input').disabled = true;
-                        document.getElementById('send-button').disabled = true;
-                    } else if (data.resumed && data.chat_history) {
-                        console.log('Resuming active session with', data.chat_history.length, 'messages');
-                        
-                        // Add all previous messages from history
-                        data.chat_history.forEach(msg => {
-                            const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                            if (msg.role === 'user') {
-                                addMessage('user', msg.content, timestamp);
-                            } else if (msg.role === 'assistant') {
-                                addMessage('assistant', msg.content, timestamp);
-                            }
+                        // Retry without session ID to get a fresh session
+                        const retryPayload = {
+                            form_id: formId,
+                            location: location
+                        };
+                        const retryResponse = await fetch('/api/chat/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(retryPayload)
                         });
                         
-                        // Update progress after resuming
-                        updateProgress();
-                        
-                        // Add greeting (welcome back)
-                        addMessage('assistant', data.greeting);
-                        
-                        // Check for chip options in the latest message
-                        checkForChipOptions(data.greeting);
-                        
-                        // Enable input
-                        document.getElementById('message-input').disabled = false;
-                        document.getElementById('send-button').disabled = false;
-                        document.getElementById('message-input').focus();
-                    } else {
-                        // New session
-                        // Add initial greeting
-                        addMessage('assistant', data.greeting);
-                        
-                        // Check for chip options in the initial greeting
-                        checkForChipOptions(data.greeting);
-                        
-                        // Enable input
-                        document.getElementById('message-input').disabled = false;
-                        document.getElementById('send-button').disabled = false;
-                        document.getElementById('message-input').focus();
+                        if (retryResponse.ok) {
+                            const retryData = await retryResponse.json();
+                            return handleStartSuccess(retryData);
+                        }
                     }
-                } else {
-                    hideTypingIndicator();
-                    throw new Error(data.error || 'Failed to start chat');
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
+
+                const data = await response.json();
+                handleStartSuccess(data);
 
             } catch (error) {
                 console.error('Error initializing chat:', error);
                 hideTypingIndicator();
                 addMessage('system', 'Sorry, there was an error starting the chat. Please refresh the page and try again.');
+                if (sessionId) {
+                    localStorage.removeItem(`barmuda_session_id_${formId}`);
+                    sessionId = null;
+                }
+            }
+        }
+        
+        function handleStartSuccess(data) {
+            if (data.success) {
+                sessionId = data.session_id; 
+                // Save for persistence
+                localStorage.setItem(`barmuda_session_id_${formId}`, sessionId);
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                // Filter out system trigger messages from history
+                const filterSystemMessages = (msg) => {
+                    if (typeof msg.content !== 'string') return true;
+                    return msg.content !== 'START_SURVEY_SESSION' && msg.content !== '[ABANDONED]';
+                };
+
+                // Check if session is ended
+                if (data.ended) {
+                    console.log('Session is already ended');
+                    isEnded = true;
+                    
+                    // Clear container for replay
+                    const messagesContainer = document.getElementById('chat-messages');
+                    messagesContainer.innerHTML = '';
+
+                    // Show chat history if available
+                    if (data.chat_history) {
+                        data.chat_history
+                            .filter(filterSystemMessages)
+                            .forEach(msg => {
+                                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+                                addMessage(msg.role, msg.content, timestamp);
+                            });
+                    }
+                    
+                    // Show completion message if it was a greeting (rare in resume)
+                    if (data.greeting) addMessage('assistant', data.greeting);
+                    
+                    // Show completion screen immediately
+                    setTimeout(() => {
+                        showCompletionScreen();
+                    }, 500);
+                    
+                    // Keep input disabled
+                    document.getElementById('message-input').disabled = true;
+                    document.getElementById('send-button').disabled = true;
+                    
+                    // Optional: Clear session on end?
+                    localStorage.removeItem(`barmuda_session_id_${formId}`);
+                } else if (data.resumed) {
+                    console.log('Resuming active session with history');
+                    
+                    const messagesContainer = document.getElementById('chat-messages');
+                    messagesContainer.innerHTML = '';
+
+                    // Add all previous messages from history
+                    if (data.chat_history) {
+                        data.chat_history
+                            .filter(filterSystemMessages)
+                            .forEach(msg => {
+                                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+                                addMessage(msg.role, msg.content, timestamp);
+                            });
+                    }
+                    
+                    // Update progress after resuming
+                    updateProgress();
+                    
+                    // If there was a greeting in the payload (unlikely for resume but safe)
+                    if (data.greeting) addMessage('assistant', data.greeting);
+                    
+                    // Check for chips
+                    if (data.chip_options && data.chip_options.show_chips) {
+                        addChipOptions(data.chip_options);
+                    }
+                    
+                    // Enable input
+                    document.getElementById('message-input').disabled = false;
+                    document.getElementById('send-button').disabled = false;
+                    document.getElementById('message-input').focus();
+                } else {
+                    // New session
+                    // Add initial greeting
+                    addMessage('assistant', data.greeting);
+                    
+                    // Check for chip options in the initial greeting
+                    if (data.chip_options && data.chip_options.show_chips) {
+                        addChipOptions(data.chip_options);
+                    } else {
+                        checkForChipOptions(data.greeting);
+                    }
+                    
+                    // Enable input
+                    document.getElementById('message-input').disabled = false;
+                    document.getElementById('send-button').disabled = false;
+                    document.getElementById('message-input').focus();
+                }
+            } else {
+                hideTypingIndicator();
+                throw new Error(data.error || 'Failed to start chat');
             }
         }
 
         // Add message to chat
         function formatLinksInText(text, isUserMessage = false) {
+            // Handle non-string input gracefully
+            if (typeof text !== 'string') {
+                console.warn('formatLinksInText received non-string:', text);
+                return '';
+            }
+
             // URL regex that matches http/https URLs and www. URLs
             const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
             
@@ -355,9 +397,34 @@
             const now = timestamp || new Date();
             const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
+            // Extract text from structured content if necessary
+            let displayText = message;
+            if (typeof message === 'object' && message !== null) {
+                if (Array.isArray(message)) {
+                    // Handle array of blocks (e.g. from LangChain/Anthropic)
+                    displayText = message
+                        .map(block => {
+                            if (typeof block === 'string') return block;
+                            if (block.type === 'text') return block.text;
+                            return '';
+                        })
+                        .join(' ');
+                } else if (message.type === 'text') {
+                    displayText = message.text;
+                } else if (message.content) {
+                     // Handle nested content object
+                     displayText = message.content;
+                }
+            }
+            
+            // Ensure we have a string
+            if (typeof displayText !== 'string') {
+                displayText = String(displayText || '');
+            }
+
             if (sender === 'user') {
                 // Format links for user messages (white on orange background)
-                const formattedMessage = formatLinksInText(message, true);
+                const formattedMessage = formatLinksInText(displayText, true);
                 messageDiv.innerHTML = `
                     <div class="flex justify-end">
                         <div class="bg-[#cc5500] max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tr-md shadow-sm">
@@ -372,7 +439,7 @@
                 `;
             } else if (sender === 'assistant') {
                 // Format links for assistant messages (colored on white background)
-                const formattedMessage = formatLinksInText(message, false);
+                const formattedMessage = formatLinksInText(displayText, false);
                 messageDiv.innerHTML = `
                     <div class="flex justify-start">
                         <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
@@ -387,7 +454,7 @@
                 `;
             } else {
                 // System message
-                const formattedMessage = formatLinksInText(message, false);
+                const formattedMessage = formatLinksInText(displayText, false);
                 messageDiv.innerHTML = `
                     <div class="flex justify-center">
                         <div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">
@@ -573,12 +640,22 @@
             chipData.options.forEach(option => {
                 const chip = document.createElement('button');
                 chip.className = 'chip-option bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-gray-300 shadow-sm';
-                chip.textContent = option;
-                chip.setAttribute('data-chip-value', option);
+                
+                let displayLabel, clickValue;
+                if (typeof option === 'object' && option !== null) {
+                    displayLabel = option.label || option.value;
+                    clickValue = option.value || option.label;
+                } else {
+                    displayLabel = option;
+                    clickValue = option;
+                }
+                
+                chip.textContent = displayLabel;
+                chip.setAttribute('data-chip-value', clickValue);
                 
                 chip.addEventListener('click', function(e) {
                     e.preventDefault();
-                    handleChipClick(option);
+                    handleChipClick(clickValue);
                 });
                 
                 chipsWrapper.appendChild(chip);

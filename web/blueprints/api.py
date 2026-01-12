@@ -310,19 +310,20 @@ def save_form():
     form_data = data["form"]
     user_id = request.user["uid"]
     
-    # ... (Validation and saving logic from app.py) ...
-    # Minimal validation here, assume frontend sends correct structure or add detailed validation
-    
+    # Map new schema keys
     form_document = {
-        "title": form_data.get("title", "Untitled"),
+        "formId": form_data.get("formId", f"form_{datetime.now().strftime('%Y%m%d%H%M%S')}"),
+        "formTitle": form_data.get("formTitle", form_data.get("title", "Untitled")),
+        "formDescription": form_data.get("formDescription", ""),
+        "persona": form_data.get("persona", form_data.get("bot_context", "")),
         "questions": form_data.get("questions", []),
         "demographics": form_data.get("demographics", {}),
         "profile_data": form_data.get("profile_data", {}),
-        "bot_context": form_data.get("bot_context", ""),
         "creator_id": user_id,
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat(),
-        "status": "active",
+        "isEnabled": True,
+        "active": True,
         "response_count": 0,
         "mode": form_data.get("mode", "chat"),
         "voice_settings": form_data.get("voice_settings", {})
@@ -358,17 +359,19 @@ def update_form(form_id):
         if existing_form.get("creator_id") != user_id:
             return jsonify({"success": False, "error": "Access denied"}), 403
 
+        # Update with new schema
         update_document = {
-            "title": form_data.get("title"),
-            "questions": form_data.get("questions"),
-            "demographics": form_data.get("demographics"),
-            "profile_data": form_data.get("profile_data"),
-            "bot_context": form_data.get("bot_context"),
+            "formTitle": form_data.get("formTitle", form_data.get("title", existing_form.get("formTitle"))),
+            "formDescription": form_data.get("formDescription", existing_form.get("formDescription", "")),
+            "persona": form_data.get("persona", form_data.get("bot_context", existing_form.get("persona"))),
+            "questions": form_data.get("questions", existing_form.get("questions", [])),
+            "demographics": form_data.get("demographics", existing_form.get("demographics", {})),
+            "profile_data": form_data.get("profile_data", existing_form.get("profile_data", {})),
             "active": form_data.get("active", existing_form.get("active", False)),
             "last_modified": datetime.utcnow(),
             "updated_at": datetime.utcnow().isoformat(),
             "mode": form_data.get("mode", existing_form.get("mode", "chat")),
-            "voice_settings": form_data.get("voice_settings", {})
+            "voice_settings": form_data.get("voice_settings", existing_form.get("voice_settings", {}))
         }
         
         form_ref.update(update_document)

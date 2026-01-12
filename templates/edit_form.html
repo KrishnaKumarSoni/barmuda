@@ -432,10 +432,10 @@
             if (!formData) return;
 
             // Set title
-            document.getElementById('formTitle').value = formData.title || '';
+            document.getElementById('formTitle').value = formData.formTitle || formData.title || '';
 
             // Set bot context
-            document.getElementById('botContext').value = formData.bot_context || '';
+            document.getElementById('botContext').value = formData.persona || formData.bot_context || '';
 
             // Render questions
             renderQuestions();
@@ -457,8 +457,6 @@
             formData.questions.forEach((question, index) => {
                 const questionDiv = createQuestionElement(question, index);
                 container.appendChild(questionDiv);
-
-                // No separator needed with card design
             });
         }
 
@@ -466,9 +464,15 @@
         function createQuestionElement(question, index) {
             const div = document.createElement('div');
             div.className = 'mb-6 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4';
+            
+            // Handle schema variations
+            const qText = question.questionText || question.text || '';
+            const qType = question.questionType || question.type || 'text';
+            const isEnabled = question.isEnabled !== undefined ? question.isEnabled : (question.enabled !== undefined ? question.enabled : true);
+
             div.innerHTML = `
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-jakarta font-semibold text-base ${question.enabled ? 'text-bermuda-text' : 'text-gray-400'}">
+                    <h3 class="font-jakarta font-semibold text-base ${isEnabled ? 'text-bermuda-text' : 'text-gray-400'}">
                         Question ${index + 1}
                     </h3>
                     <div class="flex items-center gap-2">
@@ -480,7 +484,7 @@
                             <i class="ph ph-trash text-base"></i>
                         </button>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" ${question.enabled ? 'checked' : ''} onchange="toggleQuestion(${index})">
+                            <input type="checkbox" class="sr-only peer" ${isEnabled ? 'checked' : ''} onchange="toggleQuestion(${index})">
                             <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-bermuda-orange/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-bermuda-orange shadow-inner"></div>
                         </label>
                     </div>
@@ -490,7 +494,7 @@
                 <div class="mb-3">
                     <input
                         type="text"
-                        value="${question.text || ''}"
+                        value="${qText}"
                         onchange="updateQuestionText(${index}, this.value)"
                         class="w-full font-dm text-sm text-bermuda-text bg-gray-50 rounded-lg px-3 py-2.5 outline-none focus:bg-white focus:ring-2 focus:ring-bermuda-orange/20 border border-transparent focus:border-bermuda-orange/30 transition-all placeholder:text-gray-400"
                         placeholder="Enter your question"
@@ -507,7 +511,7 @@
                                     onclick="toggleDropdown(${index})"
                                     class="w-full flex items-center justify-between font-dm text-sm text-bermuda-text bg-transparent outline-none"
                                 >
-                                    <span id="dropdown-selected-${index}">${getQuestionTypeLabel(question.type)}</span>
+                                    <span id="dropdown-selected-${index}">${getQuestionTypeLabel(qType)}</span>
                                     <i class="ph ph-caret-down text-bermuda-gray transition-transform" id="dropdown-arrow-${index}"></i>
                                 </button>
                                 <div
@@ -518,21 +522,21 @@
                                         <i class="ph ph-text-aa text-bermuda-orange text-base"></i>
                                         <span>Text response</span>
                                     </div>
-                                    <div onclick="selectQuestionType(${index}, 'multiple_choice')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                    <div onclick="selectQuestionType(${index}, 'mcq')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
                                         <i class="ph ph-list-bullets text-bermuda-orange text-xl"></i>
                                         <div>
-                                            <div>Multiple Choice Question</div>
-                                            <div class="text-xs text-bermuda-light-gray">Select from predefined options</div>
+                                            <div>Multiple Choice</div>
+                                            <div class="text-xs text-bermuda-light-gray">Select from options</div>
                                         </div>
                                     </div>
-                                    <div onclick="selectQuestionType(${index}, 'yes_no')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                    <div onclick="selectQuestionType(${index}, 'boolean')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
                                         <i class="ph ph-check-circle text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Yes / No</div>
                                             <div class="text-xs text-bermuda-light-gray">Simple binary choice</div>
                                         </div>
                                     </div>
-                                    <div onclick="selectQuestionType(${index}, 'number')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
+                                    <div onclick="selectQuestionType(${index}, 'integer')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer font-dm text-base text-bermuda-text flex items-center gap-3">
                                         <i class="ph ph-hash text-bermuda-orange text-xl"></i>
                                         <div>
                                             <div>Number</div>
@@ -927,7 +931,7 @@
             }
 
             // Check at least one enabled question
-            const enabledQuestions = formData.questions.filter(q => q.enabled);
+            const enabledQuestions = formData.questions.filter(q => (q.isEnabled !== undefined ? q.isEnabled : (q.enabled !== undefined ? q.enabled : true)));
             if (enabledQuestions.length === 0) {
                 alert('Please enable at least one question');
                 return false;
@@ -936,16 +940,27 @@
             // Check question texts
             for (let i = 0; i < formData.questions.length; i++) {
                 const question = formData.questions[i];
-                if (question.enabled && !question.text.trim()) {
-                    alert(`Please enter text for question ${i + 1}`);
-                    return false;
-                }
-
-                // Check options for multiple choice and rating
-                if (question.enabled && (question.type === 'multiple_choice' || question.type === 'rating')) {
-                    if (!question.options || question.options.length < 2) {
-                        alert(`Please provide at least 2 options for question ${i + 1}`);
+                // Check if enabled using the same logic
+                const isEnabled = question.isEnabled !== undefined ? question.isEnabled : (question.enabled !== undefined ? question.enabled : true);
+                
+                if (isEnabled) {
+                    const qText = question.questionText || question.text || '';
+                    if (!qText.trim()) {
+                        alert(`Please enter text for question ${i + 1}`);
                         return false;
+                    }
+
+                    // Check options for multiple choice and rating
+                    const qType = question.questionType || question.type || 'text';
+                    if (qType === 'multiple_choice' || qType === 'rating' || qType === 'mcq') {
+                        const options = question.responseOptions?.choices || question.options;
+                        // For rating, check min/max in responseOptions if available
+                        if (qType === 'rating' && question.responseOptions) {
+                             // Rating is fine if it has min/max defaults
+                        } else if (!options || options.length < 2) {
+                            alert(`Please provide at least 2 options for question ${i + 1}`);
+                            return false;
+                        }
                     }
                 }
             }

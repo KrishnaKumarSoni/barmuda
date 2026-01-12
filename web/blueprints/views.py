@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from flask import Blueprint, render_template, redirect, url_for, session, request, send_from_directory
 from web.utils.auth import login_required
 from web.extensions import db
@@ -61,47 +62,94 @@ def home():
 @login_required
 def dashboard():
     """Protected dashboard route"""
+    if db is None:
+        logger.error("CRITICAL: Database connection (web.extensions.db) is NOT initialized.")
+        return render_template("error.html", error_title="System Error", error_message="Database connection failed."), 500
+
     try:
         user_id = request.user["uid"]
+        forms = []
+        
+        logger.info(f"Loading dashboard for user {user_id}")
+        
         try:
-            # Get forms for the user
+            # Try efficient query (requires index)
+            logger.debug("Attempting primary dashboard query...")
             forms_ref = (
                 db.collection("forms")
                 .where(filter=FieldFilter("creator_id", "==", user_id))
                 .order_by("created_at", direction="DESCENDING")
             )
-            forms = []
-            for doc in forms_ref.stream():
+            docs = list(forms_ref.stream()) # Force evaluation
+            logger.debug(f"Primary query success. Found {len(docs)} forms.")
+        except Exception as index_error:
+            logger.warning(f"Dashboard index query failed (likely missing index), falling back to manual sort: {index_error}")
+            # Fallback: Client-side filtering/sorting
+            forms_ref = db.collection("forms").where(
+                filter=FieldFilter("creator_id", "==", user_id)
+            )
+            docs = list(forms_ref.stream())
+            logger.debug(f"Fallback query success. Found {len(docs)} forms.")
+
+        # Process documents
+        for doc in docs:
+            try:
                 form_data = doc.to_dict()
                 form_data["form_id"] = doc.id
                 
-                # Simple response count
+                # FIX: Convert string created_at to datetime object for template compatibility
+                created_at = form_data.get("created_at")
+                if isinstance(created_at, str):
+                    try:
+                        # Handle ISO format with 'Z'
+                        if created_at.endswith('Z'):
+                            created_at = created_at.replace('Z', '+00:00')
+                        form_data["created_at"] = datetime.fromisoformat(created_at)
+                    except ValueError as ve:
+                        logger.warning(f"Could not parse created_at for form {doc.id}: {ve}")
+                        # Leave as is or set to None? Leaving as is might break template.
+                        # Ideally set to None or a default if critical.
+                        # But let's assume it works if valid ISO.
+                        pass
+
+                # Response count logic (kept simple for robustness)
                 responses_ref = db.collection("responses").where(
                     filter=FieldFilter("form_id", "==", doc.id)
                 )
-                response_docs = responses_ref.limit(100).stream()
+                # Use aggregation query if possible, or limit for safety
+                response_docs = responses_ref.limit(100).stream() 
                 response_count = sum(1 for _ in response_docs)
                 if response_count == 100:
                     response_count = "100+"
                 form_data["response_count"] = response_count
+                
                 forms.append(form_data)
-        except Exception as e:
-            logger.warning(f"Index not ready or error: {e}")
-            # Fallback without ordering
-            forms_ref = db.collection("forms").where(
-                filter=FieldFilter("creator_id", "==", user_id)
-            )
-            forms = []
-            for doc in forms_ref.stream():
-                form_data = doc.to_dict()
-                form_data["form_id"] = doc.id
-                forms.append(form_data)
-            forms.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            except Exception as doc_error:
+                logger.error(f"Error processing form doc {doc.id}: {doc_error}")
+                continue # Skip bad documents
+
+        # Manual sort if we hit the fallback (or just to be safe)
+        # Handle mixed types in created_at (strings vs datetime vs None) safely
+        def sort_key(x):
+            try:
+                val = x.get("created_at")
+                if hasattr(val, 'timestamp'): 
+                    return val.timestamp()
+                if isinstance(val, str): 
+                    # Try to parse ISO string
+                    return datetime.fromisoformat(val.replace('Z', '+00:00')).timestamp()
+                if isinstance(val, datetime):
+                    return val.timestamp()
+            except:
+                pass
+            return 0.0 # Default for None or unparsable
+            
+        forms.sort(key=sort_key, reverse=True)
 
         return render_template("dashboard.html", forms=forms, user=request.user)
     except Exception as e:
-        logger.error(f"Failed to load dashboard: {e}")
-        return "Internal server error", 500
+        logger.error(f"CRITICAL: Failed to load dashboard: {e}", exc_info=True)
+        return render_template("error.html", error_title="Dashboard Error", error_message="Could not load your dashboard. Please refresh."), 500
 
 @views_bp.route("/billing")
 @login_required

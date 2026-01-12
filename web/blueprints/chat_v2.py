@@ -1,6 +1,7 @@
 import logging
+import asyncio
 from flask import Blueprint, request, jsonify
-from web.services.chat_adapter import process_chat_message
+from web.services.chat_adapter import process_chat_message, ChatAdapter
 from web.utils.auth import require_conversation_limit
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,19 @@ def start_chat_v2():
         
         if not form_id or not session_id:
             return jsonify({"success": False, "error": "form_id and session_id are required"}), 400
+
+        # Attempt to resume if session state exists
+        resume_result = asyncio.run(ChatAdapter.get_current_state(session_id))
+        if resume_result.get("success"):
+            return jsonify({
+                "success": True,
+                "session_id": session_id,
+                "resumed": True,
+                "greeting": "", # UI should use history
+                "chat_history": resume_result.get("history", []),
+                "chip_options": resume_result.get("chip_options"),
+                "ended": resume_result.get("metadata", {}).get("session_state") == "FINISHED"
+            })
 
         # Sending a specialized trigger message to bootstrap the session
         # The agent middleware 'bootstrap_session_middleware' will detect 

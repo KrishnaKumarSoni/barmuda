@@ -33,10 +33,26 @@ if not firebase_admin._apps:
             "FIREBASE_SERVICE_ACCOUNT_PATH",
             "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json",
         )
-        if os.path.exists(service_account_path):
-            cred = credentials.Certificate(service_account_path)
+        
+        # Robust path resolution
+        resolved_path = service_account_path
+        if not os.path.exists(resolved_path):
+            # Try resolving relative to project root (one level up from web/)
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            candidate_path = os.path.join(base_dir, service_account_path)
+            if os.path.exists(candidate_path):
+                resolved_path = candidate_path
+                logger.info(f"Resolved Firebase credentials at: {resolved_path}")
+            else:
+                # Try just the filename in current dir as last resort
+                filename = os.path.basename(service_account_path)
+                if os.path.exists(filename):
+                    resolved_path = filename
+
+        if os.path.exists(resolved_path):
+            cred = credentials.Certificate(resolved_path)
         else:
-            logger.warning(f"Firebase service account file not found at {service_account_path}")
+            logger.warning(f"Firebase service account file not found at {service_account_path} or {resolved_path}")
             cred = None
     
     if cred:

@@ -1,8 +1,12 @@
 import logging
+import os
+import asyncio
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from web.utils.auth import require_conversation_limit
-from chat_engine import get_chat_agent, load_session
+from web.services.chat_adapter import process_chat_message, ChatAdapter
 from web.config import Config
+from web.extensions import db
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +20,63 @@ def start_chat():
         form_id = data.get("form_id")
         device_id = data.get("device_id")
         location = data.get("location")
+        input_session_id = data.get("session_id")
         
         if not form_id:
             return jsonify({"success": False, "error": "form_id is required"}), 400
             
-        agent = get_chat_agent()
-        session_id = agent.create_session(form_id, device_id, location)
+        # Attempt to resume if session_id is provided
+        if input_session_id:
+            print(f"DEBUG: Attempting to resume session: {input_session_id}")
+            result = asyncio.run(ChatAdapter.get_current_state(input_session_id))
+            print(f"DEBUG: Resume result: {result.get('success')}, Error: {result.get('error')}")
+            
+            if result.get("success"):
+                print("DEBUG: Session resumed successfully.")
+                return jsonify({
+                    "success": True,
+                    "session_id": input_session_id,
+                    "resumed": True,
+                    "chat_history": result.get("history", []),
+                    "chip_options": result.get("chip_options"),
+                    "greeting": "" 
+                })
+
+        print("DEBUG: Resumption failed or no session ID. Generating new session.")
+        # Generate session ID similar to legacy format
+        session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{os.urandom(4).hex()}"
+        print(f"DEBUG: New Session ID: {session_id}")
+
+        # IMMEDIATELY persist session to DB to ensure future lookups work
+        # even if the agent processing takes time or fails.
+        try:
+            db.collection("sessions").document(session_id).set({
+                "session_id": session_id,
+                "form_id": form_id,
+                "session_state": "ONGOING",
+                "created_at": datetime.utcnow().isoformat() + "Z",
+                "last_updated": datetime.utcnow().isoformat() + "Z"
+            }, merge=True)
+            print(f"DEBUG: Persisted session {session_id} to Firestore.")
+        except Exception as db_err:
+            logger.error(f"Failed to persist initial session: {db_err}")
+            # Continue anyway, aiming for agent-side persistence as backup
         
-        return jsonify({
-            "success": True,
-            "session_id": session_id
-        })
+        # Bootstrap the session using the new agent
+        # "START_SURVEY_SESSION" is a trigger message for the agent to load the survey
+        result = process_chat_message(session_id, form_id, "START_SURVEY_SESSION")
+        
+        if result.get("success"):
+            return jsonify({
+                "success": True,
+                "session_id": session_id,
+                "greeting": result.get("response"), # For backward compatibility if needed, though widget mostly relies on subsequent messages
+                "chip_options": result.get("chip_options"),
+                "ended": result.get("ended", False)
+            })
+        else:
+             return jsonify(result), 500
+
     except Exception as e:
         logger.error(f"Error starting chat: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
@@ -41,8 +91,9 @@ def send_message():
         if not session_id or not message:
             return jsonify({"success": False, "error": "session_id and message are required"}), 400
             
-        agent = get_chat_agent()
-        result = agent.process_message(session_id, message)
+        # Call the new agent adapter
+        # It handles form_id lookup if not provided
+        result = process_chat_message(session_id, None, message)
         
         return jsonify(result)
     except Exception as e:
@@ -52,13 +103,17 @@ def send_message():
 @legacy_chat_bp.route("/api/chat/status/<session_id>")
 def get_chat_status(session_id):
     try:
-        session = load_session(session_id)
-        return jsonify({
-            "success": True,
-            "status": session.metadata
-        })
+        # Use asyncio.run for the async get_current_state method
+        result = asyncio.run(ChatAdapter.get_current_state(session_id))
+        
+        if result.get("success"):
+            return jsonify({
+                "success": True,
+                "status": result.get("metadata", {})
+            })
+        return jsonify({"success": False, "error": result.get("error", "Unknown error")}), 404
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 404
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @legacy_chat_bp.route("/api/chat/check_chips", methods=["POST"])
 def check_chips():
@@ -66,53 +121,20 @@ def check_chips():
     try:
         data = request.get_json()
         session_id = data.get("session_id")
-        message = data.get("message")
-
-        if not session_id or not message:
-            return jsonify({"success": False, "error": "Missing session_id or message"}), 400
-
-        # Import dynamically to avoid circular imports if any, or just use global
-        if Config.USE_GROQ:
-            from groq_chat_engine import _get_natural_question_data, load_session
-        else:
-            from chat_engine import _get_natural_question_data, load_session
-
-        try:
-            session = load_session(session_id)
-        except Exception as e:
-            return jsonify({"success": False, "error": f"Session not found: {str(e)}"}), 404
-
-        questions = session.form_data.get("questions", [])
-        current_q_idx = session.current_question_index
-
-        if current_q_idx >= len(questions):
-            return jsonify({"success": True, "chip_options": {"show_chips": False}})
-
-        current_q = questions[current_q_idx]
-
-        if not current_q.get("enabled", True):
-            return jsonify({"success": True, "chip_options": {"show_chips": False}})
-
-        if str(current_q_idx) in session.responses:
-            return jsonify({"success": True, "chip_options": {"show_chips": False}})
-
-        # Determine chips logic
-        q_type = current_q.get("type", "text")
-        q_text = current_q.get("text", "")
         
-        natural_q_data = _get_natural_question_data(session_id, q_text, q_type, current_q_idx)
+        if not session_id:
+            return jsonify({"success": False, "error": "Missing session_id"}), 400
+
+        # Retrieve current state from the new agent
+        result = asyncio.run(ChatAdapter.get_current_state(session_id))
         
-        if natural_q_data.get("show_chips"):
-            return jsonify({
+        if result.get("success"):
+             return jsonify({
                 "success": True, 
-                "chip_options": {
-                    "show_chips": True,
-                    "chip_type": natural_q_data.get("chip_type"),
-                    "options": natural_q_data.get("chip_options", [])
-                }
+                "chip_options": result.get("chip_options", {"show_chips": False})
             })
-            
-        return jsonify({"success": True, "chip_options": {"show_chips": False}})
+
+        return jsonify({"success": False, "error": result.get("error")}), 404
 
     except Exception as e:
         logger.error(f"Error checking chips: {str(e)}")
