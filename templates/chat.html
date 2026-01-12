@@ -778,19 +778,6 @@
         // Initialize chat after all scripts load
         window.addEventListener('load', initializeChat);
 
-        // Handle page unload (save partial responses)
-        window.addEventListener('beforeunload', function() {
-            if (sessionId && !isEnded) {
-                // Send beacon to save partial response
-                // Note: sendBeacon with Blob to set Content-Type
-                const data = JSON.stringify({
-                    session_id: sessionId,
-                    message: '[ABANDONED]'
-                });
-                const blob = new Blob([data], { type: 'application/json' });
-                navigator.sendBeacon('/api/chat/message', blob);
-            }
-        });
     </script>
 </body>
 </html>

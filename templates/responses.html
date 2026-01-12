@@ -247,22 +247,26 @@
 
                 const responses = data.responses.map(r => r.responses[index.toString()]).filter(r => r !== undefined && r !== null);
                 const responseCount = responses.length;
+                
+                // Handle different property names for question type and text
+                const qType = question.type || question.questionType || 'unknown';
+                const qText = question.text || question.questionText || 'Untitled Question';
 
                 let summaryHtml = `
                     <div class="mb-4 md:mb-6">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-xl md:text-2xl lg:text-3xl">question ${index + 1}</span>
                             <span class="bg-[#fff5e0] border border-[#ffb889] rounded-full px-3 py-1.5 font-['DM_Sans'] text-xs md:text-sm font-medium text-[#cc5500] w-fit">
-                                ${question.type.replace('_', ' ')} question
+                                ${qType.replace('_', ' ')} question
                             </span>
                         </div>
                     </div>
-                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-base md:text-lg lg:text-xl font-medium mb-2 md:mb-3">${question.text}</h3>
+                    <h3 class="font-['DM_Sans'] text-[#1e1e1e] text-base md:text-lg lg:text-xl font-medium mb-2 md:mb-3">${qText}</h3>
                     <p class="font-['DM_Sans'] text-[#5e5d5d] text-sm md:text-base font-medium mb-4 md:mb-6">${responseCount} Responses</p>
                 `;
 
                 // Create visualization container based on question type
-                if (question.type === 'text') {
+                if (qType === 'text') {
                     summaryHtml += `
                         <div class="bg-[#fef9ee] rounded-xl p-6 md:p-8 flex items-center justify-center min-h-[220px] md:min-h-[280px] overflow-visible">
                             <div id="wordcloud-${index}" class="w-full h-[180px] md:h-[220px]"></div>
@@ -287,10 +291,11 @@
 
                 // Initialize visualization after DOM is updated
                 setTimeout(() => {
-                    if (question.type === 'text') {
+                    if (qType === 'text') {
                         initializeBackendWordCloud(index);
                     } else {
-                        window.ChartConfig.initializeQuestionChart(index, question.type, question, responses);
+                        // Ensure ChartConfig handles the qType correctly if it differs
+                        window.ChartConfig.initializeQuestionChart(index, qType, question, responses);
                     }
                 }, 100);
             });
@@ -413,10 +418,12 @@
                 questions.forEach((question, qIndex) => {
                     const answer = response.responses[qIndex.toString()];
                     const value = answer ? answer.value : 'No response';
+                    // FIX: Handle different property names
+                    const qText = question.text || question.questionText || 'Untitled Question';
 
                     html += `
                         <div class="flex flex-col">
-                            <span class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-xs md:text-[14px] mb-1">Q${qIndex + 1}: ${question.text}</span>
+                            <span class="font-['DM_Sans'] font-medium text-[#1e1e1e] text-xs md:text-[14px] mb-1">Q${qIndex + 1}: ${qText}</span>
                             <span class="font-['DM_Sans'] text-[#797878] text-xs md:text-[14px] pl-2 md:pl-4">${value}</span>
                         </div>
                     `;
@@ -551,9 +558,13 @@
             if (!responses || responses.length === 0) {
                 return '<div class="text-xs text-[#959494] font-[\'DM_Sans\']">No responses yet</div>';
             }
+            
+            // FIX: Handle different property names
+            const qType = question.type || question.questionType || 'unknown';
 
-            switch(question.type) {
+            switch(qType) {
                 case 'multiple_choice':
+                case 'mcq':
                     // Show top choice
                     const mcCounts = {};
                     responses.forEach(r => {
@@ -569,7 +580,8 @@
                     `;
 
                 case 'yes_no':
-                    const yesCount = responses.filter(r => r.value === 'Yes').length;
+                case 'boolean':
+                    const yesCount = responses.filter(r => r.value === 'Yes' || r.value === true).length;
                     const yesPercent = Math.round((yesCount / responses.length) * 100);
                     return `
                         <div class="text-xs text-[#cc5500] font-['DM_Sans'] font-bold mb-1">Yes Responses</div>
@@ -590,6 +602,7 @@
                     `;
 
                 case 'number':
+                case 'integer':
                     const numbers = responses.map(r => parseFloat(r.value)).filter(r => !isNaN(r));
                     const avgNumber = numbers.length > 0 ? (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(1) : 0;
                     return `
@@ -681,14 +694,21 @@
                 const skipCount = totalPossibleResponses - responseCount;
                 const completionRate = totalPossibleResponses > 0 ? Math.round((responseCount / totalPossibleResponses) * 100) : 0;
 
+                // FIX: Handle different property names for question type
+                const qType = question.type || question.questionType || 'unknown';
+                const qText = question.text || question.questionText || 'Untitled Question';
+
                 // Get question type icon
                 const getQuestionIcon = (type) => {
                     switch(type) {
-                        case 'multiple_choice': return 'ph-list-bullets';
-                        case 'yes_no': return 'ph-check-circle';
+                        case 'multiple_choice': 
+                        case 'mcq': return 'ph-list-bullets';
+                        case 'yes_no': 
+                        case 'boolean': return 'ph-check-circle';
                         case 'text': return 'ph-text-aa';
                         case 'rating': return 'ph-star';
-                        case 'number': return 'ph-hash';
+                        case 'number': 
+                        case 'integer': return 'ph-hash';
                         default: return 'ph-question';
                     }
                 };
@@ -702,9 +722,9 @@
                                     ${index + 1}
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <i class="${getQuestionIcon(question.type)} text-[#cc5500] text-lg"></i>
+                                    <i class="${getQuestionIcon(qType)} text-[#cc5500] text-lg"></i>
                                     <span class="bg-[#fff5e0] border border-[#ffb889] rounded-full px-3 py-1 font-['DM_Sans'] text-xs font-medium text-[#cc5500]">
-                                        ${question.type.replace('_', ' ')}
+                                        ${qType.replace('_', ' ')}
                                     </span>
                                 </div>
                             </div>
@@ -716,7 +736,7 @@
 
                         <!-- Question Text -->
                         <div>
-                            <h4 class="font-['DM_Sans'] text-[#1e1e1e] text-lg font-medium leading-relaxed">${question.text}</h4>
+                            <h4 class="font-['DM_Sans'] text-[#1e1e1e] text-lg font-medium leading-relaxed">${qText}</h4>
                         </div>
 
                         <!-- Stats Grid and Preview -->

@@ -3,7 +3,9 @@ import json
 import os
 import re
 from datetime import datetime
-from flask import Blueprint, jsonify, request, session
+from collections import Counter
+from flask import Blueprint, jsonify, request, session, Response
+from google.cloud.firestore_v1.base_query import FieldFilter
 from web.utils.auth import login_required, require_form_creation
 from web.extensions import db, openai_client, generate_text
 from billing import get_subscription_manager
@@ -13,69 +15,91 @@ logger = logging.getLogger(__name__)
 
 api_bp = Blueprint('api', __name__)
 
+# --- SCHEMAS ---
+
+FORM_GENERATION_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "formId": {"type": "STRING"},
+        "formTitle": {"type": "STRING"},
+        "formDescription": {"type": "STRING"},
+        "persona": {"type": "STRING"},
+        "isEnabled": {"type": "BOOLEAN"},
+        "isDeleted": {"type": "BOOLEAN"},
+        "createdAt": {"type": "STRING"},
+        "deletedAt": {"type": "STRING", "nullable": True},
+        "latestEnabledAt": {"type": "STRING"},
+        "questions": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "questionKey": {"type": "STRING"},
+                    "questionType": {
+                        "type": "STRING", 
+                        "enum": ["text", "integer", "mcq", "rating", "boolean"]
+                    },
+                    "source": {"type": "STRING"},
+                    "sequenceNumber": {"type": "INTEGER"},
+                    "questionText": {"type": "STRING"},
+                    "responseDataValidationRule": {"type": "STRING"},
+                    "isEnabled": {"type": "BOOLEAN"},
+                    "isDeleted": {"type": "BOOLEAN"},
+                    "createdAt": {"type": "STRING"},
+                    "deletedAt": {"type": "STRING", "nullable": True},
+                    "latestEnabledAt": {"type": "STRING"},
+                    "responseOptions": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "placeholder": {"type": "STRING"},
+                            "choices": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "label": {"type": "STRING"},
+                                        # Updated to accept mixed types (Int, Bool, String)
+                                        "value": {
+                                            "anyOf": [
+                                                {"type": "STRING"},
+                                                {"type": "INTEGER"},
+                                                {"type": "BOOLEAN"}
+                                            ]
+                                        }
+                                    },
+                                    "required": ["label", "value"]
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": ["questionKey", "questionType", "questionText"]
+            }
+        }
+    },
+    "required": ["formTitle", "questions", "persona"]
+}
+
 # --- HELPER FUNCTIONS ---
 
 def create_inference_prompt(input_text):
-    """Create the form inference prompt with Chain-of-Thought and few-shot examples"""
-    return f"""You are an expert form designer and systems architect. Given an unstructured text dump describing a form or survey, you need to infer a structured JSON schema compatible with our autonomous survey agent.
+    """Create the form inference prompt focusing on intent and design"""
+    return f"""You are an expert form designer and systems architect. Your goal is to analyze the unstructured input and generate a structured survey definition.
 
-TASK: Analyze the input text and create a JSON form structure following the EXACT format below.
-
-REASONING PROCESS (Chain-of-Thought):
-1.  **Summarize Intent:** What is the main goal? Who is the target audience?
-2.  **Define Persona:** What personality should the AI interviewer adopt? (e.g., "professional and concise", "casual and high-energy", "empathetic listener").
-3.  **Identify Questions:** Determine 5-10 key questions.
-4.  **Select Types:** Map each to one of: 'text', 'integer', 'mcq', 'rating', 'boolean'.
-5.  **Define Validation:** Write clear natural language rules for `responseDataValidationRule` (e.g., "Must be a valid email", "Min 50 chars").
-6.  **Structure Options:** For 'mcq', 'rating', 'boolean', create precise `responseOptions`.
-
-OUTPUT FORMAT (JSON only, no additional text):
-{{
-  "formId": "generated_form_id",
-  "formTitle": "Form Title (concise)",
-  "formDescription": "Description for the frontend user",
-  "persona": "Description of the agent's personality and tone",
-  "isEnabled": true,
-  "isDeleted": false,
-  "createdAt": "2025-01-01T12:00:00Z",
-  "deletedAt": null,
-  "latestEnabledAt": "2025-01-01T12:00:00Z",
-  "questions": [
-    {{
-      "questionKey": "camelCaseKey",
-      "questionType": "text|integer|mcq|rating|boolean",
-      "source": "inference",
-      "sequenceNumber": 1,
-      "questionText": "The actual question to ask?",
-      "responseDataValidationRule": "Natural language validation rule",
-      "isEnabled": true,
-      "isDeleted": false,
-      "createdAt": "2025-01-01T12:00:00Z",
-      "deletedAt": null,
-      "latestEnabledAt": "2025-01-01T12:00:00Z",
-      "responseOptions": {{
-        "placeholder": "e.g. Placeholder",
-        "minLength": 0,
-        "maxLength": 1000,
-        "min": 0,
-        "max": 10,
-        "choices": [
-          {{ "label": "Option Label", "value": "option_value" }}
-        ]
-      }}
-    }}
-  ]
-}}
+TASK:
+1.  **Analyze Intent:** Understand the goal and target audience from the input.
+2.  **Define Persona:** Create a distinct persona for the AI interviewer (e.g., "professional", "empathetic", "high-energy") that fits the topic.
+3.  **Design Questions:** Create 5-10 effective questions using appropriate types (text, integer, mcq, rating, boolean).
+4.  **Define Validation:** Write natural language validation rules for the agent to use (e.g., "Must be a valid email").
 
 TYPE GUIDELINES:
-- **text**: Open-ended. responseOptions: {{ "placeholder": "...", "maxLength": 500 }}
-- **integer**: Numeric. responseOptions: {{ "min": 0, "max": 100 }}
-- **rating**: 1-N scale. responseOptions: {{ "min": 1, "max": 5 }}
-- **boolean**: Yes/No. responseOptions: {{ "choices": [ {{ "label": "Yes", "value": true }}, {{ "label": "No", "value": false }} ] }}
-- **mcq**: Select one/many. responseOptions: {{ "choices": [ {{ "label": "Label", "value": "value" }} ] }}
+- **text**: Open-ended questions.
+- **integer**: Numeric input.
+- **rating**: 1-N scale.
+- **boolean**: Yes/No.
+- **mcq**: Select one/many options.
 
-INPUT: {input_text}
-OUTPUT:"""
+INPUT: {input_text}"""
 
 def validate_and_fix_json(json_string):
     """Validate JSON structure and fix common issues"""
@@ -89,11 +113,6 @@ def validate_and_fix_json(json_string):
         if json_string.endswith("```"):
             json_string = json_string[:-3]
             
-        start_idx = json_string.find("{")
-        end_idx = json_string.rfind("}")
-        if start_idx == -1 or end_idx == -1:
-            raise ValueError("No valid JSON structure found")
-        json_string = json_string[start_idx : end_idx + 1]
         parsed = json.loads(json_string)
         return parsed, None
     except Exception as e:
@@ -110,13 +129,15 @@ def validate_form_generation_input(input_text):
     return True, ""
 
 def infer_form_from_text(input_text, max_retries=2):
-    """Use configured LLM to infer form structure"""
+    """Use configured LLM to infer form structure using Structured Output"""
     for attempt in range(max_retries + 1):
         try:
             response_text = generate_text(
                 system_prompt="You are an expert form designer.",
                 user_prompt=create_inference_prompt(input_text),
-                temperature=0.1
+                temperature=0.1,
+                response_mime_type="application/json",
+                response_schema=FORM_GENERATION_SCHEMA
             )
             parsed_form, error = validate_and_fix_json(response_text)
             if parsed_form:
@@ -163,6 +184,36 @@ def refine_user_prompt(original_prompt, max_retries=2):
                 return None, str(e)
     return None, "Unexpected error"
 
+def generate_word_frequency_backend(text_responses):
+    """Generate word frequency data on the backend"""
+    # Common stop words
+    stop_words = {
+        "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by",
+        "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did",
+        "will", "would", "could", "should", "may", "might", "must", "shall", "can", "i", "you", "he",
+        "she", "it", "we", "they", "me", "him", "her", "us", "them", "my", "your", "his", "her",
+        "its", "our", "their", "this", "that", "these", "those",
+    }
+
+    all_words = []
+    for text in text_responses:
+        if text and text.strip():
+            # Clean and extract words
+            words = re.findall(r"\b[a-zA-Z]{3,}\b", text.lower())
+            words = [word for word in words if word not in stop_words]
+            all_words.extend(words)
+
+    if not all_words:
+        return []
+
+    # Count word frequencies
+    word_counts = Counter(all_words)
+
+    # Return top 20 words with their frequencies
+    return [
+        {"word": word, "count": count} for word, count in word_counts.most_common(20)
+    ]
+
 # --- ROUTES ---
 
 @api_bp.route("/api/infer", methods=["POST"])
@@ -186,7 +237,7 @@ def infer_form():
         user_id = request.user["uid"]
         now = datetime.utcnow()
         survey_data = {
-            "title": inferred_form["title"],
+            "title": inferred_form["formTitle"], # Adjusted to match schema key
             "questions": inferred_form["questions"],
             "demographics": inferred_form.get("demographics", {}),
             "creator_id": user_id,
@@ -194,6 +245,10 @@ def infer_form():
             "created_at": now,
             "last_modified": now,
             "response_count": 0,
+            # Store full schema logic for reference/updates
+            "formTitle": inferred_form.get("formTitle"),
+            "formDescription": inferred_form.get("formDescription"),
+            "persona": inferred_form.get("persona")
         }
         doc_ref = db.collection("forms").add(survey_data)
         return jsonify({
@@ -407,3 +462,194 @@ def get_form(form_id):
         }), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+@api_bp.route("/api/responses/<form_id>")
+@login_required
+def get_form_responses(form_id):
+    """Get all responses for a form from the 'sessions' collection"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+        if form_data.get("creator_id") != request.user["uid"]:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Get responses from 'sessions' collection
+        responses_query = (
+            db.collection("sessions")
+            .where(filter=FieldFilter("form_id", "==", form_id))
+            .stream()
+        )
+        responses = []
+
+        for response_doc in responses_query:
+            response_data = response_doc.to_dict()
+            # Handle created_at field - might be datetime object or string
+            created_at = response_data.get("created_at")
+            if created_at:
+                if hasattr(created_at, "isoformat"):
+                    created_at = created_at.isoformat()
+
+            responses.append(
+                {
+                    "id": response_doc.id,
+                    "responses": response_data.get("responses", {}),
+                    "metadata": response_data.get("metadata", {}),
+                    "created_at": created_at,
+                    "partial": response_data.get("session_state") != "FINISHED",
+                    "mode": response_data.get("mode", "chat"),
+                }
+            )
+
+        return jsonify(
+            {
+                "form_title": form_data.get("title", "Untitled Form"),
+                "responses": responses,
+                "total_responses": len(responses),
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error getting responses: {str(e)}")
+        return jsonify({"error": "Failed to fetch responses"}), 500
+
+
+@api_bp.route("/api/wordcloud/<form_id>/<int:question_index>")
+@login_required
+def generate_wordcloud(form_id, question_index):
+    """Generate word cloud data for text questions using the 'sessions' collection"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+        if form_data.get("creator_id") != request.user["uid"]:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Find the question key for this index
+        questions = form_data.get("questions", [])
+        if question_index >= len(questions):
+            return jsonify({"error": "Question index out of range"}), 400
+        
+        target_question_key = questions[question_index].get("questionKey")
+
+        # Get responses for this question from 'sessions'
+        responses_query = (
+            db.collection("sessions")
+            .where(filter=FieldFilter("form_id", "==", form_id))
+            .stream()
+        )
+        text_responses = []
+
+        for response_doc in responses_query:
+            response_data = response_doc.to_dict()
+            if "responses" in response_data:
+                # Check both questionKey and legacy index string
+                answer = response_data["responses"].get(target_question_key) or \
+                         response_data["responses"].get(str(question_index))
+                
+                if answer and answer.get("value") and str(answer.get("value")) not in ["[SKIP]", "[ABANDONED]"]:
+                    text_responses.append(str(answer.get("value")))
+
+        # Generate word frequency data
+        word_freq = generate_word_frequency_backend(text_responses)
+
+        return jsonify(
+            {
+                "success": True,
+                "word_frequency": word_freq,
+                "total_responses": len(text_responses),
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error generating word cloud: {str(e)}")
+        return jsonify({"error": "Failed to generate word cloud"}), 500
+
+
+@api_bp.route("/api/export/<form_id>/<format>")
+@login_required
+def export_responses(form_id, format):
+    """Export responses from 'sessions' in JSON or CSV format"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return jsonify({"error": "Form not found"}), 404
+
+        form_data = form_doc.to_dict()
+        if form_data.get("creator_id") != request.user["uid"]:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Get responses from 'sessions'
+        responses_query = (
+            db.collection("sessions")
+            .where(filter=FieldFilter("form_id", "==", form_id))
+            .stream()
+        )
+        responses = []
+
+        for response_doc in responses_query:
+            response_data = response_doc.to_dict()
+            responses.append(response_data)
+
+        if format.lower() == "json":
+            return Response(
+                json.dumps(responses, indent=2, default=str),
+                mimetype="application/json",
+                headers={
+                    "Content-Disposition": f"attachment; filename=responses_{form_id}.json"
+                },
+            )
+
+        elif format.lower() == "csv":
+            import csv
+            from io import StringIO
+
+            output = StringIO()
+            if responses:
+                # Get all possible field names
+                fieldnames = set()
+                for r in responses:
+                    fieldnames.update(r.keys())
+                    if "responses" in r:
+                        for q_key in r["responses"]:
+                            fieldnames.add(f"Answer_{q_key}")
+                
+                # Sort fields for consistency
+                sorted_fields = sorted(list(fieldnames))
+                
+                writer = csv.DictWriter(output, fieldnames=sorted_fields)
+                writer.writeheader()
+                
+                for r in responses:
+                    row = {}
+                    # Copy flat fields
+                    for k, v in r.items():
+                        if k != "responses":
+                            row[k] = str(v)
+                    
+                    # Flatten responses
+                    if "responses" in r:
+                        for q_key, q_data in r["responses"].items():
+                            row[f"Answer_{q_key}"] = q_data.get("value")
+                    writer.writerow(row)
+
+            return Response(
+                output.getvalue(),
+                mimetype="text/csv",
+                headers={
+                    "Content-Disposition": f"attachment; filename=responses_{form_id}.csv"
+                },
+            )
+        
+        return jsonify({"error": "Invalid format"}), 400
+
+    except Exception as e:
+        logger.error(f"Error exporting responses: {str(e)}")
+        return jsonify({"error": "Export failed"}), 500

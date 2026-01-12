@@ -107,9 +107,6 @@ def dashboard():
                         form_data["created_at"] = datetime.fromisoformat(created_at)
                     except ValueError as ve:
                         logger.warning(f"Could not parse created_at for form {doc.id}: {ve}")
-                        # Leave as is or set to None? Leaving as is might break template.
-                        # Ideally set to None or a default if critical.
-                        # But let's assume it works if valid ISO.
                         pass
 
                 # Response count logic (kept simple for robustness)
@@ -168,6 +165,52 @@ def create_form():
 def edit_form():
     """Form editing page"""
     return render_template("edit_form.html", user=request.user)
+
+@views_bp.route("/responses/<form_id>")
+@login_required
+def view_form_responses(form_id):
+    """View responses for a form"""
+    try:
+        # Verify form ownership
+        form_doc = db.collection("forms").document(form_id).get()
+        if not form_doc.exists:
+            return (
+                render_template(
+                    "error.html",
+                    error_title="Form Not Found",
+                    error_message="This form doesn't exist or has been removed.",
+                ),
+                404,
+            )
+
+        form_data = form_doc.to_dict()
+        if form_data.get("creator_id") != request.user["uid"]:
+            return (
+                render_template(
+                    "error.html",
+                    error_title="Access Denied",
+                    error_message="You don't have permission to view this form's responses.",
+                ),
+                403,
+            )
+
+        return render_template(
+            "responses.html",
+            form_id=form_id,
+            form_title=form_data.get("title", form_data.get("formTitle", "Untitled Form")),
+            questions=form_data.get("questions", []),
+        )
+
+    except Exception as e:
+        logger.error(f"Error loading responses page: {str(e)}")
+        return (
+            render_template(
+                "error.html",
+                error_title="Error Loading Responses",
+                error_message="There was an error loading the responses. Please try again later.",
+            ),
+            500,
+        )
 
 @views_bp.route("/form/<form_id>")
 def form_response_page(form_id):
