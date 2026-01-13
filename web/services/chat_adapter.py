@@ -3,7 +3,7 @@ import sys
 import asyncio
 import logging
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, AsyncIterator
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
 # Add the agent directory to sys.path to allow imports from my_agent
@@ -115,6 +115,71 @@ class ChatAdapter:
                 "error": str(e),
                 "response": "I'm having a bit of trouble connecting to my brain right now. 😅"
             }
+        finally:
+            await redis_client.aclose()
+
+    @classmethod
+    async def stream_message_async(cls, session_id: str, form_id: str, message: str) -> AsyncIterator[str]:
+        """
+        Asynchronously streams the agent response using Server-Sent Events (SSE).
+        Yields JSON chunks: {"type": "token", "text": "..."} or {"type": "meta", ...}
+        """
+        redis_client = get_redis_client()
+        try:
+            if not form_id:
+                form_id = await cls._get_form_id_from_db(session_id)
+                if not form_id:
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'Session not found'})}\n\n"
+                    return
+
+            graph = build_survey_graph(redis_client=redis_client)
+            config = {"configurable": {"thread_id": session_id, "form_id": form_id}}
+            input_data = {"messages": [HumanMessage(content=message)]}
+
+            # Track full response for final state check if needed
+            full_response = ""
+
+            async for event in graph.astream_events(input_data, config=config, version="v1"):
+                kind = event["event"]
+                
+                # Stream tokens from the Chat Model
+                if kind == "on_chat_model_stream":
+                    content = event["data"]["chunk"].content
+                    if content:
+                        # Handle content being list of blocks or string
+                        text = ""
+                        if isinstance(content, str):
+                            text = content
+                        elif isinstance(content, list):
+                            # Extract text from blocks if streaming structured content
+                            for block in content:
+                                if isinstance(block, str): text += block
+                                elif isinstance(block, dict) and block.get("type") == "text":
+                                    text += block.get("text", "")
+                        
+                        if text:
+                            full_response += text
+                            yield f"data: {json.dumps({'type': 'token', 'text': text})}\n\n"
+
+            # After streaming completes, fetch final state for metadata (chips, status)
+            final_state_snapshot = await graph.aget_state(config)
+            final_state = final_state_snapshot.values
+            
+            chip_options = cls._extract_chips(final_state)
+            session_state = final_state.get("session_state", "ONGOING")
+            
+            metadata_event = {
+                "type": "meta",
+                "chip_options": chip_options,
+                "ended": session_state == "FINISHED",
+                "session_id": session_id,
+                "status": final_state.get("current_question_status")
+            }
+            yield f"data: {json.dumps(metadata_event)}\n\n"
+
+        except Exception as e:
+            logger.error(f"Streaming error: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
         finally:
             await redis_client.aclose()
 

@@ -2,7 +2,7 @@ import logging
 import os
 import asyncio
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response, stream_with_context
 from web.utils.auth import require_conversation_limit
 from web.services.chat_adapter import process_chat_message, ChatAdapter
 from web.config import Config
@@ -138,4 +138,43 @@ def check_chips():
 
     except Exception as e:
         logger.error(f"Error checking chips: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+def sync_stream_generator(session_id, form_id, message):
+    """
+    Bridge async generator to synchronous iterator for Flask streaming.
+    Runs a temporary event loop to consume the async stream.
+    """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    agen = ChatAdapter.stream_message_async(session_id, form_id, message)
+    
+    try:
+        while True:
+            try:
+                chunk = loop.run_until_complete(agen.__anext__())
+                yield chunk
+            except StopAsyncIteration:
+                break
+    finally:
+        loop.close()
+
+@legacy_chat_bp.route("/api/chat/stream", methods=["POST"])
+def stream_chat():
+    try:
+        data = request.get_json()
+        session_id = data.get("session_id")
+        message = data.get("message")
+        form_id = data.get("form_id") # Optional, adapter looks it up
+        
+        if not session_id or not message:
+            return jsonify({"success": False, "error": "session_id and message are required"}), 400
+
+        return Response(
+            stream_with_context(sync_stream_generator(session_id, form_id, message)),
+            mimetype='text/event-stream'
+        )
+    except Exception as e:
+        logger.error(f"Error streaming chat: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500

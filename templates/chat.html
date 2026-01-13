@@ -185,7 +185,7 @@
         let messageCount = 0;
         let isEnded = false;
 
-        // Initialize FingerprintJS and start session
+        // Initialize session
         async function initializeChat() {
             try {
                 // Show typing indicator immediately when page loads
@@ -198,20 +198,16 @@
                     console.log('Restored session ID from localStorage:', sessionId);
                 }
 
-                // Skip location collection to avoid permission prompt
-                let location = {};
-
                 const payload = {
                     form_id: formId,
-                    location: location
+                    location: {}
                 };
 
-                // Use stored session if we have it, otherwise let server generate one
                 if (sessionId) {
                     payload.session_id = sessionId;
                 }
 
-                // Start chat session using legacy endpoint which supports server-side ID generation
+                // Start chat session
                 const response = await fetch('/api/chat/start', {
                     method: 'POST',
                     headers: {
@@ -226,15 +222,11 @@
                         localStorage.removeItem(`barmuda_session_id_${formId}`);
                         sessionId = null;
                         
-                        // Retry without session ID to get a fresh session
-                        const retryPayload = {
-                            form_id: formId,
-                            location: location
-                        };
+                        // Retry without session ID
                         const retryResponse = await fetch('/api/chat/start', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(retryPayload)
+                            body: JSON.stringify({ form_id: formId, location: {} })
                         });
                         
                         if (retryResponse.ok) {
@@ -242,8 +234,7 @@
                             return handleStartSuccess(retryData);
                         }
                     }
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    throw new Error(`HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -252,39 +243,27 @@
             } catch (error) {
                 console.error('Error initializing chat:', error);
                 hideTypingIndicator();
-                addMessage('system', 'Sorry, there was an error starting the chat. Please refresh the page and try again.');
-                if (sessionId) {
-                    localStorage.removeItem(`barmuda_session_id_${formId}`);
-                    sessionId = null;
-                }
+                addMessage('system', 'Sorry, there was an error starting the chat. Please refresh the page.');
             }
         }
         
         function handleStartSuccess(data) {
             if (data.success) {
                 sessionId = data.session_id; 
-                // Save for persistence
                 localStorage.setItem(`barmuda_session_id_${formId}`, sessionId);
                 
-                // Hide typing indicator
                 hideTypingIndicator();
                 
-                // Filter out system trigger messages from history
                 const filterSystemMessages = (msg) => {
                     if (typeof msg.content !== 'string') return true;
                     return msg.content !== 'START_SURVEY_SESSION' && msg.content !== '[ABANDONED]';
                 };
 
-                // Check if session is ended
                 if (data.ended) {
-                    console.log('Session is already ended');
                     isEnded = true;
-                    
-                    // Clear container for replay
                     const messagesContainer = document.getElementById('chat-messages');
                     messagesContainer.innerHTML = '';
 
-                    // Show chat history if available
                     if (data.chat_history) {
                         data.chat_history
                             .filter(filterSystemMessages)
@@ -293,28 +272,12 @@
                                 addMessage(msg.role, msg.content, timestamp);
                             });
                     }
-                    
-                    // Show completion message if it was a greeting (rare in resume)
                     if (data.greeting) addMessage('assistant', data.greeting);
-                    
-                    // Show completion screen immediately
-                    setTimeout(() => {
-                        showCompletionScreen();
-                    }, 500);
-                    
-                    // Keep input disabled
-                    document.getElementById('message-input').disabled = true;
-                    document.getElementById('send-button').disabled = true;
-                    
-                    // Optional: Clear session on end?
-                    localStorage.removeItem(`barmuda_session_id_${formId}`);
+                    setTimeout(() => showCompletionScreen(), 500);
                 } else if (data.resumed) {
-                    console.log('Resuming active session with history');
-                    
                     const messagesContainer = document.getElementById('chat-messages');
                     messagesContainer.innerHTML = '';
 
-                    // Add all previous messages from history
                     if (data.chat_history) {
                         data.chat_history
                             .filter(filterSystemMessages)
@@ -324,69 +287,28 @@
                             });
                     }
                     
-                    // Update progress after resuming
                     updateProgress();
-                    
-                    // If there was a greeting in the payload (unlikely for resume but safe)
                     if (data.greeting) addMessage('assistant', data.greeting);
+                    if (data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
                     
-                    // Check for chips
-                    if (data.chip_options && data.chip_options.show_chips) {
-                        addChipOptions(data.chip_options);
-                    }
-                    
-                    // Enable input
                     document.getElementById('message-input').disabled = false;
                     document.getElementById('send-button').disabled = false;
                     document.getElementById('message-input').focus();
                 } else {
-                    // New session
-                    // Add initial greeting
                     addMessage('assistant', data.greeting);
-                    
-                    // Check for chip options in the initial greeting
                     if (data.chip_options && data.chip_options.show_chips) {
                         addChipOptions(data.chip_options);
                     } else {
                         checkForChipOptions(data.greeting);
                     }
-                    
-                    // Enable input
                     document.getElementById('message-input').disabled = false;
                     document.getElementById('send-button').disabled = false;
                     document.getElementById('message-input').focus();
                 }
             } else {
                 hideTypingIndicator();
-                throw new Error(data.error || 'Failed to start chat');
+                addMessage('system', data.error || 'Failed to start chat');
             }
-        }
-
-        // Add message to chat
-        function formatLinksInText(text, isUserMessage = false) {
-            // Handle non-string input gracefully
-            if (typeof text !== 'string') {
-                console.warn('formatLinksInText received non-string:', text);
-                return '';
-            }
-
-            // URL regex that matches http/https URLs and www. URLs
-            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
-            
-            return text.replace(urlRegex, function(match) {
-                let url = match;
-                // Add https:// if URL starts with www.
-                if (url.startsWith('www.')) {
-                    url = 'https://' + url;
-                }
-                
-                // Different styling for user messages (white background) vs assistant messages (dark background)
-                const linkClass = isUserMessage 
-                    ? "text-white/90 hover:text-white underline font-medium transition-colors"
-                    : "text-[#cc5500] hover:text-[#d12b2e] underline font-medium transition-colors";
-                
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${linkClass}">${match}</a>`;
-            });
         }
 
         function addMessage(sender, message, timestamp = null) {
@@ -397,250 +319,178 @@
             const now = timestamp || new Date();
             const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // Extract text from structured content if necessary
             let displayText = message;
             if (typeof message === 'object' && message !== null) {
                 if (Array.isArray(message)) {
-                    // Handle array of blocks (e.g. from LangChain/Anthropic)
-                    displayText = message
-                        .map(block => {
+                    displayText = message.map(block => {
                             if (typeof block === 'string') return block;
                             if (block.type === 'text') return block.text;
                             return '';
-                        })
-                        .join(' ');
+                        }).join(' ');
                 } else if (message.type === 'text') {
                     displayText = message.text;
                 } else if (message.content) {
-                     // Handle nested content object
                      displayText = message.content;
                 }
             }
             
-            // Ensure we have a string
-            if (typeof displayText !== 'string') {
-                displayText = String(displayText || '');
-            }
+            if (typeof displayText !== 'string') displayText = String(displayText || '');
 
             if (sender === 'user') {
-                // Format links for user messages (white on orange background)
-                const formattedMessage = formatLinksInText(displayText, true);
                 messageDiv.innerHTML = `
                     <div class="flex justify-end">
                         <div class="bg-[#cc5500] max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tr-md shadow-sm">
-                            <div class="font-['DM_Sans'] text-white text-sm md:text-base leading-relaxed mb-1">
-                                ${formattedMessage}
-                            </div>
-                            <div class="font-['DM_Sans'] text-white/70 text-xs">
-                                ${timeStr}
-                            </div>
+                            <div class="font-['DM_Sans'] text-white text-sm md:text-base leading-relaxed mb-1 message-text">${displayText}</div>
+                            <div class="font-['DM_Sans'] text-white/70 text-xs">${timeStr}</div>
                         </div>
                     </div>
                 `;
             } else if (sender === 'assistant') {
-                // Format links for assistant messages (colored on white background)
-                const formattedMessage = formatLinksInText(displayText, false);
                 messageDiv.innerHTML = `
                     <div class="flex justify-start">
                         <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed mb-1">
-                                ${formattedMessage}
-                            </div>
-                            <div class="font-['DM_Sans'] text-[#6b7280] text-xs">
-                                ${timeStr}
-                            </div>
+                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed mb-1 message-text">${displayText}</div>
+                            <div class="font-['DM_Sans'] text-[#6b7280] text-xs">${timeStr}</div>
                         </div>
                     </div>
                 `;
             } else {
-                // System message
-                const formattedMessage = formatLinksInText(displayText, false);
                 messageDiv.innerHTML = `
                     <div class="flex justify-center">
-                        <div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">
-                            ${formattedMessage}
-                        </div>
+                        <div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">${displayText}</div>
                     </div>
                 `;
             }
             
             messagesContainer.appendChild(messageDiv);
-            
-            // Trigger animation
             setTimeout(() => {
                 messageDiv.classList.remove('message-enter');
                 messageDiv.classList.add('message-enter-active');
             }, 10);
-            
-            // Scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return messageDiv;
         }
 
-        // Send message
         async function sendMessage() {
             if (isEnded) return;
-            
             const input = document.getElementById('message-input');
             const message = input.value.trim();
-            
             if (!message || !sessionId) return;
             
-            // Add user message
             addMessage('user', message);
             input.value = '';
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // Disable input temporarily
             input.disabled = true;
             document.getElementById('send-button').disabled = true;
+            
+            const chipContainers = document.querySelectorAll('.chip-container');
+            chipContainers.forEach(container => container.remove());
+
             try {
-                const response = await fetch('/api/chat/message', {
+                const responseDiv = addMessage('assistant', '');
+                const responseTextContainer = responseDiv.querySelector('.message-text');
+                
+                const response = await fetch('/api/chat/stream', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        message: message
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, message: message })
                 });
-                
-                const data = await response.json();
-                
-                // Hide typing indicator
-                hideTypingIndicator();
-                
-                if (data.success) {
-                    // Add assistant response
-                    addMessage('assistant', data.response);
+
+                if (!response.ok) throw new Error('Stream failed');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let accumulatedText = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
                     
-                    // Add chip options if available
-                    if (data.chip_options && data.chip_options.show_chips) {
-                        addChipOptions(data.chip_options);
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.type === 'token') {
+                                    accumulatedText += data.text;
+                                    responseTextContainer.textContent = accumulatedText;
+                                    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+                                } else if (data.type === 'meta') {
+                                    if (data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
+                                    handleCompleteResponse(data);
+                                }
+                            } catch (e) {}
+                        }
                     }
-                    
-                    // Handle complete response
-                    handleCompleteResponse(data);
-                } else {
-                    throw new Error(data.error || 'Unknown error');
                 }
-                
             } catch (error) {
-                hideTypingIndicator();
                 console.error('Chat error:', error);
-                addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                addMessage('assistant', 'Sorry, I encountered an error.');
             } finally {
-                // Re-enable input
-                const input = document.getElementById('message-input');
                 input.disabled = false;
                 document.getElementById('send-button').disabled = false;
                 input.focus();
             }
         }
         
-        // Handle complete response (shared by both streaming and non-streaming)
         function handleCompleteResponse(data) {
-            // Update progress
             updateProgress();
-            
-            // Check if conversation ended
             if (data.ended) {
                 isEnded = true;
-                const input = document.getElementById('message-input');
-                input.disabled = true;
+                document.getElementById('message-input').disabled = true;
                 document.getElementById('send-button').disabled = true;
-                
-                // Show completion overlay instead of system message
-                setTimeout(() => {
-                    showCompletionScreen();
-                }, 1500);
+                setTimeout(() => showCompletionScreen(), 1500);
             }
         }
 
-        // Check for chip options in a message (for greetings and resumed sessions)
         async function checkForChipOptions(message) {
             if (!sessionId || !message) return;
-            
             try {
                 const response = await fetch('/api/chat/check_chips', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        message: message
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, message: message })
                 });
-                
                 const data = await response.json();
-                
-                if (data.success && data.chip_options && data.chip_options.show_chips) {
-                    addChipOptions(data.chip_options);
-                }
-            } catch (error) {
-                console.error('Error checking for chip options:', error);
-                // Fail silently - chips are optional enhancement
-            }
+                if (data.success && data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
+            } catch (e) {}
         }
 
-        // Show typing indicator
         function showTypingIndicator() {
             hideTypingIndicator();
-            
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message-enter typing-message';
-            
             messageDiv.innerHTML = `
                 <div class="flex justify-start">
                     <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                        <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base flex items-center justify-center">
-                            <div class="typing-ellipsis">
-                                <div class="dot"></div>
-                                <div class="dot"></div>
-                                <div class="dot"></div>
-                            </div>
-                        </div>
+                        <div class="typing-ellipsis"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div>
                 </div>
             `;
-            
             messagesContainer.appendChild(messageDiv);
-            
-            // Trigger animation
             setTimeout(() => {
                 messageDiv.classList.remove('message-enter');
                 messageDiv.classList.add('message-enter-active');
             }, 10);
-            
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Add chip options below the bot message
         function addChipOptions(chipData) {
             const messagesContainer = document.getElementById('chat-messages');
-            
-            // Remove any existing chips first
             const existingChips = messagesContainer.querySelectorAll('.chip-container');
             existingChips.forEach(chip => chip.remove());
-            
-            if (!chipData.options || chipData.options.length === 0) {
-                return;
-            }
+            if (!chipData.options || chipData.options.length === 0) return;
             
             const chipContainer = document.createElement('div');
             chipContainer.className = 'chip-container flex flex-wrap gap-2 px-3 md:px-4 pb-3 justify-start';
-            
             const chipsWrapper = document.createElement('div');
             chipsWrapper.className = 'flex flex-wrap gap-2 max-w-[280px] md:max-w-[320px]';
             
             chipData.options.forEach(option => {
                 const chip = document.createElement('button');
-                chip.className = 'chip-option bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-gray-300 shadow-sm';
-                
+                chip.className = 'chip-option bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 transition-all focus:outline-none shadow-sm';
                 let displayLabel, clickValue;
                 if (typeof option === 'object' && option !== null) {
                     displayLabel = option.label || option.value;
@@ -649,135 +499,64 @@
                     displayLabel = option;
                     clickValue = option;
                 }
-                
                 chip.textContent = displayLabel;
-                chip.setAttribute('data-chip-value', clickValue);
-                
-                chip.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    handleChipClick(clickValue);
-                });
-                
+                chip.onclick = (e) => { e.preventDefault(); handleChipClick(clickValue); };
                 chipsWrapper.appendChild(chip);
             });
-            
             chipContainer.appendChild(chipsWrapper);
             messagesContainer.appendChild(chipContainer);
-            
-            // Add entrance animation
             chipContainer.style.opacity = '0';
             chipContainer.style.transform = 'translateY(10px)';
-            
             setTimeout(() => {
                 chipContainer.style.transition = 'opacity 300ms, transform 300ms';
                 chipContainer.style.opacity = '1';
                 chipContainer.style.transform = 'translateY(0)';
             }, 100);
-            
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Handle chip click
         function handleChipClick(chipValue) {
-            // Remove all chip containers
             const chipContainers = document.querySelectorAll('.chip-container');
             chipContainers.forEach(container => {
-                container.style.transition = 'opacity 200ms';
                 container.style.opacity = '0';
                 setTimeout(() => container.remove(), 200);
             });
-            
-            // Set the value in the input and send
-            const input = document.getElementById('message-input');
-            input.value = chipValue;
-            
-            // Trigger send message
-            setTimeout(() => {
-                sendMessage();
-            }, 250); // Small delay for smooth animation
+            document.getElementById('message-input').value = chipValue;
+            setTimeout(() => sendMessage(), 250);
         }
 
-        // Hide typing indicator
         function hideTypingIndicator() {
-            const messagesContainer = document.getElementById('chat-messages');
-            const typingMessages = messagesContainer.querySelectorAll('.typing-message');
+            const typingMessages = document.querySelectorAll('.typing-message');
             typingMessages.forEach(msg => msg.remove());
         }
 
-        // Update progress bar
         async function updateProgress() {
             if (!sessionId) return;
-            
             try {
                 const response = await fetch(`/api/chat/status/${sessionId}`);
                 const data = await response.json();
-                
-                console.log('Progress update:', data.progress); // Debug logging
-                
                 if (data.progress) {
-                    const progressBar = document.getElementById('progress-bar');
-                    const percentage = data.progress.percentage;
-                    
-                    console.log(`Setting progress to ${percentage}% (${data.progress.answered_questions}/${data.progress.total_questions})`);
-                    
-                    // Update progress bar width
-                    progressBar.style.width = `${percentage}%`;
-                    
-                    // Visual feedback for debugging
-                    if (percentage > 0) {
-                        console.log('✅ Progress is updating!');
-                    } else {
-                        console.log('⚠️ Progress is still 0% - responses may not be saving');
-                    }
+                    document.getElementById('progress-bar').style.width = `${data.progress.percentage}%`;
                 }
-            } catch (error) {
-                console.error('Error updating progress:', error);
-            }
+            } catch (error) {}
         }
 
-        // Show completion screen
         function showCompletionScreen() {
-            const overlay = document.getElementById('completion-overlay');
-            overlay.classList.remove('hidden');
-            
-            // Track survey completion
+            document.getElementById('completion-overlay').classList.remove('hidden');
             if (typeof gtag !== 'undefined') {
-                gtag('event', 'survey_completed', {
-                    form_id: '{{ form_id }}',
-                    form_title: '{{ form_title }}'
-                });
-            }
-            
-            // Set progress bar to 100% in completion screen
-            const completionProgressBar = overlay.querySelector('.bg-\\[\\#cc5500\\]');
-            if (completionProgressBar) {
-                completionProgressBar.style.width = '100%';
+                gtag('event', 'survey_completed', { form_id: formId });
             }
         }
 
-        // Close chat completion screen
         function closeChat() {
-            // Simply close the current tab/window
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.close();
-            }
+            if (window.history.length > 1) window.history.back(); else window.close();
         }
 
-        // Event listeners
         document.getElementById('send-button').addEventListener('click', sendMessage);
-        
-        document.getElementById('message-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
         });
-
-        // Initialize chat after all scripts load
         window.addEventListener('load', initializeChat);
-
     </script>
 </body>
 </html>

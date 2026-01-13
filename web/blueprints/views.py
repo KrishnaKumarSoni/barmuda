@@ -239,8 +239,8 @@ def form_response_page(form_id):
         return render_template(
             "chat.html",
             form_id=form_id,
-            form_title=form_data.get("title", "Survey"),
-            form_description=form_data.get("description", ""),
+            form_title=form_data.get("title", form_data.get("formTitle", "Survey")),
+            form_description=form_data.get("description", form_data.get("formDescription", "")),
         )
     except Exception as e:
         logger.error(f"Error loading form page: {e}")
