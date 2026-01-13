@@ -102,8 +102,8 @@ async def load_survey(
             "questionKey": q["questionKey"],
             "questionText": q["questionText"],
             "questionType": q["questionType"],
-            "options": q["responseOptions"].get("choices", q["responseOptions"]),
-            "validationRule": q["responseDataValidationRule"],
+            "options": q.get("responseOptions", {}).get("choices", q.get("responseOptions")),
+            "validationRule": q.get("responseDataValidationRule"),
         }
         for q in raw_schema.get("questions", [])
     ]
