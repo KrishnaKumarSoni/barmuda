@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#cc5500">
     <title>{{ form_title }} - Barmuda Forms</title>
-    <!-- Clean code deployed: v3.0 -->
+    <!-- Clean code deployed: v3.1 -->
     
     <!-- Google Analytics (GA4) for anonymous survey tracking -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7C7SPTNMLT"></script>
@@ -14,9 +14,8 @@
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-7C7SPTNMLT', {
-            // Anonymous tracking for surveys
             anonymize_ip: true,
-            client_storage: 'none'  // No cookies for respondents
+            client_storage: 'none'
         });
         
         // Track survey start
@@ -27,8 +26,6 @@
     </script>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-    
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
@@ -55,7 +52,7 @@
         /* Bouncing typing ellipsis */
         .typing-ellipsis {
             display: inline-flex;
-            gap: 2px;
+            gap: 4px;
             align-items: center;
             justify-content: center;
             height: 20px;
@@ -65,7 +62,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background-color: #666;
+            background-color: #cc5500;
             animation: bounce 1.4s infinite ease-in-out;
         }
         
@@ -84,42 +81,66 @@
             }
         }
         
-        /* Completion screen overlay */
         .completion-overlay {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(4px);
         }
+
+        /* Initial Loading Screen */
+        #initial-loader {
+            background-color: #fef5e0;
+            z-index: 100;
+        }
+
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #fff;
+            border-bottom-color: #cc5500;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col">
+<body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col font-['DM_Sans']">
+    <!-- Initial Loading Screen -->
+    <div id="initial-loader" class="fixed inset-0 flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="loader-spinner mb-4"></div>
+        <div class="flex flex-col items-center">
+            <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-xl mb-2">🅱️ Barmuda</h2>
+            <p class="text-[#6b7280] text-sm animate-pulse">Starting your conversation...</p>
+        </div>
+    </div>
+
     {% set nav_type = 'chat' %}
     {% include 'partials/nav.html' %}
 
-    <!-- Main Chat Area -->
     <div class="flex-1 flex flex-col px-3 md:px-4 pt-24 md:pt-28 pb-3 md:pb-4 space-y-2 md:space-y-3 min-h-0">
-        <!-- Form Title -->
         <div class="text-center flex-shrink-0">
             <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg md:text-xl lg:text-2xl tracking-[-0.24px]">
                 {{ form_title }}
             </h1>
         </div>
 
-        <!-- Progress Bar -->
         <div class="mx-auto w-full max-w-2xl flex-shrink-0 mb-2">
             <div class="bg-[#ffddc5] h-2 md:h-2.5 rounded-full border border-[#fdefd1]">
                 <div id="progress-bar" class="bg-[#cc5500] h-2 md:h-2.5 rounded-full border border-[#fdefd1] transition-all duration-500 ease-out" style="width: 0%"></div>
             </div>
         </div>
 
-        <!-- Chat Container -->
         <div class="mx-auto w-full max-w-2xl bg-white rounded-2xl md:rounded-3xl border border-[#fce9c1] flex-1 flex flex-col min-h-0 shadow-sm">
-            <!-- Chat Messages -->
             <div id="chat-messages" class="chat-container px-3 md:px-4 py-3 md:py-4 space-y-3 flex-1 min-h-0">
-                <!-- Messages will be dynamically added here -->
+                <!-- Messages populate here -->
             </div>
         </div>
 
-        <!-- Message Input -->
         <div class="mx-auto w-full max-w-2xl bg-white rounded-full shadow-lg border border-[#fce9c1] flex-shrink-0">
             <div class="flex items-center gap-2 px-3 py-2">
                 <div class="flex-1 px-3 py-2">
@@ -127,7 +148,7 @@
                         type="text" 
                         id="message-input" 
                         placeholder="Type your message..."
-                        class="w-full font-['DM_Sans'] text-sm md:text-base text-[#1e1e1e] tracking-[-0.16px] bg-transparent border-none outline-none placeholder:text-[#959494]"
+                        class="w-full text-sm md:text-base text-[#1e1e1e] bg-transparent border-none outline-none placeholder:text-[#959494]"
                         disabled
                     >
                 </div>
@@ -140,110 +161,62 @@
                 </button>
             </div>
         </div>
-
     </div>
 
-    <!-- Chat Completion Overlay -->
     <div id="completion-overlay" class="hidden fixed inset-0 completion-overlay flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl border border-[#fce9c1] p-6 md:p-8 mx-4 max-w-md w-full text-center shadow-xl">
-            <!-- Success Icon -->
             <div class="mb-4">
                 <div class="w-16 h-16 bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="ph ph-check text-white text-2xl"></i>
                 </div>
             </div>
-            
-            <!-- Completion Message -->
             <div class="mb-6">
-                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-xl md:text-2xl tracking-[-0.2px] mb-3">
-                    Thanks for the chat! 😊
-                </h2>
-                <p class="font-['DM_Sans'] text-[#6b7280] text-base leading-relaxed">
-                    Your responses have been shared and will help make a real difference.
-                </p>
+                <h2 class="font-['Plus_Jakarta_Sans'] font-bold text-[#1e1e1e] text-xl md:text-2xl mb-3">Thanks for the chat! 😊</h2>
+                <p class="text-[#6b7280] text-base">Your responses have been shared and will help make a real difference.</p>
             </div>
-            
-            <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-full px-6 py-3 text-white font-['DM_Sans'] font-medium text-sm hover:opacity-90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                    <i class="ph ph-plus text-white text-base"></i>
-                    <span>Create Your Own</span>
+                <a href="/" class="bg-gradient-to-r from-[#cc5500] to-[#d12b2e] rounded-full px-6 py-3 text-white font-medium text-sm hover:opacity-90 inline-flex items-center justify-center gap-2 shadow-md">
+                    <i class="ph ph-plus text-white text-base"></i><span>Create Your Own</span>
                 </a>
-                <button onclick="closeChat()" class="bg-white border-2 border-[#fce9c1] rounded-full px-6 py-3 text-[#cc5500] font-['DM_Sans'] font-medium text-sm hover:bg-[#fef5e0] transition-all duration-200 inline-flex items-center justify-center gap-2">
-                    <i class="ph ph-x text-[#cc5500] text-base"></i>
-                    <span>Close</span>
+                <button onclick="closeChat()" class="bg-white border-2 border-[#fce9c1] rounded-full px-6 py-3 text-[#cc5500] font-medium text-sm hover:bg-[#fef5e0] inline-flex items-center justify-center gap-2">
+                    <i class="ph ph-x text-[#cc5500] text-base"></i><span>Close</span>
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables
         let sessionId = null;
-        let deviceId = null;
         let formId = '{{ form_id }}';
-        let messageCount = 0;
         let isEnded = false;
 
-        // Initialize session
         async function initializeChat() {
             try {
-                // Show typing indicator immediately when page loads
                 showTypingIndicator();
-                
-                // Restore session ID if exists
                 const storedSession = localStorage.getItem(`barmuda_session_id_${formId}`);
-                if (storedSession) {
-                    sessionId = storedSession;
-                    console.log('Restored session ID from localStorage:', sessionId);
-                }
+                if (storedSession) sessionId = storedSession;
 
-                const payload = {
-                    form_id: formId,
-                    location: {}
-                };
-
-                if (sessionId) {
-                    payload.session_id = sessionId;
-                }
-
-                // Start chat session
                 const response = await fetch('/api/chat/start', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ form_id: formId, location: {}, session_id: sessionId })
                 });
 
                 if (!response.ok) {
                     if (sessionId) {
-                        console.warn('Session resumption failed, clearing localStorage.');
                         localStorage.removeItem(`barmuda_session_id_${formId}`);
                         sessionId = null;
-                        
-                        // Retry without session ID
-                        const retryResponse = await fetch('/api/chat/start', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ form_id: formId, location: {} })
-                        });
-                        
-                        if (retryResponse.ok) {
-                            const retryData = await retryResponse.json();
-                            return handleStartSuccess(retryData);
-                        }
+                        return initializeChat();
                     }
-                    throw new Error(`HTTP ${response.status}`);
+                    throw new Error('Start failed');
                 }
 
                 const data = await response.json();
                 handleStartSuccess(data);
-
             } catch (error) {
-                console.error('Error initializing chat:', error);
+                console.error('Init error:', error);
                 hideTypingIndicator();
-                addMessage('system', 'Sorry, there was an error starting the chat. Please refresh the page.');
+                addMessage('system', 'Error starting chat. Please refresh.');
             }
         }
         
@@ -252,123 +225,80 @@
                 sessionId = data.session_id; 
                 localStorage.setItem(`barmuda_session_id_${formId}`, sessionId);
                 
+                // Hide initial loader
+                const loader = document.getElementById('initial-loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.remove(), 500);
+                }
+                
                 hideTypingIndicator();
                 
-                const filterSystemMessages = (msg) => {
+                const filter = (msg) => {
                     if (typeof msg.content !== 'string') return true;
                     return msg.content !== 'START_SURVEY_SESSION' && msg.content !== '[ABANDONED]';
                 };
 
                 if (data.ended) {
                     isEnded = true;
-                    const messagesContainer = document.getElementById('chat-messages');
-                    messagesContainer.innerHTML = '';
-
-                    if (data.chat_history) {
-                        data.chat_history
-                            .filter(filterSystemMessages)
-                            .forEach(msg => {
-                                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                                addMessage(msg.role, msg.content, timestamp);
-                            });
-                    }
+                    if (data.chat_history) data.chat_history.filter(m => filter(m)).forEach(m => addMessage(m.role, m.content));
                     if (data.greeting) addMessage('assistant', data.greeting);
                     setTimeout(() => showCompletionScreen(), 500);
                 } else if (data.resumed) {
-                    const messagesContainer = document.getElementById('chat-messages');
-                    messagesContainer.innerHTML = '';
-
-                    if (data.chat_history) {
-                        data.chat_history
-                            .filter(filterSystemMessages)
-                            .forEach(msg => {
-                                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                                addMessage(msg.role, msg.content, timestamp);
-                            });
-                    }
-                    
+                    if (data.chat_history) data.chat_history.filter(m => filter(m)).forEach(m => addMessage(m.role, m.content));
                     updateProgress();
                     if (data.greeting) addMessage('assistant', data.greeting);
                     if (data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
-                    
-                    document.getElementById('message-input').disabled = false;
-                    document.getElementById('send-button').disabled = false;
-                    document.getElementById('message-input').focus();
+                    enableInput();
                 } else {
                     addMessage('assistant', data.greeting);
-                    if (data.chip_options && data.chip_options.show_chips) {
-                        addChipOptions(data.chip_options);
-                    } else {
-                        checkForChipOptions(data.greeting);
-                    }
-                    document.getElementById('message-input').disabled = false;
-                    document.getElementById('send-button').disabled = false;
-                    document.getElementById('message-input').focus();
+                    if (data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
+                    else checkForChipOptions(data.greeting);
+                    enableInput();
                 }
             } else {
                 hideTypingIndicator();
-                addMessage('system', data.error || 'Failed to start chat');
+                addMessage('system', data.error || 'Failed to start');
+                
+                // Also hide loader on error
+                const loader = document.getElementById('initial-loader');
+                if (loader) loader.remove();
             }
         }
 
+        function enableInput() {
+            document.getElementById('message-input').disabled = false;
+            document.getElementById('send-button').disabled = false;
+            document.getElementById('message-input').focus();
+        }
+
         function addMessage(sender, message, timestamp = null) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-enter';
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'message-enter';
             
             const now = timestamp || new Date();
             const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            let displayText = message;
+            let text = message;
             if (typeof message === 'object' && message !== null) {
-                if (Array.isArray(message)) {
-                    displayText = message.map(block => {
-                            if (typeof block === 'string') return block;
-                            if (block.type === 'text') return block.text;
-                            return '';
-                        }).join(' ');
-                } else if (message.type === 'text') {
-                    displayText = message.text;
-                } else if (message.content) {
-                     displayText = message.content;
-                }
+                if (Array.isArray(message)) text = message.map(b => (typeof b === 'string' ? b : (b.type === 'text' ? b.text : ''))).join(' ');
+                else text = message.text || message.content || '';
             }
-            
-            if (typeof displayText !== 'string') displayText = String(displayText || '');
+            if (typeof text !== 'string') text = String(text || '');
 
             if (sender === 'user') {
-                messageDiv.innerHTML = `
-                    <div class="flex justify-end">
-                        <div class="bg-[#cc5500] max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tr-md shadow-sm">
-                            <div class="font-['DM_Sans'] text-white text-sm md:text-base leading-relaxed mb-1 message-text">${displayText}</div>
-                            <div class="font-['DM_Sans'] text-white/70 text-xs">${timeStr}</div>
-                        </div>
-                    </div>
-                `;
+                div.innerHTML = `<div class="flex justify-end"><div class="bg-[#cc5500] max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tr-md shadow-sm"><div class="text-white text-sm md:text-base leading-relaxed mb-1 message-text">${text}</div><div class="text-white/70 text-xs">${timeStr}</div></div></div>`;
             } else if (sender === 'assistant') {
-                messageDiv.innerHTML = `
-                    <div class="flex justify-start">
-                        <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                            <div class="font-['DM_Sans'] text-[#1e1e1e] text-sm md:text-base leading-relaxed mb-1 message-text">${displayText}</div>
-                            <div class="font-['DM_Sans'] text-[#6b7280] text-xs">${timeStr}</div>
-                        </div>
-                    </div>
-                `;
+                div.innerHTML = `<div class="flex justify-start"><div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-2.5 md:py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm"><div class="text-[#1e1e1e] text-sm md:text-base leading-relaxed mb-1 message-text">${text}</div><div class="text-[#6b7280] text-xs">${timeStr}</div></div></div>`;
             } else {
-                messageDiv.innerHTML = `
-                    <div class="flex justify-center">
-                        <div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">${displayText}</div>
-                    </div>
-                `;
+                div.innerHTML = `<div class="flex justify-center"><div class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs md:text-sm border border-red-200">${text}</div></div>`;
             }
             
-            messagesContainer.appendChild(messageDiv);
-            setTimeout(() => {
-                messageDiv.classList.remove('message-enter');
-                messageDiv.classList.add('message-enter-active');
-            }, 10);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            return messageDiv;
+            container.appendChild(div);
+            setTimeout(() => { div.classList.remove('message-enter'); div.classList.add('message-enter-active'); }, 10);
+            container.scrollTop = container.scrollHeight;
+            return div;
         }
 
         async function sendMessage() {
@@ -382,13 +312,10 @@
             input.disabled = true;
             document.getElementById('send-button').disabled = true;
             
-            const chipContainers = document.querySelectorAll('.chip-container');
-            chipContainers.forEach(container => container.remove());
+            document.querySelectorAll('.chip-container').forEach(c => c.remove());
+            showTypingIndicator();
 
             try {
-                const responseDiv = addMessage('assistant', '');
-                const responseTextContainer = responseDiv.querySelector('.message-text');
-                
                 const response = await fetch('/api/chat/stream', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -400,6 +327,8 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let accumulatedText = "";
+                let hasStarted = false;
+                let textContainer = null;
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -413,8 +342,14 @@
                             try {
                                 const data = JSON.parse(line.slice(6));
                                 if (data.type === 'token') {
+                                    if (!hasStarted) {
+                                        hideTypingIndicator();
+                                        const div = addMessage('assistant', '');
+                                        textContainer = div.querySelector('.message-text');
+                                        hasStarted = true;
+                                    }
                                     accumulatedText += data.text;
-                                    responseTextContainer.textContent = accumulatedText;
+                                    textContainer.textContent = accumulatedText;
                                     document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
                                 } else if (data.type === 'meta') {
                                     if (data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
@@ -426,6 +361,7 @@
                 }
             } catch (error) {
                 console.error('Chat error:', error);
+                hideTypingIndicator();
                 addMessage('assistant', 'Sorry, I encountered an error.');
             } finally {
                 input.disabled = false;
@@ -439,7 +375,6 @@
             if (data.ended) {
                 isEnded = true;
                 document.getElementById('message-input').disabled = true;
-                document.getElementById('send-button').disabled = true;
                 setTimeout(() => showCompletionScreen(), 1500);
             }
         }
@@ -447,115 +382,82 @@
         async function checkForChipOptions(message) {
             if (!sessionId || !message) return;
             try {
-                const response = await fetch('/api/chat/check_chips', {
+                const res = await fetch('/api/chat/check_chips', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session_id: sessionId, message: message })
                 });
-                const data = await response.json();
+                const data = await res.json();
                 if (data.success && data.chip_options && data.chip_options.show_chips) addChipOptions(data.chip_options);
             } catch (e) {}
         }
 
         function showTypingIndicator() {
             hideTypingIndicator();
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-enter typing-message';
-            messageDiv.innerHTML = `
-                <div class="flex justify-start">
-                    <div class="bg-white max-w-[280px] md:max-w-[320px] px-3 md:px-4 py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm">
-                        <div class="typing-ellipsis"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-                    </div>
-                </div>
-            `;
-            messagesContainer.appendChild(messageDiv);
-            setTimeout(() => {
-                messageDiv.classList.remove('message-enter');
-                messageDiv.classList.add('message-enter-active');
-            }, 10);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'message-enter typing-message';
+            div.innerHTML = `<div class="flex justify-start"><div class="bg-white max-w-[280px] px-3 py-3 rounded-2xl rounded-tl-md border border-[#e5e7eb] shadow-sm"><div class="typing-ellipsis"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`;
+            container.appendChild(div);
+            setTimeout(() => { div.classList.remove('message-enter'); div.classList.add('message-enter-active'); }, 10);
+            container.scrollTop = container.scrollHeight;
         }
 
         function addChipOptions(chipData) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const existingChips = messagesContainer.querySelectorAll('.chip-container');
-            existingChips.forEach(chip => chip.remove());
+            const container = document.getElementById('chat-messages');
+            document.querySelectorAll('.chip-container').forEach(c => c.remove());
             if (!chipData.options || chipData.options.length === 0) return;
             
-            const chipContainer = document.createElement('div');
-            chipContainer.className = 'chip-container flex flex-wrap gap-2 px-3 md:px-4 pb-3 justify-start';
-            const chipsWrapper = document.createElement('div');
-            chipsWrapper.className = 'flex flex-wrap gap-2 max-w-[280px] md:max-w-[320px]';
+            const outer = document.createElement('div');
+            outer.className = 'chip-container flex flex-wrap gap-2 px-3 md:px-4 pb-3 justify-start';
+            const inner = document.createElement('div');
+            inner.className = 'flex flex-wrap gap-2 max-w-[280px] md:max-w-[320px]';
             
-            chipData.options.forEach(option => {
-                const chip = document.createElement('button');
-                chip.className = 'chip-option bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 transition-all focus:outline-none shadow-sm';
-                let displayLabel, clickValue;
-                if (typeof option === 'object' && option !== null) {
-                    displayLabel = option.label || option.value;
-                    clickValue = option.value || option.label;
-                } else {
-                    displayLabel = option;
-                    clickValue = option;
-                }
-                chip.textContent = displayLabel;
-                chip.onclick = (e) => { e.preventDefault(); handleChipClick(clickValue); };
-                chipsWrapper.appendChild(chip);
+            chipData.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'chip-option bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 transition-all focus:outline-none shadow-sm';
+                let label = typeof opt === 'object' ? opt.label : opt;
+                let val = typeof opt === 'object' ? opt.value : opt;
+                btn.textContent = label;
+                btn.onclick = (e) => { e.preventDefault(); handleChipClick(val); };
+                inner.appendChild(btn);
             });
-            chipContainer.appendChild(chipsWrapper);
-            messagesContainer.appendChild(chipContainer);
-            chipContainer.style.opacity = '0';
-            chipContainer.style.transform = 'translateY(10px)';
-            setTimeout(() => {
-                chipContainer.style.transition = 'opacity 300ms, transform 300ms';
-                chipContainer.style.opacity = '1';
-                chipContainer.style.transform = 'translateY(0)';
-            }, 100);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            outer.appendChild(inner);
+            container.appendChild(outer);
+            outer.style.opacity = '0';
+            outer.style.transform = 'translateY(10px)';
+            setTimeout(() => { outer.style.transition = 'opacity 300ms, transform 300ms'; outer.style.opacity = '1'; outer.style.transform = 'translateY(0)'; }, 100);
+            container.scrollTop = container.scrollHeight;
         }
 
-        function handleChipClick(chipValue) {
-            const chipContainers = document.querySelectorAll('.chip-container');
-            chipContainers.forEach(container => {
-                container.style.opacity = '0';
-                setTimeout(() => container.remove(), 200);
-            });
-            document.getElementById('message-input').value = chipValue;
+        function handleChipClick(val) {
+            document.querySelectorAll('.chip-container').forEach(c => { c.style.opacity = '0'; setTimeout(() => c.remove(), 200); });
+            document.getElementById('message-input').value = val;
             setTimeout(() => sendMessage(), 250);
         }
 
         function hideTypingIndicator() {
-            const typingMessages = document.querySelectorAll('.typing-message');
-            typingMessages.forEach(msg => msg.remove());
+            document.querySelectorAll('.typing-message').forEach(m => m.remove());
         }
 
         async function updateProgress() {
             if (!sessionId) return;
             try {
-                const response = await fetch(`/api/chat/status/${sessionId}`);
-                const data = await response.json();
-                if (data.progress) {
-                    document.getElementById('progress-bar').style.width = `${data.progress.percentage}%`;
-                }
-            } catch (error) {}
+                const res = await fetch(`/api/chat/status/${sessionId}`);
+                const data = await res.json();
+                if (data.progress) document.getElementById('progress-bar').style.width = `${data.progress.percentage}%`;
+            } catch (e) {}
         }
 
         function showCompletionScreen() {
             document.getElementById('completion-overlay').classList.remove('hidden');
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'survey_completed', { form_id: formId });
-            }
+            if (typeof gtag !== 'undefined') gtag('event', 'survey_completed', { form_id: formId });
         }
 
-        function closeChat() {
-            if (window.history.length > 1) window.history.back(); else window.close();
-        }
+        function closeChat() { if (window.history.length > 1) window.history.back(); else window.close(); }
 
         document.getElementById('send-button').addEventListener('click', sendMessage);
-        document.getElementById('message-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-        });
+        document.getElementById('message-input').addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
         window.addEventListener('load', initializeChat);
     </script>
 </body>

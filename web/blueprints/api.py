@@ -95,7 +95,7 @@ TASK:
 TYPE GUIDELINES:
 - **text**: Open-ended questions.
 - **integer**: Numeric input.
-- **rating**: 1-N scale.
+- **rating**: 0-N. ALWAYS provide explicit choices in responseOptions.choices with values 0, 1, 2, 3, 4, 5 OR 0, 1, ..., N.
 - **boolean**: Yes/No.
 - **mcq**: Select one/many options.
 

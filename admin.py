@@ -119,14 +119,14 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get(ADMIN_SESSION_KEY):
-            return redirect(url_for('admin_login'))
+            return redirect(url_for('admin.login'))
         
         # Check session timeout
         last_activity = session.get('admin_last_activity')
         if last_activity:
             if datetime.now().timestamp() - last_activity > ADMIN_SESSION_TIMEOUT:
                 session.pop(ADMIN_SESSION_KEY, None)
-                return redirect(url_for('admin_login'))
+                return redirect(url_for('admin.login'))
         
         session['admin_last_activity'] = datetime.now().timestamp()
         return f(*args, **kwargs)

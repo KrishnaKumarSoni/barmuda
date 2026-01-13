@@ -1,6 +1,8 @@
 # tools.py
 import json
 import os
+import time
+import asyncio
 from typing import Any, List, Dict, Optional, Literal, cast, Union
 
 # Updated Imports for ToolRuntime
@@ -49,6 +51,134 @@ def get_session_info(runtime: ToolRuntime) -> tuple[str, str]:
 
     return session_id, cast(str, form_id)
 
+def _get_standard_questions(raw_schema: Dict[str, Any]) -> tuple[List[QuestionObj], List[QuestionObj]]:
+    """Generates Profile and Demographic questions based on enabled flags."""
+    profile_qs: List[QuestionObj] = []
+    demo_qs: List[QuestionObj] = []
+
+    # 1. Profile Questions (Start of Survey)
+    profile_config = raw_schema.get("profile_data", {})
+    if profile_config:
+        # Define standard profile questions
+        if profile_config.get("name"):
+            profile_qs.append({
+                "questionKey": "profile_name",
+                "questionText": "To start, could you please tell me your full name?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": "Must be a valid name."
+            })
+        if profile_config.get("email"):
+            profile_qs.append({
+                "questionKey": "profile_email",
+                "questionText": "What is your email address?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": "Must be a valid email address."
+            })
+        if profile_config.get("phone"):
+            profile_qs.append({
+                "questionKey": "profile_phone",
+                "questionText": "What is your phone number?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": "Must be a valid phone number."
+            })
+        if profile_config.get("company"):
+            profile_qs.append({
+                "questionKey": "profile_company",
+                "questionText": "Which company do you work for?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": None
+            })
+        if profile_config.get("role"):
+            profile_qs.append({
+                "questionKey": "profile_role",
+                "questionText": "What is your current role?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": None
+            })
+
+    # 2. Demographic Questions (End of Survey)
+    demo_config = raw_schema.get("demographics", {})
+    if demo_config:
+        if demo_config.get("age"):
+            demo_qs.append({
+                "questionKey": "demo_age",
+                "questionText": "How old are you?",
+                "questionType": "mcq",
+                "options": ["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"],
+                "validationRule": "Choose from age ranges."
+            })
+        if demo_config.get("gender"):
+            demo_qs.append({
+                "questionKey": "demo_gender",
+                "questionText": "How do you describe your gender?",
+                "questionType": "mcq",
+                "options": ["Male", "Female", "Non-binary", "Prefer not to say", "Other"],
+                "validationRule": "Choose valid option."
+            })
+        if demo_config.get("education"):
+            demo_qs.append({
+                "questionKey": "demo_education",
+                "questionText": "What is the highest degree or level of school you have completed?",
+                "questionType": "mcq",
+                "options": ["High School", "Bachelor's Degree", "Master's Degree", "Ph.D. or higher", "Trade/Technical School", "Prefer not to say"],
+                "validationRule": "Choose valid option."
+            })
+        if demo_config.get("experience"):
+            demo_qs.append({
+                "questionKey": "demo_experience",
+                "questionText": "How many years of professional experience do you have?",
+                "questionType": "mcq",
+                "options": ["0-2 years", "3-5 years", "6-10 years", "10+ years"],
+                "validationRule": "Choose valid option."
+            })
+        if demo_config.get("income"):
+            demo_qs.append({
+                "questionKey": "demo_income",
+                "questionText": "What is your approximate annual household income?",
+                "questionType": "mcq",
+                "options": ["Under $25k", "$25k-$50k", "$50k-$100k", "$100k-$150k", "$150k+", "Prefer not to say"],
+                "validationRule": "Choose valid option."
+            })
+        if demo_config.get("occupation"):
+            demo_qs.append({
+                "questionKey": "demo_occupation",
+                "questionText": "What is your current occupation?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": None
+            })
+        if demo_config.get("home city"):
+            demo_qs.append({
+                "questionKey": "demo_location",
+                "questionText": "Which city do you currently live in?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": None
+            })
+        if demo_config.get("weight"):
+            demo_qs.append({
+                "questionKey": "demo_weight",
+                "questionText": "What is your weight (approximate)?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": None
+            })
+        if demo_config.get("height"):
+            demo_qs.append({
+                "questionKey": "demo_height",
+                "questionText": "What is your height?",
+                "questionType": "text",
+                "options": None,
+                "validationRule": None
+            })
+
+    return profile_qs, demo_qs
+
 # =======================================================
 # TOOL 1: LOAD SURVEY (Bootstrap)
 # =======================================================
@@ -96,8 +226,11 @@ async def load_survey(
 
     persona = raw_schema.get("persona", "You are a friendly survey agent.")
     
-    # Create a list of question objects
-    questions_list: List[QuestionObj] = [
+    # Generate standard profile and demographic questions
+    profile_qs, demo_qs = _get_standard_questions(raw_schema)
+
+    # Create a list of main question objects
+    main_questions_list: List[QuestionObj] = [
         {
             "questionKey": q["questionKey"],
             "questionText": q["questionText"],
@@ -107,6 +240,9 @@ async def load_survey(
         }
         for q in raw_schema.get("questions", [])
     ]
+    
+    # Combine lists: Profile -> Main -> Demographics
+    questions_list = profile_qs + main_questions_list + demo_qs
 
     # Load session from DB and merge into an initial response dictionary
     session_doc = await init_session(session_id, form_id)
@@ -305,8 +441,9 @@ async def save_answer(
             error_messages.append(detailed_error_msg)
             continue
             
-        # --- Persist Answer & Prep State ---
-        await update_response_in_db(session_id, question_key, value, "ANSWERED")
+        # --- Persist Answer & Prep State (Async Fire-and-Forget) ---
+        asyncio.create_task(update_response_in_db(session_id, question_key, value, "ANSWERED"))
+        
         response_update[question_key] = {
             **(responses.get(question_key, {})),
             "questionKey": question_key,
@@ -362,7 +499,6 @@ async def save_answer(
         )
 
 
-
 # =======================================================
 # TOOL 3.2: skip current question
 # =======================================================
@@ -379,7 +515,7 @@ async def skip_current_question(runtime: ToolRuntime) -> Command:
     if not current_key:
         return Command(update={"messages": [ToolMessage(content="No active question to skip.", tool_call_id=runtime.tool_call_id, tool_name="skip_current_question")]})
 
-    await update_response_in_db(session_id, current_key, None, "SKIPPED")
+    asyncio.create_task(update_response_in_db(session_id, current_key, None, "SKIPPED"))
 
     # Construct the partial update
     response_update = {
@@ -442,7 +578,8 @@ async def update_question_state(
         responses = runtime.state.get("responses", {})
 
         # Mark the target question as SKIPPED
-        await update_response_in_db(session_id, target_question_key, None, "SKIPPED")
+        asyncio.create_task(update_response_in_db(session_id, target_question_key, None, "SKIPPED"))
+        
         response_update = {
             target_question_key: {
                 **(responses.get(target_question_key, {})),
@@ -489,7 +626,7 @@ async def update_question_state(
 async def end_survey(reason: str, runtime: ToolRuntime) -> Command:
     """Ends the survey session."""
     session_id, _ = get_session_info(runtime)
-    await update_session_lifecycle(session_id, "FINISHED")
+    asyncio.create_task(update_session_lifecycle(session_id, "FINISHED"))
     ack = ToolMessage(content=f"Survey ended. Reason: {reason}", tool_call_id=runtime.tool_call_id, tool_name="end_survey")
     return Command(update={"session_state": "FINISHED", "messages": [ack]})
 
@@ -501,7 +638,7 @@ async def update_session_state(
     """Update session state to ONGOING when a new session starts"""
     session_id, _ = get_session_info(runtime)
     try:
-        await update_session_lifecycle(session_id, status)
+        asyncio.create_task(update_session_lifecycle(session_id, status))
     except ValueError:
         pass
     ack = ToolMessage(content=f"Session state updated to {status}.", tool_call_id=runtime.tool_call_id, tool_name="update_session_state")
