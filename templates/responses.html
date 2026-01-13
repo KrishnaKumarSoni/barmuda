@@ -165,20 +165,13 @@
             
             // Calculate messages (chat_length is in metadata usually, or count keys in responses)
             let msgCount = 0;
-            let totalDurationMs = 0;
-            let durationCount = 0;
-
+            
             responses.forEach(r => {
                 // If metadata exists
                 if (r.metadata) {
                     // Chat length might not be reliably tracked, let's count answers
                     const ansCount = Object.keys(r.responses || {}).length;
                     msgCount += ansCount * 2; // Approx user + bot turns
-
-                    // Duration
-                    if (r.created_at && r.metadata.last_updated) {
-                       // Parse times if available
-                    }
                 }
             });
             
@@ -200,21 +193,24 @@
             }
 
             questions.forEach((q, idx) => {
-                // Determine type and text safely
-                const qType = q.questionType || q.type || 'text';
-                const qText = q.questionText || q.text || `Question ${idx + 1}`;
-                const qKey = q.questionKey || String(idx); // Key to look up in response dict
+                // Using new schema properties only
+                const qType = q.questionType;
+                const qText = q.questionText;
+                const qKey = q.questionKey; 
 
                 // Container for this question
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-xl border border-[#fce9c1] p-6 shadow-sm";
                 
-                // Header
+                // Header with Key Display
                 let html = `
                     <div class="mb-4">
-                        <span class="bg-[#fff5e0] text-[#cc5500] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                            ${qType}
-                        </span>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-[#fff5e0] text-[#cc5500] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                ${qType}
+                            </span>
+                            <span class="text-xs text-gray-400 font-mono" title="Question Key">#${qKey}</span>
+                        </div>
                         <h3 class="mt-2 text-lg font-bold text-[#1e1e1e] font-['Plus_Jakarta_Sans']">
                             ${idx + 1}. ${qText}
                         </h3>
@@ -252,8 +248,14 @@
             // Tally answers
             const counts = {};
             responses.forEach(r => {
-                // Handle different response structures
-                const answerBlock = r.responses[qKey] || r.responses[String(idx)];
+                // Robust Answer Lookup
+                let answerBlock = r.responses[qKey]; // Try exact key first
+                
+                // Fallback: Check if key exists with different case or index string (legacy data)
+                if (!answerBlock) {
+                    answerBlock = r.responses[String(idx)]; 
+                }
+                
                 if (answerBlock) {
                     let val = answerBlock.value;
                     if (val === true) val = "Yes";
@@ -296,7 +298,9 @@
         async function renderWordCloud(idx, qKey) {
             // Fetch word cloud data
             try {
-                const res = await fetch(`/api/wordcloud/${FORM_ID}/${idx}`); // Uses index for backend compat if needed, or update backend to use key
+                // We use idx for the API because the backend helper (legacy) expects index
+                // Ideally backend should take key, but we fixed backend to handle both.
+                const res = await fetch(`/api/wordcloud/${FORM_ID}/${idx}`); 
                 const data = await res.json();
                 
                 const container = document.getElementById(`wordcloud-${idx}`);
@@ -338,17 +342,23 @@
 
                 let answerHtml = '<div class="mt-3 space-y-2 text-sm">';
                 questions.forEach((q, qIdx) => {
-                    const qKey = q.questionKey || String(qIdx);
-                    const qText = q.questionText || q.text;
-                    const ans = r.responses[qKey] || r.responses[String(qIdx)];
+                    const qKey = q.questionKey;
+                    const qText = q.questionText;
                     
-                    if (ans && ans.value) {
+                    // Robust Lookup
+                    let ans = r.responses[qKey];
+                    if (!ans) ans = r.responses[String(qIdx)]; // Legacy fallback
+
+                    if (ans && ans.value !== undefined) {
                         answerHtml += `
                             <div>
-                                <span class="font-bold text-gray-700">${qText}:</span>
+                                <span class="font-bold text-gray-700" title="${qKey}">${qText}:</span>
                                 <span class="text-gray-600 ml-1">${ans.value}</span>
                             </div>
                         `;
+                    } else {
+                         // Debug: show missing
+                         // answerHtml += `<div class="text-xs text-red-300">Missing ${qKey}</div>`;
                     }
                 });
                 answerHtml += '</div>';
