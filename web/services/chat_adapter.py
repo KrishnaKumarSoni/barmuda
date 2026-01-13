@@ -3,6 +3,7 @@ import sys
 import asyncio
 import logging
 import json
+import time
 from typing import Dict, Any, List, Optional, AsyncIterator
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
@@ -31,11 +32,15 @@ class ChatAdapter:
         """
         Asynchronously invokes the graph and processes the resulting state.
         """
+        start_time = time.time()
+        print(f"DEBUG: process_message_async start for {session_id} at {start_time}")
         redis_client = get_redis_client()
         try:
             # Resolve form_id if missing (Legacy support)
             if not form_id:
+                t0 = time.time()
                 form_id = await cls._get_form_id_from_db(session_id)
+                print(f"DEBUG: _get_form_id_from_db took {time.time()-t0:.4f}s")
                 if not form_id:
                      return {
                         "success": False,
@@ -43,7 +48,9 @@ class ChatAdapter:
                         "response": "I'm sorry, I seem to have lost our connection. Please refresh the page."
                     }
 
+            t1 = time.time()
             graph = build_survey_graph(redis_client=redis_client)
+            print(f"DEBUG: build_survey_graph took {time.time()-t1:.4f}s")
             
             # Config matching agent/main.py structure
             config = {
@@ -60,7 +67,9 @@ class ChatAdapter:
 
             # Invoke LangGraph
             # We use ainvoke to get the final state
+            t2 = time.time()
             final_state = await graph.ainvoke(input_data, config=config)
+            print(f"DEBUG: graph.ainvoke took {time.time()-t2:.4f}s")
             
             # 1. Extract the agent's text response
             # The last message in history is usually the AI's response
@@ -96,6 +105,7 @@ class ChatAdapter:
             # 3. Check session lifecycle
             session_state = final_state.get("session_state", "ONGOING")
             
+            print(f"DEBUG: process_message_async total time {time.time()-start_time:.4f}s")
             return {
                 "success": True,
                 "response": agent_response,
@@ -189,16 +199,25 @@ class ChatAdapter:
         Retrieves the current state of the session without invoking the graph.
         Useful for checking chips or status.
         """
+        start_time = time.time()
+        print(f"DEBUG: get_current_state start for {session_id} at {start_time}")
         redis_client = get_redis_client()
         try:
-            form_id = await cls._get_form_id_from_db(session_id)
-            if not form_id:
-                return {"success": False, "error": "Session not found"}
+            # OPTIMIZATION: Skip form_id lookup. The checkpointer only needs thread_id.
+            # form_id = await cls._get_form_id_from_db(session_id)
+            # if not form_id:
+            #    return {"success": False, "error": "Session not found"}
 
+            t1 = time.time()
             graph = build_survey_graph(redis_client=redis_client)
-            config = {"configurable": {"thread_id": session_id, "form_id": form_id}}
+            print(f"DEBUG: build_survey_graph took {time.time()-t1:.4f}s")
             
+            # Only thread_id is strictly required for fetching state
+            config = {"configurable": {"thread_id": session_id}}
+            
+            t2 = time.time()
             state_snapshot = await graph.aget_state(config)
+            print(f"DEBUG: graph.aget_state took {time.time()-t2:.4f}s")
             
             if not state_snapshot.values:
                 return {"success": False, "error": "No state found"}
@@ -223,6 +242,7 @@ class ChatAdapter:
                         "timestamp": None
                     })
 
+            print(f"DEBUG: get_current_state total time {time.time()-start_time:.4f}s")
             return {
                 "success": True,
                 "session_id": session_id,

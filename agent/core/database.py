@@ -1,4 +1,6 @@
 import os
+import asyncio
+import threading
 from google.cloud import firestore
 from google.oauth2 import service_account
 from datetime import datetime
@@ -26,11 +28,33 @@ def get_db_client():
         # print("[DB] Initializing Firestore AsyncClient with default credentials")
         return firestore.AsyncClient()
 
-# Removed global db instance to prevent event loop conflicts
+def get_sync_db_client():
+    """Returns a synchronous Firestore client for background threads."""
+    cred_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH")
+    if not cred_path:
+        cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+
+    if cred_path and os.path.exists(cred_path):
+        return firestore.Client.from_service_account_json(cred_path)
+    else:
+        return firestore.Client()
 
 def get_utc_now() -> str:
     """Returns the current UTC time in ISO 8601 format with 'Z'."""
     return datetime.utcnow().isoformat() + "Z"
+
+def _persist_new_session_sync(session_id: str, new_doc: Dict[str, Any]):
+    """
+    Background thread task to persist a new session document using sync client.
+    Survives the closing of the async event loop.
+    """
+    try:
+        # print(f"[DB] Persisting new session {session_id} in background thread...")
+        db = get_sync_db_client()
+        db.collection('sessions').document(session_id).set(new_doc)
+        # print(f"[DB] Successfully persisted session {session_id}")
+    except Exception as e:
+        print(f"[DB] Error persisting new session {session_id}: {e}")
 
 async def init_session(session_id: str, form_id: str) -> Dict[str, Any]:
     """
@@ -43,10 +67,10 @@ async def init_session(session_id: str, form_id: str) -> Dict[str, Any]:
         session_doc = await session_ref.get()
 
         if session_doc.exists:
-            print(f"[DB] Session {session_id} found. Loading...")
+            # print(f"[DB] Session {session_id} found. Loading...")
             return cast(Dict[str, Any], session_doc.to_dict())
         
-        print(f"[DB] Creating new session for {session_id}...")
+        # print(f"[DB] Creating new session for {session_id}...")
         
         new_doc = {
             "session_id": session_id,
@@ -58,7 +82,10 @@ async def init_session(session_id: str, form_id: str) -> Dict[str, Any]:
             "responses": {} 
         }
         
-        await session_ref.set(new_doc)
+        # Optimization: Use a thread for the write so we don't block 
+        # and don't depend on the current event loop staying open.
+        threading.Thread(target=_persist_new_session_sync, args=(session_id, new_doc)).start()
+        
         return new_doc
     finally:
         db.close()

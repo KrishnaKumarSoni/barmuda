@@ -229,7 +229,7 @@ class AdminMetrics:
             month_start = datetime(now.year, now.month, 1)
             
             # Get responses for conversation metrics
-            responses_ref = db.collection("responses")
+            responses_ref = db.collection("sessions")
             # Limit to prevent quota issues
             all_responses = list(responses_ref.limit(100).stream())
             
@@ -426,7 +426,7 @@ class AdminMetrics:
             today_start = datetime(now.year, now.month, now.day)
             
             # Get real error tracking from responses collection
-            responses_ref = db.collection("responses")
+            responses_ref = db.collection("sessions")
             recent_responses = list(responses_ref.limit(200).stream())
             
             # Count errors and response times
@@ -478,7 +478,7 @@ class AdminMetrics:
             # Get real Firebase usage stats (approximate based on collection sizes)
             forms_count = len(list(db.collection("forms").limit(1000).stream()))
             users_count = len(list(db.collection("users").limit(1000).stream()))
-            responses_count = len(list(db.collection("responses").limit(1000).stream()))
+            responses_count = len(list(db.collection("sessions").limit(1000).stream()))
             
             # Estimate Firebase operations
             reads_today = forms_count * 5 + users_count * 3 + responses_count * 2  # Estimate
@@ -600,7 +600,7 @@ class AdminMetrics:
                 })
             
             # Get recent responses
-            responses_ref = db.collection("responses").where("form_creator_id", "==", user_id).limit(10).stream()
+            responses_ref = db.collection("sessions").where("form_creator_id", "==", user_id).limit(10).stream()
             recent_responses = []
             for response_doc in responses_ref:
                 response_data = response_doc.to_dict()
@@ -670,7 +670,7 @@ class AdminMetrics:
             # Get all data with date filtering
             users_ref = db.collection("users")
             forms_ref = db.collection("forms")
-            responses_ref = db.collection("responses")
+            responses_ref = db.collection("sessions")
             
             # Limit to prevent quota issues
             all_users = list(users_ref.limit(500).stream())
@@ -916,7 +916,7 @@ class AdminMetrics:
                 
                 # Get user activity data
                 forms_count = len(list(db.collection("forms").where("creator_id", "==", user_doc.id).limit(10).stream()))
-                responses_count = len(list(db.collection("responses").where("user_id", "==", user_doc.id).limit(10).stream()))
+                responses_count = len(list(db.collection("sessions").where("user_id", "==", user_doc.id).limit(10).stream()))
                 
                 user_info = {
                     "id": user_doc.id,
@@ -948,7 +948,7 @@ class AdminMetrics:
                 form_data = form_doc.to_dict()
                 
                 # Count responses for this form
-                responses_count = len(list(db.collection("responses").where("form_id", "==", form_doc.id).limit(100).stream()))
+                responses_count = len(list(db.collection("sessions").where("form_id", "==", form_doc.id).limit(100).stream()))
                 
                 form_info = {
                     "id": form_doc.id,

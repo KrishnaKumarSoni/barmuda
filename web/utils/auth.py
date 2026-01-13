@@ -64,6 +64,7 @@ def require_form_creation(f):
 def require_conversation_limit(f):
     """Decorator to check conversation limits"""
     from web.extensions import db
+    import threading
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -103,8 +104,13 @@ def require_conversation_limit(f):
                     403,
                 )
 
-            # If allowed, increment counter and proceed
-            subscription_manager.increment_conversation_count(form_owner_id)
+            # If allowed, increment counter in BACKGROUND
+            # This prevents DB contention from slowing down the chat start
+            threading.Thread(
+                target=subscription_manager.increment_conversation_count, 
+                args=(form_owner_id,)
+            ).start()
+            
             return f(*args, **kwargs)
 
         except Exception as e:

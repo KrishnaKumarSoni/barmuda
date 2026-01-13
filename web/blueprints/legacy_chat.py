@@ -1,6 +1,8 @@
 import logging
 import os
 import asyncio
+import threading
+import time
 from datetime import datetime
 from flask import Blueprint, jsonify, request, Response, stream_with_context
 from web.utils.auth import require_conversation_limit
@@ -12,9 +14,26 @@ logger = logging.getLogger(__name__)
 
 legacy_chat_bp = Blueprint('legacy_chat', __name__)
 
+def background_session_write(session_id, form_id):
+    """Background task to write session to Firestore"""
+    start = time.time()
+    try:
+        db.collection("sessions").document(session_id).set({
+            "session_id": session_id,
+            "form_id": form_id,
+            "session_state": "ONGOING",
+            "created_at": datetime.utcnow().isoformat() + "Z",
+            "last_updated": datetime.utcnow().isoformat() + "Z"
+        }, merge=True)
+        print(f"DEBUG: Persisted session {session_id} to Firestore (background). Took {time.time()-start:.4f}s")
+    except Exception as db_err:
+        logger.error(f"Failed to persist initial session: {db_err}")
+
 @legacy_chat_bp.route("/api/chat/start", methods=["POST"])
 @require_conversation_limit
 def start_chat():
+    start_time = time.time()
+    print(f"DEBUG: start_chat entry at {start_time}")
     try:
         data = request.get_json()
         form_id = data.get("form_id")
@@ -28,11 +47,12 @@ def start_chat():
         # Attempt to resume if session_id is provided
         if input_session_id:
             print(f"DEBUG: Attempting to resume session: {input_session_id}")
+            t0 = time.time()
             result = asyncio.run(ChatAdapter.get_current_state(input_session_id))
-            print(f"DEBUG: Resume result: {result.get('success')}, Error: {result.get('error')}")
+            print(f"DEBUG: Resume get_current_state took {time.time()-t0:.4f}s")
             
             if result.get("success"):
-                print("DEBUG: Session resumed successfully.")
+                print(f"DEBUG: Session resumed successfully. Total time {time.time()-start_time:.4f}s")
                 return jsonify({
                     "success": True,
                     "session_id": input_session_id,
@@ -43,34 +63,24 @@ def start_chat():
                 })
 
         print("DEBUG: Resumption failed or no session ID. Generating new session.")
-        # Generate session ID similar to legacy format
         session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{os.urandom(4).hex()}"
-        print(f"DEBUG: New Session ID: {session_id}")
-
+        
         # IMMEDIATELY persist session to DB to ensure future lookups work
-        # even if the agent processing takes time or fails.
-        try:
-            db.collection("sessions").document(session_id).set({
-                "session_id": session_id,
-                "form_id": form_id,
-                "session_state": "ONGOING",
-                "created_at": datetime.utcnow().isoformat() + "Z",
-                "last_updated": datetime.utcnow().isoformat() + "Z"
-            }, merge=True)
-            print(f"DEBUG: Persisted session {session_id} to Firestore.")
-        except Exception as db_err:
-            logger.error(f"Failed to persist initial session: {db_err}")
-            # Continue anyway, aiming for agent-side persistence as backup
+        # Moved to background thread to avoid blocking the request
+        threading.Thread(target=background_session_write, args=(session_id, form_id)).start()
         
         # Bootstrap the session using the new agent
-        # "START_SURVEY_SESSION" is a trigger message for the agent to load the survey
+        print("DEBUG: Calling process_chat_message...")
+        t1 = time.time()
         result = process_chat_message(session_id, form_id, "START_SURVEY_SESSION")
+        print(f"DEBUG: process_chat_message took {time.time()-t1:.4f}s")
         
         if result.get("success"):
+            print(f"DEBUG: start_chat success. Total time {time.time()-start_time:.4f}s")
             return jsonify({
                 "success": True,
                 "session_id": session_id,
-                "greeting": result.get("response"), # For backward compatibility if needed, though widget mostly relies on subsequent messages
+                "greeting": result.get("response"), 
                 "chip_options": result.get("chip_options"),
                 "ended": result.get("ended", False)
             })
@@ -79,6 +89,7 @@ def start_chat():
 
     except Exception as e:
         logger.error(f"Error starting chat: {str(e)}")
+        print(f"DEBUG: start_chat error {str(e)}. Total time {time.time()-start_time:.4f}s")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @legacy_chat_bp.route("/api/chat/message", methods=["POST"])
@@ -102,9 +113,12 @@ def send_message():
 
 @legacy_chat_bp.route("/api/chat/status/<session_id>")
 def get_chat_status(session_id):
+    start = time.time()
+    print(f"DEBUG: get_chat_status entry for {session_id} at {start}")
     try:
         # Use asyncio.run for the async get_current_state method
         result = asyncio.run(ChatAdapter.get_current_state(session_id))
+        print(f"DEBUG: get_current_state took {time.time()-start:.4f}s")
         
         if result.get("success"):
             return jsonify({
@@ -113,6 +127,7 @@ def get_chat_status(session_id):
             })
         return jsonify({"success": False, "error": result.get("error", "Unknown error")}), 404
     except Exception as e:
+        print(f"DEBUG: get_chat_status error {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @legacy_chat_bp.route("/api/chat/check_chips", methods=["POST"])

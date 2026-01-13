@@ -110,7 +110,7 @@ def dashboard():
                         pass
 
                 # Response count logic (kept simple for robustness)
-                responses_ref = db.collection("responses").where(
+                responses_ref = db.collection("sessions").where(
                     filter=FieldFilter("form_id", "==", doc.id)
                 )
                 # Use aggregation query if possible, or limit for safety
