@@ -62,9 +62,6 @@ def create_app(config_class=Config):
     from web.blueprints.legacy_chat import legacy_chat_bp
     app.register_blueprint(legacy_chat_bp)
     
-    from web.blueprints.chat_v2 import chat_v2_bp
-    app.register_blueprint(chat_v2_bp)
-
     from web.blueprints.admin_routes import admin_bp
     app.register_blueprint(admin_bp)
     
