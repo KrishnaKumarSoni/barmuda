@@ -1,3 +1,27 @@
+[project]
+name = "barmuda"
+version = "0.1.0"
+description = "Barmuda Flask App"
+requires-python = ">=3.9"
+dependencies = [
+    "firebase-admin>=7.1.0",
+    "flask>=3.1.2",
+    "flask-cors>=6.0.2",
+    "google-genai>=1.47.0",
+    "gunicorn>=23.0.0",
+    "langchain>=0.3.27",
+    "langchain-community>=0.3.31",
+    "langchain-core>=0.3.83",
+    "langchain-google-genai>=2.1.12",
+    "langgraph>=0.6.11",
+    "openai>=2.15.0",
+    "openai-agents>=0.6.6",
+    "python-dotenv>=1.2.1",
+    "redis>=7.0.1",
+    "requests>=2.32.5",
+    "resend>=2.19.0",
+]
+
 [tool.black]
 line-length = 88
 target-version = ['py39']
@@ -56,4 +80,15 @@ exclude_lines = [
     "raise NotImplementedError",
     "if 0:",
     "if __name__ == .__main__.:"
+]
+
+[dependency-groups]
+dev = [
+    "factory-boy==3.3.0",
+    "faker==19.6.0",
+    "pytest==7.4.0",
+    "pytest-cov==4.1.0",
+    "pytest-mock==3.11.1",
+    "requests-mock==1.11.0",
+    "responses==0.24.0",
 ]
