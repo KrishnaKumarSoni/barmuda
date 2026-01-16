@@ -75,6 +75,20 @@ FORM_GENERATION_SCHEMA = {
                 },
                 "required": ["questionKey", "questionType", "questionText"]
             }
+        },
+        "demographics": {
+            "type": "OBJECT",
+            "properties": {
+                "age": {"type": "BOOLEAN"},
+                "gender": {"type": "BOOLEAN"},
+                "education": {"type": "BOOLEAN"},
+                "experience": {"type": "BOOLEAN"},
+                "income": {"type": "BOOLEAN"},
+                "occupation": {"type": "BOOLEAN"},
+                "location": {"type": "BOOLEAN"},
+                "weight": {"type": "BOOLEAN"},
+                "height": {"type": "BOOLEAN"}
+            }
         }
     },
     "required": ["formTitle", "questions", "persona"]
@@ -89,8 +103,9 @@ def create_inference_prompt(input_text):
 TASK:
 1.  **Analyze Intent:** Understand the goal and target audience from the input.
 2.  **Define Persona:** Create a distinct persona for the AI interviewer (e.g., "professional", "empathetic", "high-energy") that fits the topic.
-3.  **Design Questions:** Create 5-10 effective questions using appropriate types (text, integer, mcq, rating, boolean).
+3.  **Design Questions:** Create 5-10 effective questions using appropriate types (text, integer, mcq, rating, boolean). **Ensure these questions DO NOT duplicate standard demographic questions (Age, Gender, Income, etc.) which are handled separately.**
 4.  **Define Validation:** Write natural language validation rules for the agent to use (e.g., "Must be a valid email").
+5.  **Demographics:** Extract demographic requirements from the context. Set these keys to true in the 'demographics' object ONLY if explicitly requested or relevant: age, gender, education, experience, income, occupation, location, weight, height.
 
 TYPE GUIDELINES:
 - **text**: Open-ended questions.

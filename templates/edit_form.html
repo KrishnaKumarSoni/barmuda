@@ -440,6 +440,17 @@
             // Render questions
             renderQuestions();
 
+            // Auto-enable demographics section if any option is true
+            if (formData.demographics) {
+                const hasDemographics = Object.values(formData.demographics).some(val => val === true);
+                if (hasDemographics) {
+                    const checkbox = document.getElementById('demographicsCheckbox');
+                    const grid = document.getElementById('demographicsGrid');
+                    checkbox.checked = true;
+                    grid.classList.remove('hidden');
+                }
+            }
+
             // Render demographics
             renderDemographics();
 
