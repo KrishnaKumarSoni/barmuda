@@ -260,12 +260,14 @@ class FrustrationGuardMiddleware(AgentMiddleware):
             }
         return None
 
+import time
 @dynamic_prompt
 def survey_persona_prompt(request: ModelRequest) -> str:
     """
     Dynamically builds the system prompt based on the current AgentState.
     Injects persona, unasked questions, and current question details.
     """
+    start_time = time.time()
     state = request.state
 
     # --- Start with Base Persona ---
@@ -341,6 +343,7 @@ def survey_persona_prompt(request: ModelRequest) -> str:
     # This will be injected as a SystemMessage.
     final_prompt = "\n".join(prompt_parts)
     # print(f"\n[DYNAMIC PROMPT] Generated Prompt:\n{final_prompt}\n") # DEBUG
+    print(f"DEBUG: survey_persona_prompt generation took {time.time() - start_time:.4f}s")
     return final_prompt
 
 # Define the cleanup middleware at the module level
@@ -362,6 +365,7 @@ cleanup_middleware = ContextEditingMiddleware(
 
 # def build_survey_graph(db_client: firestore.AsyncClient):
 def build_survey_graph(redis_client=None):
+    t_start = time.time()
     model = ChatGoogleGenerativeAI(
         model=MODEL_NAME,
         thinking_level="low",
@@ -387,6 +391,7 @@ def build_survey_graph(redis_client=None):
             # cleanup_middleware # Future use to prune tool messages from history
         ],
     )
+    print(f"DEBUG: build_survey_graph inner took {time.time() - t_start:.4f}s")
     
     return app
 

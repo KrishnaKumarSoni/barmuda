@@ -100,7 +100,9 @@ class ChatAdapter:
                         break
 
             # 2. Extract Chips (Choices) for the frontend
+            t3 = time.time()
             chip_options = cls._extract_chips(final_state)
+            print(f"DEBUG: _extract_chips took {time.time()-t3:.4f}s")
 
             # 3. Check session lifecycle
             session_state = final_state.get("session_state", "ONGOING")
@@ -223,7 +225,10 @@ class ChatAdapter:
                 return {"success": False, "error": "No state found"}
                 
             final_state = state_snapshot.values
+            
+            t3 = time.time()
             chip_options = cls._extract_chips(final_state)
+            print(f"DEBUG: _extract_chips took {time.time()-t3:.4f}s")
             
             # Extract history
             history = []

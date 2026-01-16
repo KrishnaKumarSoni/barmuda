@@ -191,6 +191,7 @@ async def load_survey(
     Bootstraps the session. Loads the form schema and any existing answers.
     Call this FIRST if the survey is not loaded.
     """
+    start_time = time.time()
     # Use Safe Helper
     existing_questions = runtime.state.get("questions", [])
     if len(existing_questions) > 0:
@@ -210,7 +211,9 @@ async def load_survey(
     print(f"--- [TOOL] Loading Survey for {session_id} ---")
     
     try:
+        t0 = time.time()
         raw_schema = await _load_json_schema(form_id)
+        print(f"DEBUG: _load_json_schema took {time.time() - t0:.4f}s")
     except ValueError as e:
         return Command(
             update={
@@ -245,7 +248,9 @@ async def load_survey(
     questions_list = profile_qs + main_questions_list + demo_qs
 
     # Load session from DB and merge into an initial response dictionary
+    t1 = time.time()
     session_doc = await init_session(session_id, form_id)
+    print(f"DEBUG: init_session took {time.time() - t1:.4f}s")
     db_responses = session_doc.get("responses", {})
 
     initial_responses = {
@@ -286,6 +291,7 @@ async def load_survey(
         # Also update the status of the first question in the responses dict
         initial_responses[first_unasked_question_key]["status"] = "ASKED"
 
+    print(f"DEBUG: load_survey tool took {time.time() - start_time:.4f}s")
     return Command(update=update_dict)
 
 
@@ -338,6 +344,7 @@ async def save_answer(
     If a valid answer for the current question is provided, it automatically finds the next question.
     Processes all answers, saves valid ones, and reports any errors.
     """
+    start_time = time.time()
     session_id, _ = get_session_info(runtime)
     questions = runtime.state.get("questions", [])
     responses = runtime.state.get("responses", {})
@@ -463,6 +470,7 @@ async def save_answer(
     if not current_question_answered_validly:
         final_message = "\n".join(final_message_parts) if final_message_parts else "No valid answers provided to save."
         ack = ToolMessage(content=final_message, tool_call_id=runtime.tool_call_id, tool_name="save_answer")
+        print(f"DEBUG: save_answer tool (no valid answer) took {time.time() - start_time:.4f}s")
         return Command(update={"responses": response_update, "messages": [ack]})
 
     # --- Find Next Question using Helper ---
@@ -471,6 +479,8 @@ async def save_answer(
     
     final_message_parts.append(message)
     ack = ToolMessage(content="\n".join(final_message_parts), tool_call_id=runtime.tool_call_id, tool_name="save_answer")
+
+    print(f"DEBUG: save_answer tool success took {time.time() - start_time:.4f}s")
 
     # If a next question is found, update its state.
     if next_q_key and new_status:
