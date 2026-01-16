@@ -1,0 +1,32 @@
+# Ignore dev and test files
+tests/
+test_*.py
+*_test.py
+*.html
+requirements-test.txt
+requirements.txt
+setup.py
+pytest.ini
+Makefile
+
+# Ignore docs
+*.md
+docs/
+guides/
+
+# Ignore local configs and caches
+__pycache__/
+*.pyc
+.env
+.env.*
+.git/
+.github/
+.pytest_cache/
+
+# Ignore heavy internal assets not needed in prod
+.playwright-mcp/
+work/
+agent/data/
+agent/notes/
+agent/scripts/
+agent/docker-compose.yml
