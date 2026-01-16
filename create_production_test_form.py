@@ -103,7 +103,7 @@ def create_production_test_form():
     
     try:
         # Create the form
-        doc_ref = db.collection('forms').document(form_id)
+        doc_ref = db.collection('forms_v2').document(form_id)
         doc_ref.set(form_data)
         
         print("✅ Created production test form!")

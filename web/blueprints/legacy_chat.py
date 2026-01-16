@@ -18,7 +18,7 @@ def background_session_write(session_id, form_id):
     """Background task to write session to Firestore"""
     start = time.time()
     try:
-        db.collection("sessions").document(session_id).set({
+        db.collection("sessions_v2").document(session_id).set({
             "session_id": session_id,
             "form_id": form_id,
             "session_state": "ONGOING",

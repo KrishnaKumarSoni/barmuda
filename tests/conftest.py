@@ -67,7 +67,8 @@ def client(app):
 def mock_firestore_data():
     """In-memory Firestore data for testing"""
     return {
-        "forms": {},
+        "forms_v2": {},
+        "sessions_v2": {},
         "users": {},
         "chat_sessions": {},
         "responses": {},

@@ -250,7 +250,7 @@ def infer_form():
             "formDescription": inferred_form.get("formDescription"),
             "persona": inferred_form.get("persona")
         }
-        doc_ref = db.collection("forms").add(survey_data)
+        doc_ref = db.collection("forms_v2").add(survey_data)
         return jsonify({
             "success": True, 
             "form": inferred_form, 
@@ -340,7 +340,7 @@ def get_voice_token():
     
     if form_id:
         try:
-            form_doc = db.collection("forms").document(form_id).get()
+            form_doc = db.collection("forms_v2").document(form_id).get()
             if form_doc.exists:
                 form_data = form_doc.to_dict()
                 language = form_data.get("voice_settings", {}).get("language", "en")
@@ -384,7 +384,7 @@ def save_form():
         "voice_settings": form_data.get("voice_settings", {})
     }
     
-    form_ref = db.collection("forms").document()
+    form_ref = db.collection("forms_v2").document()
     form_ref.set(form_document)
     
     return jsonify({
@@ -404,7 +404,7 @@ def update_form(form_id):
         form_data = data["form"]
         user_id = request.user["uid"]
 
-        form_ref = db.collection("forms").document(form_id)
+        form_ref = db.collection("forms_v2").document(form_id)
         form_doc = form_ref.get()
 
         if not form_doc.exists:
@@ -441,7 +441,7 @@ def update_form(form_id):
 def get_form(form_id):
     try:
         user_id = request.user["uid"]
-        form_ref = db.collection("forms").document(form_id)
+        form_ref = db.collection("forms_v2").document(form_id)
         form_doc = form_ref.get()
 
         if not form_doc.exists:
@@ -469,7 +469,7 @@ def get_form_responses(form_id):
     """Get all responses for a form from the 'sessions' collection"""
     try:
         # Verify form ownership
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return jsonify({"error": "Form not found"}), 404
 
@@ -479,7 +479,7 @@ def get_form_responses(form_id):
 
         # Get responses from 'sessions' collection
         responses_query = (
-            db.collection("sessions")
+            db.collection("sessions_v2")
             .where(filter=FieldFilter("form_id", "==", form_id))
             .stream()
         )
@@ -523,7 +523,7 @@ def generate_wordcloud(form_id, question_index):
     """Generate word cloud data for text questions using the 'sessions' collection"""
     try:
         # Verify form ownership
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return jsonify({"error": "Form not found"}), 404
 
@@ -540,7 +540,7 @@ def generate_wordcloud(form_id, question_index):
 
         # Get responses for this question from 'sessions'
         responses_query = (
-            db.collection("sessions")
+            db.collection("sessions_v2")
             .where(filter=FieldFilter("form_id", "==", form_id))
             .stream()
         )
@@ -578,7 +578,7 @@ def export_responses(form_id, format):
     """Export responses from 'sessions' in JSON or CSV format"""
     try:
         # Verify form ownership
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return jsonify({"error": "Form not found"}), 404
 
@@ -588,7 +588,7 @@ def export_responses(form_id, format):
 
         # Get responses from 'sessions'
         responses_query = (
-            db.collection("sessions")
+            db.collection("sessions_v2")
             .where(filter=FieldFilter("form_id", "==", form_id))
             .stream()
         )

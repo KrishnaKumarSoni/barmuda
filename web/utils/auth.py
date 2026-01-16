@@ -77,7 +77,7 @@ def require_conversation_limit(f):
 
         try:
             # Get form owner
-            form_doc = db.collection("forms").document(form_id).get()
+            form_doc = db.collection("forms_v2").document(form_id).get()
             if not form_doc.exists:
                 return jsonify({"error": "Form not found"}), 404
 

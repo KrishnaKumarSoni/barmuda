@@ -22,7 +22,7 @@ service cloud.firestore {
     }
 
     // Forms collection - creators can CRUD their own forms, anyone can read published forms
-    match /forms/{formId} {
+    match /forms_v2/{formId} {
       allow create: if isAuthenticated() && 
                     request.auth.uid == resource.data.creator_id &&
                     request.resource.data.keys().hasAll(['creator_id', 'title', 'questions', 'created_at']);
@@ -35,11 +35,11 @@ service cloud.firestore {
     // Responses collection - anyone can create responses, only form creators can read them
     match /responses/{responseId} {
       allow create: if request.resource.data.keys().hasAll(['form_id', 'session_id', 'created_at']) &&
-                    exists(/databases/$(database)/documents/forms/$(request.resource.data.form_id));
+                    exists(/databases/$(database)/documents/forms_v2/$(request.resource.data.form_id));
       
       allow read: if isAuthenticated() && 
-                  exists(/databases/$(database)/documents/forms/$(resource.data.form_id)) &&
-                  get(/databases/$(database)/documents/forms/$(resource.data.form_id)).data.creator_id == request.auth.uid;
+                  exists(/databases/$(database)/documents/forms_v2/$(resource.data.form_id)) &&
+                  get(/databases/$(database)/documents/forms_v2/$(resource.data.form_id)).data.creator_id == request.auth.uid;
       
       // Responses are immutable once created (no updates or deletes)
       allow update, delete: if false;

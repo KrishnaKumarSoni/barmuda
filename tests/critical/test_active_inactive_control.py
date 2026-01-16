@@ -18,7 +18,7 @@ class TestActiveInactiveControl:
         """Test that inactive forms prevent chat session creation"""
         # Setup: Add inactive form to mock database
         sample_form["active"] = False
-        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_form
 
         with patch("app.db", mock_firestore_client):
             response = client.post(
@@ -35,7 +35,7 @@ class TestActiveInactiveControl:
     ):
         """Test that active forms allow chat session creation"""
         # Setup: Add active form to mock database
-        mock_firestore_data["forms"]["test_form_123"] = sample_active_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_active_form
 
         with patch("app.db", mock_firestore_client):
             response = client.post(
@@ -52,7 +52,7 @@ class TestActiveInactiveControl:
     ):
         """Test that inactive form pages show 'Survey Not Available' message"""
         sample_form["active"] = False
-        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_form
 
         with patch("app.db", mock_firestore_client):
             mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
@@ -75,7 +75,7 @@ class TestActiveInactiveControl:
     ):
         """Test that active form pages load the chat interface"""
         # Setup: Add active form to mock database
-        mock_firestore_data["forms"]["test_form_123"] = sample_active_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_active_form
         
         with patch("app.db", mock_firestore_client):
             mock_firestore_client.collection.return_value.document.return_value.get.return_value.to_dict.return_value = (
@@ -99,7 +99,7 @@ class TestActiveInactiveControl:
         """Test that toggling form status changes response availability"""
         # Setup: Add form to mock database
         sample_form["creator_id"] = "test_user_123"  # Match authenticated session
-        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_form
         
         with patch("app.db", mock_firestore_client):
             # Toggle to active (correct payload format)
@@ -118,7 +118,7 @@ class TestActiveInactiveControl:
         sample_form["active"] = False
         
         # Add inactive form to mock data
-        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_form
         
         # Add a mock session with proper data types
         mock_session = {
@@ -191,10 +191,10 @@ class TestActiveInactiveControl:
         with patch("app.db", mock_firestore_client):
             # Add forms to mock data store
             for form in forms:
-                mock_firestore_data["forms"][form["id"]] = form
+                mock_firestore_data["forms_v2"][form["id"]] = form
                 
             # Mock the responses collection for counting
-            mock_firestore_data["responses"] = {}
+            mock_firestore_data["sessions_v2"] = {}
 
             response = authenticated_session.get("/dashboard")
 

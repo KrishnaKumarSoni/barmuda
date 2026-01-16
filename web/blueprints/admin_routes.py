@@ -148,7 +148,7 @@ def api_debug_counts():
         # Simple debug endpoint to check collection sizes directly
         from web.extensions import db
         users_count = len(list(db.collection("users").limit(100).stream()))
-        forms_count = len(list(db.collection("forms").limit(100).stream()))
+        forms_count = len(list(db.collection("forms_v2").limit(100).stream()))
         return jsonify({
             "users_sample": users_count,
             "forms_sample": forms_count

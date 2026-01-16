@@ -21,7 +21,7 @@ class TestSimpleWorking:
             "creator_id": "user_123",
             "questions": [{"text": "Test question", "type": "text", "enabled": True}],
         }
-        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_form
 
         with patch("app.db", mock_firestore_client):
             response = client.post(
@@ -45,7 +45,7 @@ class TestSimpleWorking:
             "creator_id": "user_123",
             "questions": [{"text": "Test question", "type": "text", "enabled": True}],
         }
-        mock_firestore_data["forms"]["test_form_123"] = sample_form
+        mock_firestore_data["forms_v2"]["test_form_123"] = sample_form
 
         with patch("app.db", mock_firestore_client):
             response = client.post(

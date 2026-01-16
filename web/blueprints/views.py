@@ -76,7 +76,7 @@ def dashboard():
             # Try efficient query (requires index)
             logger.debug("Attempting primary dashboard query...")
             forms_ref = (
-                db.collection("forms")
+                db.collection("forms_v2")
                 .where(filter=FieldFilter("creator_id", "==", user_id))
                 .order_by("created_at", direction="DESCENDING")
             )
@@ -85,7 +85,7 @@ def dashboard():
         except Exception as index_error:
             logger.warning(f"Dashboard index query failed (likely missing index), falling back to manual sort: {index_error}")
             # Fallback: Client-side filtering/sorting
-            forms_ref = db.collection("forms").where(
+            forms_ref = db.collection("forms_v2").where(
                 filter=FieldFilter("creator_id", "==", user_id)
             )
             docs = list(forms_ref.stream())
@@ -110,7 +110,7 @@ def dashboard():
                         pass
 
                 # Response count logic (kept simple for robustness)
-                responses_ref = db.collection("sessions").where(
+                responses_ref = db.collection("sessions_v2").where(
                     filter=FieldFilter("form_id", "==", doc.id)
                 )
                 # Use aggregation query if possible, or limit for safety
@@ -172,7 +172,7 @@ def view_form_responses(form_id):
     """View responses for a form"""
     try:
         # Verify form ownership
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return (
                 render_template(
@@ -216,7 +216,7 @@ def view_form_responses(form_id):
 def form_response_page(form_id):
     """Public form response page for respondents"""
     try:
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return render_template(
                 "error.html",
@@ -254,7 +254,7 @@ def form_response_page(form_id):
 def voice_form_page(form_id):
     """Voice interview page"""
     try:
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return render_template(
                 "error.html",
@@ -292,7 +292,7 @@ def voice_form_page(form_id):
 def embed_form(form_id):
     """Embeddable chat widget"""
     try:
-        form_doc = db.collection("forms").document(form_id).get()
+        form_doc = db.collection("forms_v2").document(form_id).get()
         if not form_doc.exists:
             return "Form not found", 404
             

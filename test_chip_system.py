@@ -67,7 +67,7 @@ def create_test_form():
     
     # Save to Firestore
     form_id = "chip_test_form_" + datetime.now().strftime("%Y%m%d_%H%M%S")
-    doc_ref = db.collection('forms').document(form_id)
+    doc_ref = db.collection('forms_v2').document(form_id)
     doc_ref.set(form_data)
     
     print(f"✅ Created test form with ID: {form_id}")

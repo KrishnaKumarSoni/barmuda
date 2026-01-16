@@ -17,4 +17,4 @@ import json
 with open('scripts/form_2.json', 'r') as file:
     data = json.load(file)
 # print(data)
-db.collection("forms").document("form_number_1").set(data)
+db.collection("forms_v2").document("form_number_1").set(data)

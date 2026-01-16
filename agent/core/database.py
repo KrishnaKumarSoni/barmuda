@@ -4,8 +4,9 @@ import threading
 from google.cloud import firestore
 from google.oauth2 import service_account
 from datetime import datetime
-from typing import Dict, Any, Literal, cast
+from typing import Dict, Any, Literal, cast, List
 from dotenv import load_dotenv
+from langchain_core.messages import BaseMessage
 
 load_dotenv()
 
@@ -51,7 +52,7 @@ def _persist_new_session_sync(session_id: str, new_doc: Dict[str, Any]):
     try:
         # print(f"[DB] Persisting new session {session_id} in background thread...")
         db = get_sync_db_client()
-        db.collection('sessions').document(session_id).set(new_doc)
+        db.collection('sessions_v2').document(session_id).set(new_doc)
         # print(f"[DB] Successfully persisted session {session_id}")
     except Exception as e:
         print(f"[DB] Error persisting new session {session_id}: {e}")
@@ -63,7 +64,7 @@ async def init_session(session_id: str, form_id: str) -> Dict[str, Any]:
     """
     db = get_db_client()
     try:
-        session_ref = db.collection('sessions').document(session_id)
+        session_ref = db.collection('sessions_v2').document(session_id)
         session_doc = await session_ref.get()
 
         if session_doc.exists:
@@ -78,6 +79,7 @@ async def init_session(session_id: str, form_id: str) -> Dict[str, Any]:
             "session_state": "ONGOING",
             "created_at": get_utc_now(),
             "last_updated": get_utc_now(),
+            "messages": [],
             # responses map is strictly Key -> {value, status, timestamp}
             "responses": {} 
         }
@@ -96,7 +98,7 @@ async def get_session_data(session_id: str) -> Dict[str, Any] | None:
     """
     db = get_db_client()
     try:
-        doc = await db.collection('sessions').document(session_id).get()
+        doc = await db.collection('sessions_v2').document(session_id).get()
         if doc.exists:
             return doc.to_dict()
         return None
@@ -115,7 +117,7 @@ async def update_response_in_db(
     """
     db = get_db_client()
     try:
-        session_ref = db.collection('sessions').document(session_id)
+        session_ref = db.collection('sessions_v2').document(session_id)
         
         # Use dot notation to update a field within the 'responses' map
         response_field_path = f'responses.{question_key}'
@@ -135,7 +137,7 @@ async def update_session_lifecycle(session_id: str, new_state: Literal["ONGOING"
     """Updates the high-level status of the session in Firestore."""
     db = get_db_client()
     try:
-        session_ref = db.collection('sessions').document(session_id)
+        session_ref = db.collection('sessions_v2').document(session_id)
         await session_ref.update({
             "session_state": new_state,
             "last_updated": get_utc_now()
@@ -150,9 +152,37 @@ async def get_form_schema(form_id: str) -> Dict[str, Any] | None:
     db = get_db_client()
     try:
         # print("--- [Database] Fetching form schema for form_id:", form_id)
-        doc = await db.collection('forms').document(form_id).get()
+        doc = await db.collection('forms_v2').document(form_id).get()
         if doc.exists:
             return doc.to_dict()
         return None
+    finally:
+        db.close()
+
+async def save_session_messages(session_id: str, messages: List[BaseMessage]):
+    """
+    Updates the message history in the session document.
+    """
+    db = get_db_client()
+    try:
+        serialized_msgs = []
+        for msg in messages:
+            msg_data = {
+                "type": msg.type,
+                "content": msg.content,
+                "timestamp": get_utc_now()
+            }
+            # Add additional metadata if available
+            if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                 msg_data['tool_calls'] = msg.tool_calls
+            
+            serialized_msgs.append(msg_data)
+            
+        await db.collection('sessions_v2').document(session_id).update({
+            "messages": serialized_msgs,
+            "last_updated": get_utc_now()
+        })
+    except Exception as e:
+        print(f"[DB] Error saving messages for {session_id}: {e}")
     finally:
         db.close()

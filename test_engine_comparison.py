@@ -37,7 +37,7 @@ def test_engine_functionality(engine_name, get_agent_func):
         try:
             # Get a real form ID using Firebase MCP
             from groq_chat_engine import firestore_db
-            forms = list(firestore_db.collection("forms").limit(1).stream())
+            forms = list(firestore_db.collection("forms_v2").limit(1).stream())
             
             if not forms:
                 print("⚠️  No forms found - skipping session creation")

@@ -1,5 +1,5 @@
 from my_agent.graph import build_survey_graph
-from core.database import db
+
 # Call the function from graph.py to get the compiled agent
 agent = build_survey_graph()
 

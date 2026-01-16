@@ -286,7 +286,7 @@ def extract_chat_responses(session_id: str) -> Dict[str, Any]:
             # Update form stats and check for email notifications
             form_id = session_data.get("form_id")
             if form_id:
-                form_ref = firestore_db.collection("forms").document(form_id)
+                form_ref = firestore_db.collection("forms_v2").document(form_id)
 
                 # Get current response count to determine if we should send email
                 form_doc = form_ref.get()

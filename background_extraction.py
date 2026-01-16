@@ -220,7 +220,7 @@ class BackgroundExtractor:
             if not form_id:
                 return
             
-            form_ref = firestore_db.collection("forms").document(form_id)
+            form_ref = firestore_db.collection("forms_v2").document(form_id)
             
             # Get current stats for email notifications
             form_doc = form_ref.get()

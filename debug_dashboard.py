@@ -22,7 +22,7 @@ try:
     try:
         print("--- Testing Primary Query (Index Required) ---")
         forms_ref = (
-            db.collection("forms")
+            db.collection("forms_v2")
             .where(filter=FieldFilter("creator_id", "==", user_id))
             .order_by("created_at", direction="DESCENDING")
         )
@@ -34,7 +34,7 @@ try:
         print("\n--- Testing Fallback Query (No Sort) ---")
         try:
             # Fallback: Client-side filtering/sorting
-            forms_ref = db.collection("forms").where(
+            forms_ref = db.collection("forms_v2").where(
                 filter=FieldFilter("creator_id", "==", user_id)
             )
             docs = list(forms_ref.stream())

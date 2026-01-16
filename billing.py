@@ -393,7 +393,7 @@ class SubscriptionManager:
                 return True, ""
             
             # Count current forms
-            forms_ref = db.collection("forms").where("creator_id", "==", user_id)
+            forms_ref = db.collection("forms_v2").where("creator_id", "==", user_id)
             current_forms = len(list(forms_ref.stream()))
             
             if current_forms >= max_forms:

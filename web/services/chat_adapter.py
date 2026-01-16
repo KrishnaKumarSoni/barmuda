@@ -274,7 +274,7 @@ class ChatAdapter:
             loop = asyncio.get_running_loop()
             
             def fetch_doc():
-                doc = db.collection('sessions').document(session_id).get()
+                doc = db.collection('sessions_v2').document(session_id).get()
                 return doc
 
             doc = await loop.run_in_executor(None, fetch_doc)

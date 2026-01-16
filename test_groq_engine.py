@@ -112,7 +112,7 @@ def test_firebase_integration():
         from groq_chat_engine import firestore_db
         
         # Try to get a real form from Firebase
-        forms = list(firestore_db.collection("forms").limit(1).stream())
+        forms = list(firestore_db.collection("forms_v2").limit(1).stream())
         
         if forms:
             form_doc = forms[0]
