@@ -231,6 +231,27 @@ def generate_word_frequency_backend(text_responses):
 
 # --- ROUTES ---
 
+@api_bp.route("/test-redis")
+def test_redis():
+    import os
+    import redis
+    
+    redis_url = os.environ.get("REDIS_URL")
+    if not redis_url:
+        return jsonify({"success": False, "error": "REDIS_URL not set"}), 500
+        
+    try:
+        r = redis.Redis.from_url(redis_url, decode_responses=True)
+        r.set("test_key", "redis_is_working")
+        value = r.get("test_key")
+        return jsonify({
+            "success": True, 
+            "value": value, 
+            "url_masked": redis_url.split("@")[-1] if "@" in redis_url else "localhost"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @api_bp.route("/api/infer", methods=["POST"])
 @login_required
 @require_form_creation
