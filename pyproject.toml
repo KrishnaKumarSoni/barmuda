@@ -2,7 +2,7 @@
 name = "barmuda"
 version = "0.1.0"
 description = "Barmuda Flask App"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "firebase-admin>=7.1.0",
     "flask>=3.1.2",
@@ -14,10 +14,11 @@ dependencies = [
     "langchain-core>=0.3.83",
     "langchain-google-genai>=2.1.12",
     "langgraph>=0.6.11",
+    "langgraph-checkpoint-redis>=0.3.2",
     "openai>=2.15.0",
     "openai-agents>=0.6.6",
     "python-dotenv>=1.2.1",
-    "redis>=7.0.1",
+    "redis>=5.0.0",
     "requests>=2.32.5",
     "resend>=2.19.0",
 ]
