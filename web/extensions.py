@@ -11,52 +11,65 @@ logger = logging.getLogger(__name__)
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
-    if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
-        # Production environment
-        firebase_config = {
-            "type": "service_account",
-            "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
-            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
-            "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace("\n", "\n"),
-            "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
-            "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
-            "universe_domain": "googleapis.com",
-        }
-        cred = credentials.Certificate(firebase_config)
-    else:
-        # Local development
-        service_account_path = os.environ.get(
-            "FIREBASE_SERVICE_ACCOUNT_PATH",
-            "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json",
-        )
-        
-        # Robust path resolution
-        resolved_path = service_account_path
-        if not os.path.exists(resolved_path):
-            # Try resolving relative to project root (one level up from web/)
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            candidate_path = os.path.join(base_dir, service_account_path)
-            if os.path.exists(candidate_path):
-                resolved_path = candidate_path
-                logger.info(f"Resolved Firebase credentials at: {resolved_path}")
-            else:
-                # Try just the filename in current dir as last resort
-                filename = os.path.basename(service_account_path)
-                if os.path.exists(filename):
-                    resolved_path = filename
-
-        if os.path.exists(resolved_path):
-            cred = credentials.Certificate(resolved_path)
+    try:
+        if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
+            # Production environment
+            private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+            # Robustly handle newline characters for Vercel env vars
+            if "\\n" in private_key:
+                private_key = private_key.replace("\\n", "\n")
+            
+            firebase_config = {
+                "type": "service_account",
+                "project_id": os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in"),
+                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+                "private_key": private_key,
+                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+                "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('FIREBASE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                "universe_domain": "googleapis.com",
+            }
+            cred = credentials.Certificate(firebase_config)
+            logger.info("Firebase configured with Vercel/Production credentials")
         else:
-            logger.warning(f"Firebase service account file not found at {service_account_path} or {resolved_path}")
-            cred = None
-    
-    if cred:
-        firebase_admin.initialize_app(cred)
+            # Local development
+            service_account_path = os.environ.get(
+                "FIREBASE_SERVICE_ACCOUNT_PATH",
+                "barmuda-in-firebase-adminsdk-fbsvc-c7e33f8c4f.json",
+            )
+            
+            # Robust path resolution
+            resolved_path = service_account_path
+            if not os.path.exists(resolved_path):
+                # Try resolving relative to project root (one level up from web/)
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                candidate_path = os.path.join(base_dir, service_account_path)
+                if os.path.exists(candidate_path):
+                    resolved_path = candidate_path
+                    logger.info(f"Resolved Firebase credentials at: {resolved_path}")
+                else:
+                    # Try just the filename in current dir as last resort
+                    filename = os.path.basename(service_account_path)
+                    if os.path.exists(filename):
+                        resolved_path = filename
+
+            if os.path.exists(resolved_path):
+                cred = credentials.Certificate(resolved_path)
+                logger.info(f"Firebase configured with local file: {resolved_path}")
+            else:
+                logger.warning(f"Firebase service account file not found at {service_account_path} or {resolved_path}")
+                cred = None
+        
+        if cred:
+            firebase_admin.initialize_app(cred)
+            logger.info("Firebase App Initialized Successfully")
+    except Exception as e:
+        logger.error(f"CRITICAL: Failed to initialize Firebase: {e}", exc_info=True)
+        # Re-raise because the app likely cannot function without DB
+        raise e
 
 # Global Extensions
 db = firestore.client() if firebase_admin._apps else None
