@@ -2,7 +2,11 @@
 tests/
 test_*.py
 *_test.py
-*.html
+
+# Ignore local test HTML files in root only
+test_*.html
+widget_test_*.html
+
 requirements-test.txt
 requirements.txt
 setup.py
