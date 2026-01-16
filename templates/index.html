@@ -1351,6 +1351,62 @@
             updateDots();
         }
 
+        // Handle generate survey attempt for unauthenticated users
+        async function handleUnauthenticatedGenerate() {
+            const input = document.getElementById('formDescription');
+            const text = input ? input.value.trim() : '';
+            
+            if (!text) {
+                alert('Please describe the form you want to create');
+                return;
+            }
+            
+            if (text.length < 20) {
+                alert('Please provide more details about your form (minimum 20 characters)');
+                return;
+            }
+            
+            // Store the form description for after authentication
+            sessionStorage.setItem('pendingFormDescription', text);
+            localStorage.setItem('pendingFormDescription', text); // Backup in localStorage
+            
+            // Show loading state
+            setUnauthButtonState('signing_in');
+            
+            try {
+                // Use the global helper from base.html/auth-helper.js
+                // Redirect to dashboard (or create-form if that's the flow)
+                await signInWithGoogle('/dashboard'); 
+            } catch (error) {
+                setUnauthButtonState('idle');
+                console.error('Sign in error:', error);
+            }
+        }
+        
+        // Set button state for unauthenticated page
+        function setUnauthButtonState(state) {
+            const btn = document.getElementById('unauthGenerateBtn');
+            if (!btn) return;
+            
+            // Try to find the text span, or fallback to direct text manipulation if structured differently
+            const textSpan = btn.querySelector('span');
+            
+            switch(state) {
+                case 'signing_in':
+                    btn.disabled = true;
+                    btn.classList.add('opacity-70', 'cursor-not-allowed');
+                    if(textSpan) textSpan.textContent = 'Signing in...';
+                    else btn.textContent = 'Signing in...';
+                    break;
+                case 'idle':
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    if(textSpan) textSpan.textContent = 'Generate Survey';
+                    else btn.textContent = 'Generate Survey';
+                    break;
+            }
+        }
+
         // Debug function available in global scope
         window.testGenerate = function() {
             console.log('Testing generate function...');
