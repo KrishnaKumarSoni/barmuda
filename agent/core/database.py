@@ -11,14 +11,46 @@ from langchain_core.messages import BaseMessage
 load_dotenv()
 
 # --- Firestore Client Initialization ---
+def _get_credentials_from_env():
+    """Helper to create Google Credentials from Vercel env vars."""
+    if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
+        private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
+        if "\\n" in private_key:
+            private_key = private_key.replace("\\n", "\n")
+        
+        # Robustly handle newlines in other sensitive fields
+        project_id = os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in").strip().replace("\n", "").replace("\\n", "")
+        client_email = os.environ.get("FIREBASE_CLIENT_EMAIL", "").strip().replace("\n", "").replace("\\n", "")
+
+        info = {
+            "type": "service_account",
+            "project_id": project_id,
+            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID", "").strip(),
+            "private_key": private_key,
+            "client_email": client_email,
+            "client_id": os.environ.get("FIREBASE_CLIENT_ID", "").strip(),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{client_email.replace('@', '%40')}",
+            "universe_domain": "googleapis.com",
+        }
+        return service_account.Credentials.from_service_account_info(info), project_id
+    return None, None
+
 def get_db_client():
     """
     Returns an initialized Firestore AsyncClient using environment variables.
     """
-    # Prefer the explicit path variable you use in .env
+    # 1. Try Vercel/Env Credentials
+    creds, project_id = _get_credentials_from_env()
+    if creds:
+        return firestore.AsyncClient(credentials=creds, project=project_id)
+
+    # 2. Prefer the explicit path variable you use in .env
     cred_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH")
     
-    # Fallback to standard Google var if set
+    # 3. Fallback to standard Google var if set
     if not cred_path:
         cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 
@@ -31,6 +63,11 @@ def get_db_client():
 
 def get_sync_db_client():
     """Returns a synchronous Firestore client for background threads."""
+    # 1. Try Vercel/Env Credentials
+    creds, project_id = _get_credentials_from_env()
+    if creds:
+        return firestore.Client(credentials=creds, project=project_id)
+
     cred_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH")
     if not cred_path:
         cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
