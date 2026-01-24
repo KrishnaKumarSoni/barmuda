@@ -1,3 +1,4 @@
 .env
 barmuda-firebase-adminsdk-fbsvc-*.json
 .langgraph_api/
+new-firebase-key.json

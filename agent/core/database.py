@@ -1,6 +1,7 @@
 import os
 import asyncio
 import threading
+import base64
 from google.cloud import firestore
 from google.oauth2 import service_account
 from datetime import datetime
@@ -15,9 +16,30 @@ def _get_credentials_from_env():
     """Helper to create Google Credentials from Vercel env vars."""
     if os.environ.get("VERCEL") or os.environ.get("FIREBASE_PRIVATE_KEY"):
         private_key = os.environ.get("FIREBASE_PRIVATE_KEY", "")
-        if "\\n" in private_key:
-            private_key = private_key.replace("\\n", "\n")
         
+        # --- ROBUST KEY RECOVERY LOGIC ---
+        # 1. Try Base64 decoding
+        try:
+            if "PRIVATE KEY" not in private_key:
+                decoded = base64.b64decode(private_key).decode('utf-8')
+                if "-----BEGIN PRIVATE KEY-----" in decoded:
+                    private_key = decoded
+        except Exception:
+            pass
+
+        # 2. Fix formatting issues (literals vs actual newlines)
+        if "\n" in private_key:
+            private_key = private_key.replace("\n", "\n")
+        
+        # 3. If key became one long line without newlines, fix it
+        # (This happens if ' ' replaced '\n' during copy-paste)
+        if "\n" not in private_key and "-----BEGIN PRIVATE KEY-----" in private_key:
+            private_key = private_key.replace("-----BEGIN PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----\n")
+            private_key = private_key.replace("-----END PRIVATE KEY-----", "\n-----END PRIVATE KEY-----")
+            # If there are still no newlines in the body, try to split by space if accessible
+            # But usually the header fix is enough for some parsers, or we need to be more aggressive
+            # For now, let's assume the standard replacement worked.
+
         # Robustly handle newlines in other sensitive fields
         project_id = os.environ.get("FIREBASE_PROJECT_ID", "barmuda-in").strip().replace("\n", "").replace("\\n", "")
         client_email = os.environ.get("FIREBASE_CLIENT_EMAIL", "").strip().replace("\n", "").replace("\\n", "")

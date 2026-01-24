@@ -1,4 +1,5 @@
 # graph.py
+import os
 import uuid
 from typing import Literal, Dict, Any, List, TypedDict, cast
 from langchain_core.messages import SystemMessage, AIMessage, ToolMessage
@@ -36,7 +37,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 # --- CONFIGURATION ---
-MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-flash-lite")
 # MODEL_NAME = "gemini-2.5-flash-lite"
 TOOLS = [load_survey, save_answer, update_question_state, end_survey]
 
