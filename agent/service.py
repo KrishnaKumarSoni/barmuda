@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Setup paths and logging
-# Add current directory to path to ensure internal imports work
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,7 +14,6 @@ logger = logging.getLogger(__name__)
 # Import your existing agent logic
 try:
     from my_agent.graph import build_survey_graph
-    from core.redis_client import get_redis_client
 except ImportError as e:
     logger.error(f"Import failed: {e}")
     build_survey_graph = None
@@ -42,7 +40,6 @@ def extract_chips(state: Dict[str, Any]) -> Dict[str, Any]:
     if not q_def: return {"show_chips": False, "options": []}
 
     q_type = q_def.get("questionType")
-    # Handle different question definition structures
     options = q_def.get("responseOptions", {}).get("choices", []) if q_def.get("responseOptions") else q_def.get("options", [])
     
     # Logic to format options for Frontend
@@ -69,9 +66,9 @@ async def chat(req: ChatRequest):
     if not build_survey_graph:
         raise HTTPException(status_code=500, detail="Agent logic not loaded")
 
-    redis = get_redis_client()
     try:
-        graph = build_survey_graph(redis_client=redis)
+        # No Redis client passed - assumes graph.py handles this (e.g. uses MemorySaver)
+        graph = build_survey_graph() 
         config = {"configurable": {"thread_id": req.session_id, "form_id": req.form_id}}
         
         # Run Agent
@@ -101,17 +98,14 @@ async def chat(req: ChatRequest):
     except Exception as e:
         logger.error(f"Chat error: {e}", exc_info=True)
         return {"success": False, "error": str(e), "response": "Error processing request."}
-    finally:
-        await redis.aclose()
 
 @app.post("/state")
 async def get_state(req: StateRequest):
     if not build_survey_graph:
         raise HTTPException(status_code=500, detail="Agent logic not loaded")
 
-    redis = get_redis_client()
     try:
-        graph = build_survey_graph(redis_client=redis)
+        graph = build_survey_graph()
         config = {"configurable": {"thread_id": req.session_id}}
         state_snapshot = await graph.aget_state(config)
         
@@ -142,5 +136,3 @@ async def get_state(req: StateRequest):
     except Exception as e:
         logger.error(f"State error: {e}")
         return {"success": False, "error": str(e)}
-    finally:
-        await redis.aclose()

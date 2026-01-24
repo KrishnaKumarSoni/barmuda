@@ -3,6 +3,7 @@ import uuid
 from typing import Literal, Dict, Any, List, TypedDict, cast
 from langchain_core.messages import SystemMessage, AIMessage, ToolMessage
 from langchain.agents.middleware import ContextEditingMiddleware, ClearToolUsesEdit
+from langgraph.checkpoint.memory import InMemorySaver
 
 # LangChain Imports
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -35,8 +36,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 # --- CONFIGURATION ---
-# MODEL_NAME = "gemini-3-flash-preview"
-MODEL_NAME = "gemini-2.5-flash-lite"
+MODEL_NAME = "gemini-3-flash-preview"
+# MODEL_NAME = "gemini-2.5-flash-lite"
 TOOLS = [load_survey, save_answer, update_question_state, end_survey]
 
 # BASE_PERSONA = """
@@ -377,7 +378,8 @@ def build_survey_graph(redis_client=None):
     if redis_client is None:
         redis_client = get_redis_client()
 
-    checkpointer = AsyncRedisSaver(redis_client=redis_client)
+    # checkpointer = AsyncRedisSaver(redis_client=redis_client)
+    checkpointer = InMemorySaver()
     app = create_agent(
         model=model, # change model as required
         tools=TOOLS,
