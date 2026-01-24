@@ -108,7 +108,7 @@ def generate_text(
                 raise ValueError("Gemini API Key not configured")
 
             # Use gemini-2.0-flash as default for new SDK
-            gemini_model_name = model or "gemini-2.0-flash"
+            gemini_model_name = model or "gemini-2.5-flash"
             
             config_args = {
                 "system_instruction": system_prompt,

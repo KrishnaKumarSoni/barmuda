@@ -130,36 +130,24 @@ def get_chat_status(session_id):
         print(f"DEBUG: get_chat_status error {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@legacy_chat_bp.route("/api/chat/check_chips", methods=["POST"])
-def check_chips():
-    """Check if a message should have chip options"""
-    try:
-        data = request.get_json()
-        session_id = data.get("session_id")
-        
-        if not session_id:
-            return jsonify({"success": False, "error": "Missing session_id"}), 400
-
-        # Retrieve current state from the new agent
-        result = asyncio.run(ChatAdapter.get_current_state(session_id))
-        
-        if result.get("success"):
-             return jsonify({
-                "success": True, 
-                "chip_options": result.get("chip_options", {"show_chips": False})
-            })
-
-        return jsonify({"success": False, "error": result.get("error")}), 404
-
-    except Exception as e:
-        logger.error(f"Error checking chips: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
 def sync_stream_generator(session_id, form_id, message):
     """
     Bridge async generator to synchronous iterator for Flask streaming.
     Runs a temporary event loop to consume the async stream.
     """
+    # Attempt to recover form_id from Firestore if missing (Crucial for stateless backends)
+    if not form_id:
+        try:
+            print(f"DEBUG: Recovering form_id for session {session_id}")
+            doc = db.collection("sessions_v2").document(session_id).get()
+            if doc.exists:
+                form_id = doc.to_dict().get("form_id")
+                print(f"DEBUG: Recovered form_id: {form_id}")
+            else:
+                print(f"DEBUG: Session document not found for {session_id}")
+        except Exception as e:
+            logger.error(f"Failed to recover form_id: {e}")
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     

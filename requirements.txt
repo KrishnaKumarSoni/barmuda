@@ -5,23 +5,10 @@ gunicorn
 # Firebase integration
 firebase-admin
 
-# AI/ML APIs
-openai
-openai-agents
-google-genai
-
-# LangChain & LangGraph Ecosystem
-langchain
-langchain-core
-langchain-community
-langchain-google-genai
-langgraph
-
 # Utilities
 python-dotenv
 requests
 flask-cors
-redis
 
 # Development and testing
 pytest
