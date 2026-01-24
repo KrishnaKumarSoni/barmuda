@@ -35,7 +35,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 # --- CONFIGURATION ---
-MODEL_NAME = "gemini-3-flash-preview"
+# MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-2.5-flash-lite"
 TOOLS = [load_survey, save_answer, update_question_state, end_survey]
 
 # BASE_PERSONA = """
@@ -367,7 +368,7 @@ def build_survey_graph(redis_client=None):
     t_start = time.time()
     model = ChatGoogleGenerativeAI(
         model=MODEL_NAME,
-        thinking_level="low",
+        # thinking_level="low",
     )
     # Initialize Async Checkpointer using the shared async client
     # checkpointer = AsyncFirestoreSaver(client=db)

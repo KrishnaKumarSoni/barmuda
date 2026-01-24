@@ -10,3 +10,10 @@ redis
 
 
 #   pip install --upgrade "langgraph-cli[inmem]"
+
+# Added for Agent Service
+fastapi
+uvicorn
+pydantic
+requests
+langgraph-checkpoint-redis
