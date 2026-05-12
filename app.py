@@ -3037,6 +3037,7 @@ def start_chat_session():
         form_id = data.get("form_id")
         device_id = data.get("device_id")  # From FingerprintJS
         location = data.get("location", {})  # Geolocation data
+        force_new_session = bool(data.get("force_new_session"))
 
         if not form_id:
             return jsonify({"error": "form_id is required"}), 400
@@ -3064,7 +3065,7 @@ def start_chat_session():
 
         # Check for existing session by device_id + form_id
         existing_session = None
-        if device_id:
+        if device_id and not force_new_session:
             try:
                 print(
                     f"Looking for existing session with device_id: {device_id}, form_id: {form_id}"
@@ -3392,6 +3393,8 @@ def get_chat_status(session_id):
 def check_chips():
     """Check if a message should have chip options"""
     try:
+        from chat_engine import _get_natural_question_data, load_session
+
         data = request.get_json()
         session_id = data.get("session_id")
         message = data.get("message")
@@ -3401,12 +3404,6 @@ def check_chips():
                 jsonify({"success": False, "error": "Missing session_id or message"}),
                 400,
             )
-
-        # Get the chat session from the appropriate engine
-        if USE_GROQ:
-            from groq_chat_engine import _get_natural_question_data, load_session
-        else:
-            from chat_engine import _get_natural_question_data, load_session
 
         try:
             session = load_session(session_id)

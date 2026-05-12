@@ -68,10 +68,17 @@
 </head>
 <body class="bg-[#fef5e0] h-screen overflow-hidden flex flex-col">
     <!-- Compact Header -->
-    <div class="flex-shrink-0 text-center py-3 px-4">
-        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg tracking-[-0.24px] truncate">
+    <div class="flex-shrink-0 py-3 px-4 flex items-center justify-between gap-3">
+        <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#cc5500] text-lg tracking-[-0.24px] truncate text-left flex-1">
             {{ form_title }}
         </h1>
+        <button
+            id="start-over-button"
+            type="button"
+            class="text-xs font-['DM_Sans'] text-[#cc5500] border border-[#fce9c1] rounded-full px-3 py-1 transition hover:bg-[#fff4e6]"
+        >
+            Start over
+        </button>
     </div>
 
     <!-- Chat Container (Full Height) -->
@@ -138,6 +145,19 @@
         let formId = '{{ form_id }}';
         let messageCount = 0;
         let isEnded = false;
+        let forceFreshSession = false;
+        let isInitializingChat = false;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('fresh') === '1') {
+            forceFreshSession = true;
+            // Clean up the URL so refreshes don't always force a new session
+            requestAnimationFrame(() => {
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('fresh');
+                window.history.replaceState({}, '', cleanUrl);
+            });
+        }
 
         // Notify parent of height changes
         function notifyHeightChange() {
@@ -152,9 +172,14 @@
 
         // Initialize FingerprintJS and start session
         async function initializeChat() {
+            if (isInitializingChat) {
+                return;
+            }
+
+            isInitializingChat = true;
             try {
                 showTypingIndicator();
-                
+
                 // Get device ID (same logic as main chat)
                 try {
                     if (typeof FingerprintJS === 'undefined') {
@@ -190,13 +215,15 @@
                     body: JSON.stringify({
                         form_id: formId,
                         device_id: deviceId,
-                        location: location
+                        location: location,
+                        force_new_session: forceFreshSession
                     })
                 });
 
                 const data = await response.json();
                 if (data.success) {
                     sessionId = data.session_id;
+                    forceFreshSession = false;
                     hideTypingIndicator();
                     
                     if (data.ended) {
@@ -250,6 +277,8 @@
                 console.error('Error initializing chat:', error);
                 hideTypingIndicator();
                 addMessage('system', 'Sorry, there was an error starting the chat. Please refresh and try again.');
+            } finally {
+                isInitializingChat = false;
             }
         }
 
@@ -310,6 +339,36 @@
             // Notify parent of height change
             setTimeout(notifyHeightChange, 100);
         }
+
+        function startFreshSession() {
+            if (isInitializingChat) {
+                return;
+            }
+
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.innerHTML = '';
+            hideTypingIndicator();
+
+            const input = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            if (input) {
+                input.value = '';
+                input.disabled = true;
+            }
+            if (sendButton) {
+                sendButton.disabled = true;
+            }
+
+            sessionId = null;
+            messageCount = 0;
+            isEnded = false;
+            forceFreshSession = true;
+
+            showTypingIndicator();
+            initializeChat();
+        }
+
+        document.getElementById('start-over-button').addEventListener('click', startFreshSession);
 
         // Send message
         async function sendMessage() {

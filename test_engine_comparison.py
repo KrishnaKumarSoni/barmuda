@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Comprehensive comparison test between OpenAI Agents SDK and Groq engines
-Tests functionality, performance, and quality side by side
+Health check for the OpenAI Agents SDK chat engine.
+Runs agent creation, session creation with a real form, and a short
+conversation smoke test to ensure the survey flow behaves as expected.
 """
 
 import os
@@ -36,7 +37,7 @@ def test_engine_functionality(engine_name, get_agent_func):
         # Test 2: Session Creation with Real Form
         try:
             # Get a real form ID using Firebase MCP
-            from groq_chat_engine import firestore_db
+            from chat_engine import firestore_db
             forms = list(firestore_db.collection("forms").limit(1).stream())
             
             if not forms:
@@ -111,126 +112,62 @@ def test_engine_functionality(engine_name, get_agent_func):
         
     return results
 
-def run_comparison_test():
-    """Run comprehensive comparison between engines"""
-    print("🔥 COMPREHENSIVE ENGINE COMPARISON")
+def run_health_check():
+    """Run a health check for the OpenAI Agents SDK implementation"""
+    print("🔥 OPENAI AGENTS SDK HEALTH CHECK")
     print("=" * 50)
-    
-    # Test both engines
+
     engines = {}
-    
-    # Test OpenAI Agents SDK
+
     try:
         from chat_engine import get_chat_agent as get_openai_agent
-        engines["OpenAI Agents SDK"] = test_engine_functionality("OpenAI", get_openai_agent)
+
+        engines["OpenAI Agents SDK"] = test_engine_functionality(
+            "OpenAI", get_openai_agent
+        )
     except ImportError as e:
         print(f"⚠️  OpenAI Agents SDK not available: {e}")
         engines["OpenAI Agents SDK"] = {"available": False, "error": str(e)}
-    
-    # Test Groq
-    try:
-        from groq_chat_engine import get_chat_agent as get_groq_agent
-        engines["Groq"] = test_engine_functionality("Groq", get_groq_agent)
-    except ImportError as e:
-        print(f"⚠️  Groq engine not available: {e}")
-        engines["Groq"] = {"available": False, "error": str(e)}
-    
-    # Generate comparison report
+
+    results = engines.get("OpenAI Agents SDK", {})
+
     print("\n" + "=" * 60)
-    print("📊 DETAILED COMPARISON REPORT")
+    print("📊 HEALTH CHECK SUMMARY")
     print("=" * 60)
-    
-    # Performance comparison
-    if "OpenAI Agents SDK" in engines and "Groq" in engines:
-        openai_results = engines["OpenAI Agents SDK"]
-        groq_results = engines["Groq"]
-        
-        # Response time comparison
-        if openai_results.get("avg_response_time") and groq_results.get("avg_response_time"):
-            openai_avg = openai_results["avg_response_time"]
-            groq_avg = groq_results["avg_response_time"]
-            speedup = openai_avg / groq_avg if groq_avg > 0 else 0
-            
-            print(f"\n⚡ PERFORMANCE COMPARISON:")
-            print(f"   OpenAI Average:  {openai_avg:.3f}s per message")
-            print(f"   Groq Average:    {groq_avg:.3f}s per message")
-            print(f"   Speedup:         {speedup:.1f}x {'🚀' if speedup > 1 else '🐌'}")
-        
-        # Functionality comparison
-        print(f"\n🔧 FUNCTIONALITY COMPARISON:")
-        features = ["agent_creation", "session_creation", "conversation_test"]
-        
-        for feature in features:
-            openai_ok = openai_results.get(feature, False)
-            groq_ok = groq_results.get(feature, False)
-            
-            openai_status = "✅" if openai_ok else "❌"
-            groq_status = "✅" if groq_ok else "❌"
-            
-            print(f"   {feature.replace('_', ' ').title():20} OpenAI: {openai_status}  Groq: {groq_status}")
-        
-        # Sample conversation quality
-        if openai_results.get("responses") and groq_results.get("responses"):
-            print(f"\n💬 SAMPLE CONVERSATION QUALITY:")
-            print(f"   OpenAI responses: {len(openai_results['responses'])} messages")
-            print(f"   Groq responses:   {len(groq_results['responses'])} messages")
-            
-            # Show first response comparison
-            if openai_results["responses"] and groq_results["responses"]:
-                print(f"\n   First Response Comparison:")
-                print(f"   OpenAI: {openai_results['responses'][0]['assistant']}")
-                print(f"   Groq:   {groq_results['responses'][0]['assistant']}")
-    
-    # Overall recommendation
-    print(f"\n🎯 RECOMMENDATION:")
-    
-    if engines.get("Groq", {}).get("conversation_test", False):
-        if engines.get("OpenAI Agents SDK", {}).get("conversation_test", False):
-            groq_avg = engines["Groq"].get("avg_response_time", 999)
-            openai_avg = engines["OpenAI Agents SDK"].get("avg_response_time", 999)
-            
-            if groq_avg < openai_avg * 0.8:  # At least 20% faster
-                print(f"   ✅ SWITCH TO GROQ - Significantly faster ({groq_avg:.3f}s vs {openai_avg:.3f}s)")
-                print(f"   🚀 Set USE_GROQ=true in .env to enable")
-            else:
-                print(f"   ⚖️  PERFORMANCE SIMILAR - Either engine works well")
-                print(f"   💡 Try Groq for potential speed benefits")
-        else:
-            print(f"   ✅ USE GROQ - OpenAI engine has issues")
-    elif engines.get("OpenAI Agents SDK", {}).get("conversation_test", False):
-        print(f"   ✅ STICK WITH OPENAI - Groq engine has issues")
+
+    if results.get("conversation_test"):
+        avg_time = results.get("avg_response_time", 0)
+        print("✅ Conversation flow passed")
+        print(f"⏱️  Average response time: {avg_time:.3f}s")
+    elif results.get("agent_creation"):
+        print("⚠️  Agent created but conversation test failed")
     else:
-        print(f"   ❌ BOTH ENGINES HAVE ISSUES - Check configuration")
-    
-    # Save detailed results
+        print("❌ Chat agent unavailable – check configuration")
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_file = f"engine_comparison_{timestamp}.json"
-    
+    results_file = f"engine_health_{timestamp}.json"
+
     try:
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(engines, f, indent=2, default=str)
         print(f"\n💾 Detailed results saved to: {results_file}")
     except Exception as e:
         print(f"⚠️  Could not save results: {e}")
-    
+
     return engines
 
 if __name__ == "__main__":
-    print("🚀 BARMUDA CHAT ENGINE COMPARISON")
-    print("Testing OpenAI Agents SDK vs Groq implementation")
-    print("This will test functionality, performance, and quality\n")
-    
-    # Check environment
-    required_vars = ["OPENAI_API_KEY", "GROQ_API_KEY", "FIREBASE_PROJECT_ID"]
+    print("🚀 BARMUDA CHAT ENGINE HEALTH CHECK")
+    print("Testing OpenAI Agents SDK implementation")
+    print("This will verify functionality, performance, and quality\n")
+
+    required_vars = ["OPENAI_API_KEY", "FIREBASE_PROJECT_ID"]
     missing = [var for var in required_vars if not os.getenv(var)]
-    
+
     if missing:
         print(f"❌ Missing required environment variables: {missing}")
         sys.exit(1)
-    
-    # Run comparison
-    results = run_comparison_test()
-    
-    print(f"\n🎉 Comparison complete!")
-    print(f"   Current setting: USE_GROQ={os.getenv('USE_GROQ', 'false')}")
-    print(f"   Change in .env file to switch engines")
+
+    results = run_health_check()
+
+    print("\n🎉 Health check complete!")

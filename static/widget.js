@@ -36,12 +36,15 @@
     let deviceId = null;
     let messageCount = 0;
     let isEnded = false;
+    let forceNewSession = false;
+    let isInitializingChat = false;
     
     // Create widget namespace
     window.BarmudaWidget = {
         open: openWidget,
         close: closeWidget,
-        toggle: toggleWidget
+        toggle: toggleWidget,
+        startFresh: startFreshSession
     };
     
     // Initialize widget when DOM is ready
@@ -88,6 +91,7 @@
                         <div class="barmuda-form-title">Loading...</div>
                         <div class="barmuda-modal-controls">
                             <div class="barmuda-powered-by">powered by barmuda</div>
+                            <button class="barmuda-reset-btn" id="barmuda-reset-button" type="button">Start over</button>
                             <button class="barmuda-close-btn" onclick="window.BarmudaWidget.close()">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -278,13 +282,35 @@
                 background: transparent !important;
                 outline: none !important;
             }
-            
+
             .barmuda-powered-by * {
                 pointer-events: none !important;
                 cursor: default !important;
                 text-decoration: none !important;
             }
-            
+
+            .barmuda-reset-btn {
+                font-size: 11px;
+                color: #cc5500;
+                border: 1px solid #fce9c1;
+                background: #fff4e2;
+                border-radius: 999px;
+                padding: 4px 12px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                font-family: inherit;
+            }
+
+            .barmuda-reset-btn:hover {
+                background: #ffe7c7;
+            }
+
+            .barmuda-reset-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
             .barmuda-close-btn {
                 background: none;
                 border: none;
@@ -585,6 +611,11 @@
                 sendMessage();
             }
         });
+
+        const resetButton = document.getElementById('barmuda-reset-button');
+        if (resetButton) {
+            resetButton.addEventListener('click', startFreshSession);
+        }
         
         // Escape key to close
         document.addEventListener('keydown', function(e) {
@@ -676,11 +707,37 @@
             openWidget();
         }
     }
-    
+
+    function startFreshSession() {
+        if (isInitializingChat) {
+            return;
+        }
+
+        const messagesContainer = document.getElementById('barmuda-chat-messages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '';
+        }
+
+        hideTypingIndicator();
+        disableInput();
+
+        sessionId = null;
+        messageCount = 0;
+        isEnded = false;
+        forceNewSession = true;
+
+        initializeChat();
+    }
+
     async function initializeChat() {
+        if (isInitializingChat) {
+            return;
+        }
+
         try {
+            isInitializingChat = true;
             showTypingIndicator();
-            
+
             // Start chat session
             const apiUrl = `${config.apiBase}/api/chat/start`;
             console.log('Making request to:', apiUrl);
@@ -693,7 +750,8 @@
                 body: JSON.stringify({
                     form_id: config.formId,
                     device_id: deviceId,
-                    location: {}
+                    location: {},
+                    force_new_session: forceNewSession
                 })
             });
             
@@ -718,9 +776,10 @@
                 console.log('Full response text:', responseText);
                 throw new Error(`Invalid JSON response: ${parseError.message}`);
             }
-            
+
             if (data.success) {
                 sessionId = data.session_id;
+                forceNewSession = false;
                 
                 // Get form title from public API
                 try {
@@ -796,6 +855,8 @@
             console.error('Error initializing chat:', error);
             hideTypingIndicator();
             addMessage('system', 'Sorry, there was an error starting the chat. Please try again.');
+        } finally {
+            isInitializingChat = false;
         }
     }
     
@@ -907,6 +968,8 @@
             console.error('Chat error:', error);
             addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
             enableInput();
+        } finally {
+            isInitializingChat = false;
         }
     }
     

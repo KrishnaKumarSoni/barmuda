@@ -6,6 +6,7 @@ Tools return data only - agent handles all conversation
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -141,15 +142,24 @@ def load_session(session_id: str) -> ChatSession:
             ].get("questions"):
                 raise ValueError("Session has invalid form_data structure")
 
+            metadata = session_data.get("metadata", {}) or {}
+            # Keep legacy top-level index in sync with metadata for older sessions
+            if "current_question_index" not in metadata:
+                metadata["current_question_index"] = session_data.get(
+                    "current_question_index", 0
+                )
+
             session = ChatSession(
                 session_id=session_data["session_id"],
                 form_id=session_data["form_id"],
                 form_data=session_data["form_data"],
                 responses=session_data.get("responses", {}),
-                current_question_index=session_data.get("current_question_index", 0),
+                current_question_index=metadata.get("current_question_index", 0),
                 chat_history=session_data.get("chat_history", []),
-                metadata=session_data.get("metadata", {}),
+                metadata=metadata,
             )
+            # Guarantee bidirectional sync for in-memory use
+            session.metadata["current_question_index"] = session.current_question_index
             active_sessions[session_id] = session
             return session
         else:
@@ -175,6 +185,12 @@ def save_session(session: ChatSession):
         else:
             form_data_serialized[key] = value
 
+    synced_index = session.metadata.get(
+        "current_question_index", session.current_question_index
+    )
+    session.current_question_index = synced_index
+    session.metadata["current_question_index"] = synced_index
+
     session_data = {
         "session_id": session.session_id,
         "form_id": session.form_id,
@@ -196,6 +212,189 @@ def save_session(session: ChatSession):
         firestore_db.collection("chat_responses").document(session.session_id).set(
             session_data
         )
+
+
+# ============================================================
+# RESPONSE VALIDATION HELPERS
+# ============================================================
+
+
+def _normalize_token(text: str) -> str:
+    """Normalize text for reliable matching"""
+    return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
+
+
+def _split_response_tokens(response_text: str) -> List[str]:
+    """Split free-form answers into discrete tokens"""
+    if not response_text:
+        return []
+
+    sanitized = re.sub(r"\b(and|or)\b", ",", response_text, flags=re.IGNORECASE)
+    tokens = [
+        token.strip()
+        for token in re.split(r"[\n,/]+", sanitized)
+        if token and token.strip()
+    ]
+    return tokens or [response_text.strip()]
+
+
+def _build_option_lookup(options: List[str], question_type: str) -> Dict[str, str]:
+    """Build a lookup dictionary for option matching"""
+    lookup: Dict[str, str] = {}
+    for idx, option in enumerate(options):
+        normalized = _normalize_token(option)
+        if normalized:
+            lookup.setdefault(normalized, option)
+
+        # Support numeric shortcuts (e.g., "3" maps to "3 (About the same)")
+        digit_match = re.match(r"(\d+)", option.strip())
+        if digit_match:
+            lookup.setdefault(digit_match.group(1), option)
+
+        if question_type == "rating":
+            lookup.setdefault(str(idx + 1), option)
+
+        # Support yes/no semantics
+        if normalized in {"yes", "no"}:
+            lookup.setdefault(normalized[0], option)
+
+    return lookup
+
+
+def _match_response_to_options(
+    response_text: str,
+    options: List[str],
+    allow_multi: bool,
+    question_type: str,
+) -> Dict[str, Any]:
+    """Match user response to available options; return validation outcome"""
+
+    if not response_text:
+        return {
+            "valid": False,
+            "error": "Response was empty. Please choose one of the available options.",
+            "expected_options": options,
+        }
+
+    tokens = _split_response_tokens(response_text)
+    lookup = _build_option_lookup(options, question_type)
+
+    matched: List[str] = []
+    has_other_option = any(_normalize_token(opt) == "other" for opt in options)
+
+    for token in tokens:
+        normalized_token = _normalize_token(token)
+        candidate = lookup.get(normalized_token)
+
+        if not candidate and normalized_token:
+            digit_match = re.search(r"\d+", normalized_token)
+            if digit_match:
+                candidate = lookup.get(digit_match.group(0))
+
+        if (
+            not candidate
+            and normalized_token
+            and len(normalized_token) >= 3
+        ):
+            partial_matches = [
+                option
+                for option in options
+                if normalized_token in _normalize_token(option)
+            ]
+            if len(partial_matches) == 1:
+                candidate = partial_matches[0]
+
+        if not candidate and has_other_option and normalized_token.startswith("other"):
+            candidate = next(
+                opt for opt in options if _normalize_token(opt) == "other"
+            )
+
+        if not candidate:
+            return {
+                "valid": False,
+                "error": f"Couldn't match '{token}' to the available choices.",
+                "expected_options": options,
+            }
+
+        if candidate not in matched:
+            matched.append(candidate)
+
+    if not matched:
+        return {
+            "valid": False,
+            "error": "Response did not include any recognizable choice.",
+            "expected_options": options,
+        }
+
+    if not allow_multi and len(matched) > 1:
+        return {
+            "valid": False,
+            "error": "Please pick just one option for this question.",
+            "expected_options": options,
+        }
+
+    stored_value = (
+        matched[0]
+        if len(matched) == 1 and not allow_multi
+        else ", ".join(matched)
+    )
+
+    return {
+        "valid": True,
+        "normalized_options": matched,
+        "stored_value": stored_value,
+    }
+
+
+def _validate_and_normalize_response(
+    question: Dict[str, Any], response_text: str
+) -> Dict[str, Any]:
+    """Validate structured answers and normalize stored value"""
+
+    cleaned = (response_text or "").strip()
+    if not cleaned:
+        return {
+            "valid": False,
+            "error": "Response is empty. Please provide an answer.",
+        }
+
+    question_type = question.get("type", "text")
+    options = question.get("options") or []
+
+    # Auto-populate standard options where necessary
+    if question_type == "yes_no" and not options:
+        options = ["Yes", "No"]
+    if question_type == "rating" and not options:
+        options = ["1", "2", "3", "4", "5"]
+
+    allow_multi = bool(
+        question.get("allow_multiple")
+        or question.get("allow_multi")
+        or "select all" in (question.get("text", "").lower())
+    )
+
+    if question_type in {"multiple_choice", "yes_no", "rating"} and options:
+        match_result = _match_response_to_options(
+            cleaned,
+            options,
+            allow_multi and question_type == "multiple_choice",
+            question_type,
+        )
+        if not match_result.get("valid"):
+            return match_result
+
+        normalized_options = match_result.get("normalized_options")
+        stored_value = match_result.get("stored_value", cleaned)
+    else:
+        normalized_options = None
+        stored_value = cleaned
+
+    return {
+        "valid": True,
+        "stored_value": stored_value,
+        "normalized_options": normalized_options,
+        "raw_value": response_text,
+    }
 
 
 # ============================================================
@@ -227,6 +426,7 @@ def get_conversation_state(session_id: str) -> dict:
                 }
                 # Update session to track current index
                 session.metadata["current_question_index"] = i
+                session.current_question_index = i
                 save_session(session)
                 break
 
@@ -267,14 +467,52 @@ def save_user_response(
     """Save user response for a specific question"""
     try:
         session = load_session(session_id)
+        question = session.form_data["questions"][question_index]
 
+        validation = _validate_and_normalize_response(question, response_text)
+        if not validation.get("valid", False) and question_index > 0:
+            fallback_index = question_index - 1
+            fallback_key = str(fallback_index)
+            if fallback_key not in session.responses:
+                fallback_question = session.form_data["questions"][fallback_index]
+                fallback_validation = _validate_and_normalize_response(
+                    fallback_question, response_text
+                )
+                if fallback_validation.get("valid", False):
+                    print(
+                        f"INFO: Adjusted response from question {question_index} to {fallback_index}",
+                        file=os.sys.stderr,
+                    )
+                    question = fallback_question
+                    validation = fallback_validation
+                    question_index = fallback_index
+
+        if not validation.get("valid", False):
+            print(
+                f"VALIDATION ERROR: {validation.get('error')} (question_index={question_index})",
+                file=os.sys.stderr,
+            )
+            return {
+                "saved": False,
+                "error": validation.get("error", "Invalid response"),
+                "expected_options": validation.get("expected_options"),
+            }
+
+        stored_value = validation.get("stored_value", response_text)
+
+        
         # Save response (NO RAW TEXT - for extraction later)
         session.responses[str(question_index)] = {
-            "value": response_text,
+            "value": stored_value,
+            "raw_value": response_text,
             "timestamp": datetime.now().isoformat(),
             "question_index": question_index,
-            "question_type": session.form_data["questions"][question_index]["type"],
+            "question_type": question.get("type"),
         }
+
+        normalized_options = validation.get("normalized_options")
+        if normalized_options:
+            session.responses[str(question_index)]["normalized_options"] = normalized_options
 
         save_session(session)
 
@@ -311,7 +549,13 @@ def advance_to_next_question(session_id: str) -> dict:
                 }
                 # Update metadata to track new current question
                 session.metadata["current_question_index"] = i
+                session.current_question_index = i
                 break
+
+        if next_question is None:
+            final_index = len(questions)
+            session.metadata["current_question_index"] = final_index
+            session.current_question_index = final_index
 
         save_session(session)
 
@@ -365,6 +609,7 @@ def update_session_state(
             }
             # Move to next question
             session.current_question_index += 1
+            session.metadata["current_question_index"] = session.current_question_index
 
         elif action == "end":
             # SAFETY CHECK: Only allow ending if confirmation was already requested
@@ -1247,7 +1492,15 @@ class FormChatAgent:
 - Ask the same question twice in different words
 - Ignore rich context they've provided
 - Force completion when they signal they're done
-- Reveal multiple choice options in your response
+- Reveal multiple choice options in your response (🚫 ABSOLUTE RULE: never list options, bullet points, numbers, or chip labels. Ask the idea of the question in your own words. If you slip, immediately correct yourself and restate the question WITHOUT options.)
+
+# EDGE CASE PLAYBOOK (MUST FOLLOW)
+- Off-topic detours → "That's a bit bananas! 😄 Let's focus on [question theme]." (max 3 redirects before moving on)
+- Explicit skip requests → "Totally cool! 😊 Skipping." then mark skip via tools
+- Multi-answer dumps → Acknowledge, log current answer, promise to revisit extras later
+- Vague answers → one gentle follow-up: "Meh—like a 2 or 3? 😅" then move on
+- Conflicting updates → confirm "Got it, updating that to [latest detail]."
+- Sensitive content → acknowledge seriousness first, no happy emojis
 
 # TOOLS ARE MANDATORY:
 - get_conversation_state() before every interaction
