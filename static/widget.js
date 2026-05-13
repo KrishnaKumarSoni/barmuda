@@ -804,7 +804,7 @@
         if (!sessionId || !message) return;
         
         try {
-            const response = await fetch(`${baseUrl}/api/chat/check_chips`, {
+            const response = await fetch(`${config.apiBase}/api/chat/check_chips`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

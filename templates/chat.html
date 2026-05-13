@@ -463,13 +463,22 @@
             } catch (error) {
                 hideTypingIndicator();
                 console.error('Chat error:', error);
-                addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                if (String(error && error.message) === 'session_ended') {
+                    isEnded = true;
+                    addMessage('assistant', 'This conversation has already ended. Please refresh the page to start a new one.');
+                } else {
+                    addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                }
             } finally {
-                // Re-enable input
-                const input = document.getElementById('message-input');
-                input.disabled = false;
-                document.getElementById('send-button').disabled = false;
-                input.focus();
+                if (!isEnded) {
+                    const input = document.getElementById('message-input');
+                    input.disabled = false;
+                    document.getElementById('send-button').disabled = false;
+                    input.focus();
+                } else {
+                    document.getElementById('message-input').disabled = true;
+                    document.getElementById('send-button').disabled = true;
+                }
             }
         }
         
